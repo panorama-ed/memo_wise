@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ 2.4, 2.5, 2.6, 2.7, jruby, truffleruby ]
+        ruby: [ 2.5, 2.6, 2.7, jruby, truffleruby ]
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -14,7 +14,7 @@ jobs:
     - uses: actions/checkout@master
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: ${{ matrix.ruby }} 
+        ruby-version: ${{ matrix.ruby }}
     - uses: actions/cache@v1
       with:
         path: vendor/bundle
@@ -23,5 +23,5 @@ jobs:
           ${{ runner.os }}-gems-
     - run: bundle config path vendor/bundle
     - run: bundle install --jobs 4 --retry 3
-    - run: bundle exec rubocop --config rubocop.yml
+    - run: bundle exec rubocop
     - run: bundle exec rspec
