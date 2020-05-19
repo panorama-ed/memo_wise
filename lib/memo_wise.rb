@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "memo_wise/version"
 
 module MemoWise
