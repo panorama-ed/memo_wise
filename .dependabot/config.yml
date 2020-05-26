@@ -1,0 +1,29 @@
+# Reference: https://dependabot.com/docs/config-file/
+version: 1
+update_configs:
+  # This configures dependency updates for one package manager. In some
+  # projects, such as warehouse, where we have Ruby and Python, there can be
+  # separate package_manager entries.
+  - package_manager: "ruby:bundler"
+    directory: "/"
+    update_schedule: "weekly"
+
+    default_labels:
+      - "dependencies"
+      - "Needs QA"
+
+    # Dependabot will use a repository's default branch. This will override
+    # that.
+    # target_branch: "master"
+
+    allowed_updates:
+      - match:
+          dependency_type: "direct"
+
+    automerged_updates:
+      # This allows all dependencies that are used for development, e.g., rspec,
+      # rspec-mock, vcr, etc, to be automatically updated. This is generally
+      # okay because the dependencies are not used in production.
+      - match:
+          dependency_type: "development"
+          update_type: "all"
