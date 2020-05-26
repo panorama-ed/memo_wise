@@ -1,0 +1,63 @@
+# This is a dependabot configuration file. When this file is seen on github, a
+# dependabot configuration is created for the project. We can use this to
+# control various aspects of the automated dependency checking, such as the
+# frequency and the target_branch.
+#
+# Reference: https://dependabot.com/docs/config-file/
+version: 1
+update_configs:
+  # This configures dependency updates for one package manager. In some
+  # projects, such as warehouse, where we have Ruby and Python, there can be
+  # separate package_manager entries.
+  - package_manager: "ruby:bundler"
+    directory: "/"
+    update_schedule: "weekly"
+
+    default_labels:
+      - "dependencies"
+      - "Needs QA"
+
+    # Dependabot will use a repository's default branch. This will override
+    # that.
+    # target_branch: "master"
+
+    allowed_updates:
+      - match:
+          dependency_type: "direct"
+
+    automerged_updates:
+      # This allows all dependencies that are used for development, e.g., rspec,
+      # rspec-mock, vcr, etc, to be automatically updated. This is generally
+      # okay because the dependencies are not used in production.
+      - match:
+          dependency_type: "development"
+          update_type: "all"
+
+    #   # This is an example entry to enable automerging of a specific dependency
+    #   # when the update is only for minor or patch semantic versions.
+    #   #
+    #   # The dependency_name can also be a wildcard.
+    #   #
+    #   # This is left commented, but whitelisting a dependency for automatic
+    #   # merging is as simple as creating a new entry that looks like the below.
+    #   - match:
+    #       dependency_type: "all"
+    #       dependency_name: "aws-sdk-s3"
+    #       update_type: "semver:minor"
+
+  - package_manager: "ruby:bundler"
+    directory: "/.overcommit"
+    update_schedule: "weekly"
+
+    default_labels:
+      - "dependencies"
+      - "Needs QA"
+
+    automerged_updates:
+      # This allows all dependencies that are used for overcommit and linting,
+      # e.g., rubocop, brakeman, etc, to be automatically updated. This is
+      # generally okay because these linters are used in CI so tests will fail
+      # and the PR will not be merged if there are breaking changes.
+      - match:
+          dependency_type: "all"
+          update_type: "all"
