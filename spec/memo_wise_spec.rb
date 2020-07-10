@@ -10,6 +10,8 @@ RSpec.describe MemoWise do
         @with_positional_args_counter = 0
         @with_keyword_args_counter = 0
         @special_chars_counter = 0
+        @false_method_counter = 0
+        @nil_method_counter = 0
         @private_memowise_method_counter = 0
         @protected_memowise_method_counter = 0
         @public_memowise_method_counter = 0
@@ -19,6 +21,8 @@ RSpec.describe MemoWise do
                   :with_positional_args_counter,
                   :with_keyword_args_counter,
                   :special_chars_counter,
+                  :false_method_counter,
+                  :nil_method_counter,
                   :private_memowise_method_counter,
                   :protected_memowise_method_counter,
                   :public_memowise_method_counter
@@ -47,6 +51,18 @@ RSpec.describe MemoWise do
       end
       memo_wise :special_chars?
 
+      def false_method
+        @false_method_counter += 1
+        false
+      end
+      memo_wise :false_method
+
+      def nil_method
+        @nil_method_counter += 1
+        nil
+      end
+      memo_wise :nil_method
+
       def private_memowise_method
         @private_memowise_method_counter += 1
         "private_memowise_method"
@@ -74,7 +90,7 @@ RSpec.describe MemoWise do
 
   describe "#memo_wise" do
     it "memoizes methods with no arguments" do
-      expect(Array.new(4) { instance.send(:no_args) }).to all eq("no_args")
+      expect(Array.new(4) { instance.no_args }).to all eq("no_args")
       expect(instance.no_args_counter).to eq(1)
     end
 
@@ -104,6 +120,16 @@ RSpec.describe MemoWise do
       expect(Array.new(4) { instance.special_chars? }).
         to all eq("special_chars?")
       expect(instance.special_chars_counter).to eq(1)
+    end
+
+    it "memoizes methods with false values" do
+      expect(Array.new(4) { instance.false_method }).to all eq(false)
+      expect(instance.false_method_counter).to eq(1)
+    end
+
+    it "memoizes methods with nil values" do
+      expect(Array.new(4) { instance.nil_method }).to all eq(nil)
+      expect(instance.nil_method_counter).to eq(1)
     end
 
     it "does not memoize methods across instances" do
