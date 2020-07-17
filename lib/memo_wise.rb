@@ -5,6 +5,7 @@ require "memo_wise/version"
 module MemoWise
   def initialize(*values)
     @_memo_wise = {}
+    @_memo_wise_keys = Hash.new { |h, k| h[k] = [] }
     super
   end
 
@@ -36,6 +37,7 @@ module MemoWise
           def #{method_name}(*args)
             key = [:#{method_name}, args].freeze
             @_memo_wise.fetch(key) do
+              @_memo_wise_keys[:#{method_name}] << args
               @_memo_wise[key] = #{not_memoized_name}(*args)
             end
           end
@@ -44,5 +46,17 @@ module MemoWise
         END_OF_METHOD
       end
     end
+  end
+
+  def reset_memo_wise(method_name)
+    unless respond_to?(method_name)
+      raise ArgumentError, "#{method_name.inspect} is not a defined method"
+    end
+
+    @_memo_wise_keys[method_name].each do |args|
+      @_memo_wise.delete([method_name, args])
+    end
+
+    @_memo_wise_keys.delete(method_name)
   end
 end

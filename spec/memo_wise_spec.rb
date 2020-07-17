@@ -136,10 +136,9 @@ RSpec.describe MemoWise do
       instance2 = class_with_memo.new
 
       instance.no_args
-      instance2.no_args
 
       expect(instance.no_args_counter).to eq(1)
-      expect(instance2.no_args_counter).to eq(1)
+      expect(instance2.no_args_counter).to eq(0)
     end
 
     it "keeps private methods private" do
@@ -163,6 +162,89 @@ RSpec.describe MemoWise do
       end
 
       it { expect { instance }.to raise_error(ArgumentError) }
+    end
+  end
+
+  describe "#reset_memo_wise" do
+    it "resets memoization for methods with no arguments" do
+      instance.no_args
+      instance.reset_memo_wise(:no_args)
+      expect(Array.new(4) { instance.no_args }).to all eq("no_args")
+      expect(instance.no_args_counter).to eq(2)
+    end
+
+    it "resets memoization for methods with positional arguments" do
+      instance.with_positional_args(1, 2)
+      instance.with_positional_args(2, 3)
+      instance.reset_memo_wise(:with_positional_args)
+
+      expect(Array.new(4) { instance.with_positional_args(1, 2) }).
+        to all eq("with_positional_args: a=1, b=2")
+
+      expect(Array.new(4) { instance.with_positional_args(1, 3) }).
+        to all eq("with_positional_args: a=1, b=3")
+
+      # This should be executed twice for each set of arguments passed
+      expect(instance.with_positional_args_counter).to eq(4)
+    end
+
+    it "resets memoization for methods with keyword arguments" do
+      instance.with_keyword_args(a: 1, b: 2)
+      instance.with_keyword_args(a: 2, b: 3)
+      instance.reset_memo_wise(:with_keyword_args)
+
+      expect(Array.new(4) { instance.with_keyword_args(a: 1, b: 2) }).
+        to all eq("with_keyword_args: a=1, b=2")
+
+      expect(Array.new(4) { instance.with_keyword_args(a: 2, b: 3) }).
+        to all eq("with_keyword_args: a=2, b=3")
+
+      # This should be executed twice for each set of arguments passed
+      expect(instance.with_keyword_args_counter).to eq(4)
+    end
+
+    it "resets memoization for methods with special characters in the name" do
+      instance.special_chars?
+      instance.reset_memo_wise(:special_chars?)
+      expect(Array.new(4) { instance.special_chars? }).
+        to all eq("special_chars?")
+      expect(instance.special_chars_counter).to eq(2)
+    end
+
+    it "resets memoization for methods with false values" do
+      instance.false_method
+      instance.reset_memo_wise(:false_method)
+      expect(Array.new(4) { instance.false_method }).to all eq(false)
+      expect(instance.false_method_counter).to eq(2)
+    end
+
+    it "resets memoization for methods with nil values" do
+      instance.nil_method
+      instance.reset_memo_wise(:nil_method)
+      expect(Array.new(4) { instance.nil_method }).to all eq(nil)
+      expect(instance.nil_method_counter).to eq(2)
+    end
+
+    it "does not reset memoization methods across instances" do
+      instance2 = class_with_memo.new
+
+      instance.no_args
+      instance2.no_args
+
+      instance.reset_memo_wise(:no_args)
+
+      instance.no_args
+      instance2.no_args
+
+      expect(instance.no_args_counter).to eq(2)
+      expect(instance2.no_args_counter).to eq(1)
+    end
+
+    context "when the method to reset memoization for is not defined" do
+      it {
+        expect { instance.reset_memo_wise(:not_defined) }.
+          to raise_error(ArgumentError)
+      }
     end
   end
 end
