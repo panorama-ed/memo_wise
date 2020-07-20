@@ -49,6 +49,10 @@ module MemoWise
   end
 
   def reset_memo_wise(method_name)
+    unless method_name.is_a?(Symbol)
+      raise ArgumentError, "#{method_name.inspect} must be a Symbol"
+    end
+
     unless respond_to?(method_name)
       raise ArgumentError, "#{method_name.inspect} is not a defined method"
     end

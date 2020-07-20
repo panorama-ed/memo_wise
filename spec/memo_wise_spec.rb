@@ -240,6 +240,13 @@ RSpec.describe MemoWise do
       expect(instance2.no_args_counter).to eq(1)
     end
 
+    context "when the name of the method is not a symbol" do
+      it {
+        expect { instance.reset_memo_wise("no_args") }.
+          to raise_error(ArgumentError)
+      }
+    end
+
     context "when the method to reset memoization for is not defined" do
       it {
         expect { instance.reset_memo_wise(:not_defined) }.
