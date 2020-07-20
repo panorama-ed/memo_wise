@@ -59,4 +59,9 @@ module MemoWise
 
     @_memo_wise_keys.delete(method_name)
   end
+
+  def reset_all_memo_wise
+    @_memo_wise_keys.clear
+    @_memo_wise.clear
+  end
 end

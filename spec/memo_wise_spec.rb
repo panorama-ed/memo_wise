@@ -247,4 +247,79 @@ RSpec.describe MemoWise do
       }
     end
   end
+
+  describe "#reset_all_memo_wise" do
+    let!(:instance) do
+      class_with_memo.new.tap do |instance|
+        instance.no_args
+        instance.with_positional_args(1, 2)
+        instance.with_positional_args(2, 3)
+        instance.with_keyword_args(a: 1, b: 2)
+        instance.with_keyword_args(a: 2, b: 3)
+        instance.special_chars?
+        instance.false_method
+        instance.nil_method
+
+        instance.reset_all_memo_wise
+      end
+    end
+
+    it "resets memoization for methods with no arguments" do
+      expect(Array.new(4) { instance.no_args }).to all eq("no_args")
+      expect(instance.no_args_counter).to eq(2)
+    end
+
+    it "resets memoization for methods with positional arguments" do
+      expect(Array.new(4) { instance.with_positional_args(1, 2) }).
+        to all eq("with_positional_args: a=1, b=2")
+
+      expect(Array.new(4) { instance.with_positional_args(1, 3) }).
+        to all eq("with_positional_args: a=1, b=3")
+
+      # This should be executed twice for each set of arguments passed
+      expect(instance.with_positional_args_counter).to eq(4)
+    end
+
+    it "resets memoization for methods with keyword arguments" do
+      expect(Array.new(4) { instance.with_keyword_args(a: 1, b: 2) }).
+        to all eq("with_keyword_args: a=1, b=2")
+
+      expect(Array.new(4) { instance.with_keyword_args(a: 2, b: 3) }).
+        to all eq("with_keyword_args: a=2, b=3")
+
+      # This should be executed twice for each set of arguments passed
+      expect(instance.with_keyword_args_counter).to eq(4)
+    end
+
+    it "resets memoization for methods with special characters in the name" do
+      expect(Array.new(4) { instance.special_chars? }).
+        to all eq("special_chars?")
+      expect(instance.special_chars_counter).to eq(2)
+    end
+
+    it "resets memoization for methods with false values" do
+      expect(Array.new(4) { instance.false_method }).to all eq(false)
+      expect(instance.false_method_counter).to eq(2)
+    end
+
+    it "resets memoization for methods with nil values" do
+      expect(Array.new(4) { instance.nil_method }).to all eq(nil)
+      expect(instance.nil_method_counter).to eq(2)
+    end
+
+    it "does not reset memoization methods across instances" do
+      instance2 = class_with_memo.new
+
+      instance.no_args
+      instance2.no_args
+
+      instance.reset_all_memo_wise
+
+      instance.no_args
+      instance2.no_args
+
+      expect(instance.no_args_counter).to eq(3)
+      expect(instance2.no_args_counter).to eq(1)
+    end
+  end
 end
