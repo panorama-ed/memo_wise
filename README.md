@@ -26,11 +26,11 @@ TODO: Write usage instructions here
 
 |Gem|Method with no arguments|Method with positional arguments|Method with keyword arguments|
 |---|------------------------|--------------------------------|-----------------------------|
-|**`memo_wise`**|**11.90x (± 0.00) slower**|**baseline**|**baseline**|
-|`memery`|10.25x (± 0.00) slower|1.30x (± 0.00) slower|1.40x (± 0.00) slower|
-|`memoist`|2.26x (± 0.00) slower|1.47x (± 0.00) slower|1.52x (± 0.00) slower|
-|`memoized`|baseline|1.19x (± 0.00) slower|1.33x (± 0.00) slower|
-|`memoizer`|2.77x (± 0.00) slower|1.23x (± 0.00) slower|1.40x (± 0.00) slower|
+|**`memo_wise`**|**baseline**|**baseline**|**baseline**|
+|`memery`|13.02x (± 0.00) slower|1.27x (± 0.00) slower|1.49x (± 0.00) slower|
+|`memoist`|2.65x (± 0.00) slower|1.46x (± 0.00) slower|1.57x (± 0.00) slower|
+|`memoized`|1.27x  (± 0.00) slower|1.16x (± 0.00) slower|1.37x (± 0.00) slower|
+|`memoizer`|3.18x (± 0.00) slower|1.25x (± 0.00) slower|1.45x (± 0.00) slower|
 
 You can run benchmarks yourself with:
 

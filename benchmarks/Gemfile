@@ -7,7 +7,7 @@ ruby "2.7.1"
 
 gem "benchmark-ips"
 gem "memery"
-gem "memo_wise", path: ".."
 gem "memoist"
 gem "memoized"
 gem "memoizer"
+gem "memo_wise", path: ".."
