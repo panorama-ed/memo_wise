@@ -1,0 +1,13 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# Keep updated to latest Ruby, and keep in sync with benchmarks/.ruby-version.
+ruby "2.7.1"
+
+gem "benchmark-ips"
+gem "memery"
+gem "memo_wise", path: ".."
+gem "memoist"
+gem "memoized"
+gem "memoizer"

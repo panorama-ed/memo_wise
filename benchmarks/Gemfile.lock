@@ -1,0 +1,32 @@
+PATH
+  remote: ..
+  specs:
+    memo_wise (0.1.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    benchmark-ips (2.8.2)
+    memery (1.3.0)
+      ruby2_keywords (~> 0.0.2)
+    memoist (0.16.2)
+    memoized (1.0.2)
+    memoizer (1.0.3)
+    ruby2_keywords (0.0.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  benchmark-ips
+  memery
+  memo_wise!
+  memoist
+  memoized
+  memoizer
+
+RUBY VERSION
+   ruby 2.7.1p83
+
+BUNDLED WITH
+   2.1.4
