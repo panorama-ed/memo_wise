@@ -81,4 +81,28 @@ module MemoWise
     @_memo_wise_keys.clear
     @_memo_wise.clear
   end
+
+  # If no block is given, will set the value to nil
+  def preset_memo_wise(method_name, *args)
+    not_memoized_name = :"_not_memoized_#{method_name}"
+    unless self.class.private_method_defined?(not_memoized_name)
+      raise ArgumentError, "#{method_name} is not a memoized method"
+    end
+
+    validate_params!(not_memoized_name, args.dup)
+
+    @_memo_wise_keys[method_name] << args
+    key = if method(method_name).arity.zero?
+            method_name
+          else
+            [method_name, args].freeze
+          end
+
+    @_memo_wise[key] = block_given? ? yield : nil
+  end
+
+  private
+
+  # TODO: Parameter validation for presetting values
+  def validate_params!(method_name, args); end
 end
