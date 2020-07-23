@@ -29,13 +29,13 @@ Memoized value retrieval time using Ruby 2.7.1 and
 
 |Method arguments|**`memo_wise` (0.1.0)**|`memery` (1.3.0)|`memoist` (0.16.2)|`memoized` (1.0.2)|`memoizer` (1.0.3)|
 |--|--|--|--|--|--|
-|`()` (none)|**baseline**|12.11x slower|2.49x slower|1.22x slower|3.21x slower|
-|`(a, b)`|**baseline**|2.00x slower|2.28x slower|1.84x slower|1.99x slower|
-|`(a:, b:)`|**baseline**|2.19x slower|2.36x slower|2.07x slower|2.17x slower|
-|`(a, b:)`|**baseline**|1.56x slower|1.70x slower|1.46x slower|1.54x slower|
-|`(a, *args)`|**baseline**|2.01x slower|2.34x slower|1.98x slower|2.01x slower|
-|`(a:, **kwargs)`|**baseline**|1.94x slower|2.11x slower|1.90x slower|1.92x slower|
-|`(a, *args, b:, **kwargs)`|**baseline**|1.94x slower|2.15x slower|1.92x slower|1.92x slower|
+|`()` (none)|**baseline**|11.57x slower|2.47x slower|1.16x slower|2.88x slower|
+|`(a, b)`|**baseline**|2.02x slower|2.29x slower|1.83x slower|2.06x slower|
+|`(a:, b:)`|**baseline**|2.34x slower|2.40x slower|2.17x slower|2.30x slower|
+|`(a, b:)`|**baseline**|1.55x slower|1.61x slower|1.46x slower|1.51x slower|
+|`(a, *args)`|**baseline**|1.99x slower|2.21x slower|1.93x slower|2.00x slower|
+|`(a:, **kwargs)`|**baseline**|1.95x slower|2.07x slower|1.87x slower|1.97x slower|
+|`(a, *args, b:, **kwargs)`|**baseline**|1.82x slower|1.98x slower|1.87x slower|1.91x slower|
 
 You can run benchmarks yourself with:
 
