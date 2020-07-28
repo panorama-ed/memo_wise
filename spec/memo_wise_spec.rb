@@ -188,6 +188,22 @@ RSpec.describe MemoWise do
       expect(instance.with_positional_args_counter).to eq(4)
     end
 
+    it "resets memoization for methods for specific positional arguments" do
+      instance.with_positional_args(1, 2)
+      instance.with_positional_args(2, 3)
+      instance.reset_memo_wise(:with_positional_args, 1, 2)
+
+      expect(Array.new(4) { instance.with_positional_args(1, 2) }).
+        to all eq("with_positional_args: a=1, b=2")
+
+      expect(Array.new(4) { instance.with_positional_args(2, 3) }).
+        to all eq("with_positional_args: a=2, b=3")
+
+      # This should be executed twice for each set of arguments passed,
+      # and a third time for the set of arguments that was reset.
+      expect(instance.with_positional_args_counter).to eq(3)
+    end
+
     it "resets memoization for methods with keyword arguments" do
       instance.with_keyword_args(a: 1, b: 2)
       instance.with_keyword_args(a: 2, b: 3)
@@ -201,6 +217,22 @@ RSpec.describe MemoWise do
 
       # This should be executed twice for each set of arguments passed
       expect(instance.with_keyword_args_counter).to eq(4)
+    end
+
+    it "resets memoization for methods for specific keyword arguments" do
+      instance.with_keyword_args(a: 1, b: 2)
+      instance.with_keyword_args(a: 2, b: 3)
+      instance.reset_memo_wise(:with_keyword_args, a: 1, b: 2)
+
+      expect(Array.new(4) { instance.with_keyword_args(a: 1, b: 2) }).
+        to all eq("with_keyword_args: a=1, b=2")
+
+      expect(Array.new(4) { instance.with_keyword_args(a: 2, b: 3) }).
+        to all eq("with_keyword_args: a=2, b=3")
+
+      # This should be executed twice for each set of arguments passed,
+      # and a third time for the set of arguments that was reset.
+      expect(instance.with_keyword_args_counter).to eq(3)
     end
 
     it "resets memoization for methods with special characters in the name" do
