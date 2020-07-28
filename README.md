@@ -24,13 +24,16 @@ TODO: Write usage instructions here
 
 ## Benchmarks
 
+Using Ruby 2.7.1 and
+[`benchmark-ips`](https://github.com/evanphx/benchmark-ips) 2.8.2:
+
 |Gem|Method with no arguments|Method with positional arguments|Method with keyword arguments|
 |---|------------------------|--------------------------------|-----------------------------|
-|**`memo_wise`**|**baseline**|**baseline**|**baseline**|
-|`memery`|13.02x (± 0.00) slower|1.27x (± 0.00) slower|1.49x (± 0.00) slower|
-|`memoist`|2.65x (± 0.00) slower|1.46x (± 0.00) slower|1.57x (± 0.00) slower|
-|`memoized`|1.27x  (± 0.00) slower|1.16x (± 0.00) slower|1.37x (± 0.00) slower|
-|`memoizer`|3.18x (± 0.00) slower|1.25x (± 0.00) slower|1.45x (± 0.00) slower|
+|**`memo_wise` (0.1.0)**|**baseline**|**baseline**|**baseline**|
+|`memery` (1.3.0)|13.99x (± 0.00) slower|1.23x (± 0.00) slower|1.45x (± 0.00) slower|
+|`memoist` (0.16.2)|2.77x (± 0.00) slower|1.37x (± 0.00) slower|1.52x (± 0.00) slower|
+|`memoized` (1.0.2)|1.26x  (± 0.00) slower|1.10x (± 0.00) slower|1.38x (± 0.00) slower|
+|`memoizer` (1.0.3)|3.24x (± 0.00) slower|1.23x (± 0.00) slower|1.45x (± 0.00) slower|
 
 You can run benchmarks yourself with:
 

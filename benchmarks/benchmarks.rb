@@ -6,7 +6,9 @@ require "memery"
 require "memo_wise"
 require "memoist"
 require "memoized"
+require "memoized/version" # Memoized::VERSION does not get loaded above.
 require "memoizer"
+require "memoizer/version" # Memoizer::VERSION does not get loaded above.
 
 class BenchmarkSuiteWithoutGC
   def warming(*)
@@ -31,7 +33,11 @@ class BenchmarkSuiteWithoutGC
 end
 suite = BenchmarkSuiteWithoutGC.new
 
-BenchmarkGem = Struct.new(:klass, :inheritance_method, :memoization_method)
+BenchmarkGem = Struct.new(:klass, :inheritance_method, :memoization_method) do
+  def version
+    klass::VERSION
+  end
+end
 
 # We alphabetize this list for easier readability, but shuffle the list before
 # using it to minimize the chance that our benchmarks are affected by ordering.
@@ -80,7 +86,7 @@ Benchmark.ips do |x|
   x.config(suite: suite)
   BENCHMARK_GEMS.each do |benchmark_gem|
     example_class = Object.const_get("#{benchmark_gem.klass}Example")
-    x.report("#{benchmark_gem.klass}#no_args") do
+    x.report("#{benchmark_gem.klass} (#{benchmark_gem.version}): no_args") do
       instance = example_class.new
       N_INTERATIONS_WITHOUT_ARGUMENTS.times { instance.no_args }
     end
@@ -93,7 +99,9 @@ Benchmark.ips do |x|
   x.config(suite: suite)
   BENCHMARK_GEMS.each do |benchmark_gem|
     example_class = Object.const_get("#{benchmark_gem.klass}Example")
-    x.report("#{benchmark_gem.klass}#positional_args") do
+    x.report(
+      "#{benchmark_gem.klass} (#{benchmark_gem.version}): positional_args"
+    ) do
       instance = example_class.new
       N_CALLS_PER_UNIQUE_ARGUMENTS.times do
         ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
@@ -108,7 +116,9 @@ Benchmark.ips do |x|
   x.config(suite: suite)
   BENCHMARK_GEMS.each do |benchmark_gem|
     example_class = Object.const_get("#{benchmark_gem.klass}Example")
-    x.report("#{benchmark_gem.klass}#keyword_args") do
+    x.report(
+      "#{benchmark_gem.klass} (#{benchmark_gem.version}): keyword_args"
+    ) do
       instance = example_class.new
       N_CALLS_PER_UNIQUE_ARGUMENTS.times do
         ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
