@@ -60,7 +60,7 @@ module MemoWise
     end
   end
 
-  def reset_memo_wise(method_name)
+  def reset_memo_wise(method_name, *args)
     unless method_name.is_a?(Symbol)
       raise ArgumentError, "#{method_name.inspect} must be a Symbol"
     end
@@ -69,7 +69,11 @@ module MemoWise
       raise ArgumentError, "#{method_name} is not a defined method"
     end
 
-    @_memo_wise_keys[method_name].each do |args|
+    if args.empty?
+      @_memo_wise_keys[method_name].each do |method_args|
+        @_memo_wise.delete([method_name, method_args])
+      end
+    else
       @_memo_wise.delete([method_name, args])
     end
 
