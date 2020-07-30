@@ -15,13 +15,6 @@ jobs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-    - uses: actions/cache@v1
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-gems-
-    - run: bundle config path vendor/bundle
-    - run: bundle install --jobs 4 --retry 3
+        bundler-cache: true
     - run: bundle exec rubocop
     - run: bundle exec rspec
