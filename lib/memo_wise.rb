@@ -29,15 +29,15 @@ module MemoWise
                               :public
                             end
 
-        not_memoized_name = :"_not_memoized_#{method_name}"
-        alias_method not_memoized_name, method_name
-        private not_memoized_name
+        original_memo_wised_name = :"_memo_wise_original_#{method_name}"
+        alias_method original_memo_wised_name, method_name
+        private original_memo_wised_name
 
         if instance_method(method_name).arity.zero?
           module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}
               @_memo_wise.fetch(:#{method_name}) do
-                @_memo_wise[:#{method_name}] = #{not_memoized_name}
+                @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
               end
             end
           END_OF_METHOD
@@ -47,7 +47,7 @@ module MemoWise
               key = [:#{method_name}, args].freeze
               @_memo_wise.fetch(key) do
                 @_memo_wise_keys[:#{method_name}] << args
-                @_memo_wise[key] = #{not_memoized_name}(*args)
+                @_memo_wise[key] = #{original_memo_wised_name}(*args)
               end
             end
           END_OF_METHOD
@@ -82,14 +82,18 @@ module MemoWise
     @_memo_wise.clear
   end
 
-  # If no block is given, will set the value to nil
-  def preset_memo_wise(method_name, *args)
-    not_memoized_name = :"_not_memoized_#{method_name}"
-    unless self.class.private_method_defined?(not_memoized_name)
-      raise ArgumentError, "#{method_name} is not a memoized method"
+  def preset_memo_wise(method_name, *args, &block)
+    original_memo_wised_name = :"_memo_wise_original_#{method_name}"
+    unless self.class.private_method_defined?(original_memo_wised_name)
+      raise ArgumentError, "#{method_name} is not a memo_wised method"
     end
 
-    validate_params!(not_memoized_name, args.dup)
+    unless block
+      raise ArgumentError,
+            "Pass a block as the value to preset for #{method_name}, #{args}"
+    end
+
+    validate_params!(original_memo_wised_name, args)
 
     @_memo_wise_keys[method_name] << args
     key = if method(method_name).arity.zero?

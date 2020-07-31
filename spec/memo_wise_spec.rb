@@ -343,122 +343,102 @@ RSpec.describe MemoWise do
   end
 
   describe "#preset_memo_wise" do
-    it "presets memoization for no args" do
-      instance.preset_memo_wise(:no_args) { "preset_no_args" }
+    shared_examples "presets memoization" do |overriding:|
+      let(:expected_counter) { overriding ? 1 : 0 }
 
-      expect(Array.new(4) { instance.no_args }).to all eq("preset_no_args")
-      expect(instance.no_args_counter).to eq(0)
-    end
+      context "with no args" do
+        before(:each) { instance.no_args if overriding }
 
-    it "presets memoization for methods with positional arguments" do
-      instance.preset_memo_wise(:with_positional_args, 1, 2) { "preset_1_2" }
-      instance.preset_memo_wise(:with_positional_args, 3, 4) { "preset_3_4" }
+        it "presets memoization" do
+          instance.preset_memo_wise(:no_args) { "preset_no_args" }
 
-      expect(Array.new(4) { instance.with_positional_args(1, 2) }).
-        to all eq("preset_1_2")
-
-      expect(Array.new(4) { instance.with_positional_args(3, 4) }).
-        to all eq("preset_3_4")
-
-      expect(instance.with_positional_args_counter).to eq(0)
-    end
-
-    it "presets memoization for methods with keyword arguments" do
-      instance.preset_memo_wise(:with_keyword_args, a: 1, b: 2) { "first" }
-      instance.preset_memo_wise(:with_keyword_args, a: 2, b: 3) { "second" }
-
-      expect(Array.new(4) { instance.with_keyword_args(a: 1, b: 2) }).
-        to all eq("first")
-
-      expect(Array.new(4) { instance.with_keyword_args(a: 2, b: 3) }).
-        to all eq("second")
-
-      expect(instance.with_keyword_args_counter).to eq(0)
-    end
-
-    it "presets memoization for methods with special characters in the name" do
-      instance.preset_memo_wise(:special_chars?) { "preset_special_chars?" }
-      expect(Array.new(4) { instance.special_chars? }).
-        to all eq("preset_special_chars?")
-      expect(instance.special_chars_counter).to eq(0)
-    end
-
-    it "presets memoization for methods set to false values" do
-      instance.preset_memo_wise(:true_method) { false }
-      expect(Array.new(4) { instance.true_method }).to all eq(false)
-      expect(instance.true_method_counter).to eq(0)
-    end
-
-    it "presets memoization for methods set to nil values" do
-      instance.preset_memo_wise(:no_args) { nil }
-      expect(Array.new(4) { instance.no_args }).to all eq(nil)
-      expect(instance.no_args_counter).to eq(0)
-    end
-
-    context "when there is already a memoized value" do
-      it "overwrites the memoization for no args" do
-        instance.no_args
-
-        instance.preset_memo_wise(:no_args) { "preset_no_args" }
-
-        expect(Array.new(4) { instance.no_args }).to all eq("preset_no_args")
-        expect(instance.no_args_counter).to eq(1)
+          expect(Array.new(4) { instance.no_args }).to all eq("preset_no_args")
+          expect(instance.no_args_counter).to eq(expected_counter)
+        end
       end
 
-      it "overwrites the memoization for methods with positional arguments" do
-        instance.with_positional_args(1, 2)
-        instance.with_positional_args(3, 4)
+      context "with positional args" do
+        let(:expected_counter) { overriding ? 2 : 0 }
 
-        instance.preset_memo_wise(:with_positional_args, 1, 2) { "preset_1_2" }
-        instance.preset_memo_wise(:with_positional_args, 3, 4) { "preset_3_4" }
+        before(:each) do
+          if overriding
+            instance.with_positional_args(1, 2)
+            instance.with_positional_args(3, 4)
+          end
+        end
 
-        expect(Array.new(4) { instance.with_positional_args(1, 2) }).
-          to all eq("preset_1_2")
+        it "presets memoization" do
+          instance.preset_memo_wise(:with_positional_args, 1, 2) { "preset_1" }
+          instance.preset_memo_wise(:with_positional_args, 3, 4) { "preset_3" }
 
-        expect(Array.new(4) { instance.with_positional_args(3, 4) }).
-          to all eq("preset_3_4")
+          expect(Array.new(4) { instance.with_positional_args(1, 2) }).
+            to all eq("preset_1")
 
-        expect(instance.with_positional_args_counter).to eq(2)
+          expect(Array.new(4) { instance.with_positional_args(3, 4) }).
+            to all eq("preset_3")
+
+          expect(instance.with_positional_args_counter).to eq(expected_counter)
+        end
       end
 
-      it "overwrites the memoization for methods with keyword arguments" do
-        instance.with_keyword_args(a: 1, b: 2)
-        instance.with_keyword_args(a: 2, b: 3)
+      context "with keyword args" do
+        let(:expected_counter) { overriding ? 2 : 0 }
 
-        instance.preset_memo_wise(:with_keyword_args, a: 1, b: 2) { "first" }
-        instance.preset_memo_wise(:with_keyword_args, a: 2, b: 3) { "second" }
+        before(:each) do
+          if overriding
+            instance.with_keyword_args(a: 1, b: 2)
+            instance.with_keyword_args(a: 2, b: 3)
+          end
+        end
 
-        expect(Array.new(4) { instance.with_keyword_args(a: 1, b: 2) }).
-          to all eq("first")
+        it "presets memoization" do
+          instance.preset_memo_wise(:with_keyword_args, a: 1, b: 2) { "first" }
+          instance.preset_memo_wise(:with_keyword_args, a: 2, b: 3) { "second" }
 
-        expect(Array.new(4) { instance.with_keyword_args(a: 2, b: 3) }).
-          to all eq("second")
+          expect(Array.new(4) { instance.with_keyword_args(a: 1, b: 2) }).
+            to all eq("first")
 
-        expect(instance.with_keyword_args_counter).to eq(2)
+          expect(Array.new(4) { instance.with_keyword_args(a: 2, b: 3) }).
+            to all eq("second")
+
+          expect(instance.with_keyword_args_counter).to eq(expected_counter)
+        end
       end
 
-      it "overwrites memoization for methods with special chars in the name" do
-        instance.special_chars?
-        instance.preset_memo_wise(:special_chars?) { "preset_special_chars?" }
-        expect(Array.new(4) { instance.special_chars? }).
-          to all eq("preset_special_chars?")
-        expect(instance.special_chars_counter).to eq(1)
+      context "with special chars" do
+        before(:each) { instance.special_chars? if overriding }
+
+        it "presets memoization" do
+          instance.preset_memo_wise(:special_chars?) { "preset_special_chars?" }
+          expect(Array.new(4) { instance.special_chars? }).
+            to all eq("preset_special_chars?")
+          expect(instance.special_chars_counter).to eq(expected_counter)
+        end
       end
 
-      it "overwrites memoization for methods set to false values" do
-        instance.true_method
-        instance.preset_memo_wise(:true_method) { false }
-        expect(Array.new(4) { instance.true_method }).to all eq(false)
-        expect(instance.true_method_counter).to eq(1)
+      context "with methods set to false values" do
+        before(:each) { instance.true_method if overriding }
+
+        it "presets memoization" do
+          instance.preset_memo_wise(:true_method) { false }
+          expect(Array.new(4) { instance.true_method }).to all eq(false)
+          expect(instance.true_method_counter).to eq(expected_counter)
+        end
       end
 
-      it "overwrites memoization for methods set to nil values" do
-        instance.no_args
-        instance.preset_memo_wise(:no_args) { nil }
-        expect(Array.new(4) { instance.no_args }).to all eq(nil)
-        expect(instance.no_args_counter).to eq(1)
+      context "with methods set to nil values" do
+        before(:each) { instance.no_args if overriding }
+
+        it "presets memoization" do
+          instance.preset_memo_wise(:no_args) { nil }
+          expect(Array.new(4) { instance.no_args }).to all eq(nil)
+          expect(instance.no_args_counter).to eq(expected_counter)
+        end
       end
     end
+
+    it_behaves_like "presets memoization", overriding: false
+    it_behaves_like "presets memoization", overriding: true
 
     it "does not preset memoization methods across instances" do
       instance2 = class_with_memo.new
@@ -471,14 +451,21 @@ RSpec.describe MemoWise do
 
     context "when the method to preset memoization for is not memoized" do
       it {
-        expect { instance.preset_memo_wise(:unmemoized_method) }.
+        expect { instance.preset_memo_wise(:unmemoized_method) { nil } }.
           to raise_error(ArgumentError)
       }
     end
 
     context "when the method to preset memoization for is not defined" do
       it {
-        expect { instance.preset_memo_wise(:undefined_method) }.
+        expect { instance.preset_memo_wise(:undefined_method) { nil } }.
+          to raise_error(ArgumentError)
+      }
+    end
+
+    context "when there is no block passed in" do
+      it {
+        expect { instance.preset_memo_wise(:no_args) }.
           to raise_error(ArgumentError)
       }
     end
