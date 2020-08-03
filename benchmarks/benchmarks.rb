@@ -34,8 +34,8 @@ end
 suite = BenchmarkSuiteWithoutGC.new
 
 BenchmarkGem = Struct.new(:klass, :inheritance_method, :memoization_method) do
-  def version
-    klass::VERSION
+  def benchmark_name
+    "#{klass} (#{klass::VERSION})"
   end
 end
 
@@ -74,21 +74,40 @@ BENCHMARK_GEMS.each do |benchmark_gem|
   CLASS
 end
 
-# We benchmark different cases separately, to ensure that slow performance in
-# one method or code path isn't hidden by fast performance in another.
-N_UNIQUE_ARGUMENTS = 1_000
-N_CALLS_PER_UNIQUE_ARGUMENTS = 1_000
-N_INTERATIONS_WITHOUT_ARGUMENTS = N_UNIQUE_ARGUMENTS *
-                                  N_CALLS_PER_UNIQUE_ARGUMENTS
+# We pre-create argument lists for our memoized methods with arguments, so that
+# our benchmarks are running the exact same inputs for each case.
+N_UNIQUE_ARGUMENTS = 100
 ARGUMENTS = Array.new(N_UNIQUE_ARGUMENTS) { |i| [i, i + 1] }
 
+# We benchmark different cases separately, to ensure that slow performance in
+# one method or code path isn't hidden by fast performance in another.
+
 Benchmark.ips do |x|
   x.config(suite: suite)
   BENCHMARK_GEMS.each do |benchmark_gem|
-    example_class = Object.const_get("#{benchmark_gem.klass}Example")
-    x.report("#{benchmark_gem.klass} (#{benchmark_gem.version}): no_args") do
-      instance = example_class.new
-      N_INTERATIONS_WITHOUT_ARGUMENTS.times { instance.no_args }
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once to memoize the result value, so our benchmark only tests memoized
+    # retrieval time.
+    instance.no_args
+
+    x.report("#{benchmark_gem.benchmark_name}: no_args") { instance.no_args }
+  end
+
+  x.compare!
+end
+
+Benchmark.ips do |x|
+  x.config(suite: suite)
+  BENCHMARK_GEMS.each do |benchmark_gem|
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once with each set of arguments to memoize the result values, so our
+    # benchmark only tests memoized retrieval time.
+    ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
+
+    x.report("#{benchmark_gem.benchmark_name}: positional_args") do
+      ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
     end
   end
 
@@ -98,31 +117,14 @@ end
 Benchmark.ips do |x|
   x.config(suite: suite)
   BENCHMARK_GEMS.each do |benchmark_gem|
-    example_class = Object.const_get("#{benchmark_gem.klass}Example")
-    x.report(
-      "#{benchmark_gem.klass} (#{benchmark_gem.version}): positional_args"
-    ) do
-      instance = example_class.new
-      N_CALLS_PER_UNIQUE_ARGUMENTS.times do
-        ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
-      end
-    end
-  end
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
 
-  x.compare!
-end
+    # Run once with each set of arguments to memoize the result values, so our
+    # benchmark only tests memoized retrieval time.
+    ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
 
-Benchmark.ips do |x|
-  x.config(suite: suite)
-  BENCHMARK_GEMS.each do |benchmark_gem|
-    example_class = Object.const_get("#{benchmark_gem.klass}Example")
-    x.report(
-      "#{benchmark_gem.klass} (#{benchmark_gem.version}): keyword_args"
-    ) do
-      instance = example_class.new
-      N_CALLS_PER_UNIQUE_ARGUMENTS.times do
-        ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
-      end
+    x.report("#{benchmark_gem.benchmark_name}: keyword_args") do
+      ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
     end
   end
 
