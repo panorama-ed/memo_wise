@@ -4,8 +4,7 @@ require "memo_wise/version"
 
 module MemoWise
   def initialize(*values)
-    @_memo_wise = {}
-    @_memo_wise_keys = Hash.new { |h, k| h[k] = [] }
+    @_memo_wise = Hash.new { |h, k| h[k] = {} }
     super
   end
 
@@ -42,12 +41,13 @@ module MemoWise
             end
           END_OF_METHOD
         else
+          # Note that we don't need to freeze args before using it as a hash key
+          # because Ruby always copies argument arrays when splatted.
           module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}(*args)
-              key = [:#{method_name}, args].freeze
-              @_memo_wise.fetch(key) do
-                @_memo_wise_keys[:#{method_name}] << args
-                @_memo_wise[key] = #{not_memoized_name}(*args)
+              hash = @_memo_wise[:#{method_name}]
+              hash.fetch(args) do
+                hash[args] = #{not_memoized_name}(*args)
               end
             end
           END_OF_METHOD
@@ -70,19 +70,13 @@ module MemoWise
     end
 
     if args.empty?
-      @_memo_wise_keys[method_name].each do |method_args|
-        @_memo_wise.delete([method_name, method_args])
-      end
+      @_memo_wise.delete(method_name)
     else
-      @_memo_wise.delete([method_name, args])
+      @_memo_wise[method_name].delete(args)
     end
-
-    @_memo_wise.delete(method_name)
-    @_memo_wise_keys.delete(method_name)
   end
 
   def reset_all_memo_wise
-    @_memo_wise_keys.clear
     @_memo_wise.clear
   end
 end
