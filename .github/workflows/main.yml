@@ -9,7 +9,7 @@ jobs:
         ruby: [jruby, 2.5, 2.6, 2.7]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@main
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}

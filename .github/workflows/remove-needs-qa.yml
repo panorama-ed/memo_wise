@@ -2,7 +2,7 @@
 # dependabot user merging a PR.
 #
 # We need this mechanism to allow for automerging whitelisted dependencies while
-# also allowing for blocking a merge to master for deployment (in the way that
+# also allowing for blocking a merge to main for deployment (in the way that
 # our other PRs work). When the automerge script runs in henchman, it looks
 # for `Needs QA` on github pull requests, and if the label is present,
 # blocks the commit from merging.
