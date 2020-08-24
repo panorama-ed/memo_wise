@@ -30,10 +30,10 @@ Memoized value retrieval time using Ruby 2.7.1 and
 |Gem|Method with no arguments|Method with positional arguments|Method with keyword arguments|
 |---|------------------------|--------------------------------|-----------------------------|
 |**`memo_wise` (0.1.0)**|**baseline**|**baseline**|**baseline**|
-|`memery` (1.3.0)|12.22x (± 0.00) slower|1.28x (± 0.00) slower|1.48x (± 0.00) slower|
-|`memoist` (0.16.2)|2.50x (± 0.00) slower|1.44x (± 0.00) slower|1.61x (± 0.00) slower|
-|`memoized` (1.0.2)|1.21x  (± 0.00) slower|1.17x (± 0.00) slower|1.40x (± 0.00) slower|
-|`memoizer` (1.0.3)|3.34x (± 0.00) slower|1.29x (± 0.00) slower|1.48x (± 0.00) slower|
+|`memery` (1.3.0)|11.80x (± 0.00) slower|2.00x (± 0.00) slower|1.93x (± 0.00) slower|
+|`memoist` (0.16.2)|2.55x (± 0.00) slower|2.20x (± 0.00) slower|2.01x (± 0.00) slower|
+|`memoized` (1.0.2)|1.19x  (± 0.00) slower|1.81x (± 0.00) slower|1.81x (± 0.00) slower|
+|`memoizer` (1.0.3)|2.93x (± 0.00) slower|1.97x (± 0.00) slower|1.90x (± 0.00) slower|
 
 You can run benchmarks yourself with:
 
