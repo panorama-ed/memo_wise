@@ -70,6 +70,26 @@ BENCHMARK_GEMS.each do |benchmark_gem|
         100
       end
       #{benchmark_gem.memoization_method} :keyword_args
+
+      def positional_and_keyword_args(a, b:)
+        100
+      end
+      #{benchmark_gem.memoization_method} :positional_and_keyword_args
+
+      def positional_and_splat_args(a, *args)
+        100
+      end
+      #{benchmark_gem.memoization_method} :positional_and_splat_args
+
+      def keyword_and_double_splat_args(a:, **kwargs)
+        100
+      end
+      #{benchmark_gem.memoization_method} :keyword_and_double_splat_args
+
+      def positional_splat_keyword_and_double_splat_args(a, *args, b:, **kwargs)
+        100
+      end
+      #{benchmark_gem.memoization_method} :positional_splat_keyword_and_double_splat_args
     end
   CLASS
 end
@@ -125,6 +145,83 @@ Benchmark.ips do |x|
 
     x.report("#{benchmark_gem.benchmark_name}: keyword_args") do
       ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
+    end
+  end
+
+  x.compare!
+end
+
+Benchmark.ips do |x|
+  x.config(suite: suite)
+  BENCHMARK_GEMS.each do |benchmark_gem|
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once with each set of arguments to memoize the result values, so our
+    # benchmark only tests memoized retrieval time.
+    ARGUMENTS.each { |a, b| instance.positional_and_keyword_args(a, b: b) }
+
+    x.report("#{benchmark_gem.benchmark_name}: positional_and_keyword_args") do
+      ARGUMENTS.each { |a, b| instance.positional_and_keyword_args(a, b: b) }
+    end
+  end
+
+  x.compare!
+end
+
+Benchmark.ips do |x|
+  x.config(suite: suite)
+  BENCHMARK_GEMS.each do |benchmark_gem|
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once with each set of arguments to memoize the result values, so our
+    # benchmark only tests memoized retrieval time.
+    ARGUMENTS.each { |a, b| instance.positional_and_splat_args(a, b) }
+
+    x.report("#{benchmark_gem.benchmark_name}: positional_and_splat_args") do
+      ARGUMENTS.each { |a, b| instance.positional_and_splat_args(a, b) }
+    end
+  end
+
+  x.compare!
+end
+
+Benchmark.ips do |x|
+  x.config(suite: suite)
+  BENCHMARK_GEMS.each do |benchmark_gem|
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once with each set of arguments to memoize the result values, so our
+    # benchmark only tests memoized retrieval time.
+    ARGUMENTS.each { |a, b| instance.keyword_and_double_splat_args(a: a, b: b) }
+
+    x.report(
+      "#{benchmark_gem.benchmark_name}: keyword_and_double_splat_args"
+    ) do
+      ARGUMENTS.each { |a, b| instance.positional_and_splat_args(a: a, b: b) }
+    end
+  end
+
+  x.compare!
+end
+
+Benchmark.ips do |x|
+  x.config(suite: suite)
+  BENCHMARK_GEMS.each do |benchmark_gem|
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once with each set of arguments to memoize the result values, so our
+    # benchmark only tests memoized retrieval time.
+    ARGUMENTS.each do |a, b|
+      instance.positional_splat_keyword_and_double_splat_args(a, b, a: a, b: b)
+    end
+
+    x.report(
+      "#{benchmark_gem.benchmark_name}: "\
+        "positional_splat_keyword_and_double_splat_args"
+    ) do
+      ARGUMENTS.each do |a, b|
+        instance.positional_and_splat_args(a, b, a: a, b: b)
+      end
     end
   end
 

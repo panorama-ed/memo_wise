@@ -8,7 +8,11 @@ RSpec.describe MemoWise do
       def initialize
         @no_args_counter = 0
         @with_positional_args_counter = 0
+        @with_positional_and_splat_args_counter = 0
         @with_keyword_args_counter = 0
+        @with_keyword_and_double_splat_args_counter = 0
+        @with_positional_and_keyword_args_counter = 0
+        @with_positional_splat_keyword_and_double_splat_args_counter = 0
         @special_chars_counter = 0
         @false_method_counter = 0
         @nil_method_counter = 0
@@ -19,7 +23,11 @@ RSpec.describe MemoWise do
 
       attr_reader :no_args_counter,
                   :with_positional_args_counter,
+                  :with_positional_and_splat_args_counter,
                   :with_keyword_args_counter,
+                  :with_keyword_and_double_splat_args_counter,
+                  :with_positional_and_keyword_args_counter,
+                  :with_positional_splat_keyword_and_double_splat_args_counter,
                   :special_chars_counter,
                   :false_method_counter,
                   :nil_method_counter,
@@ -39,11 +47,41 @@ RSpec.describe MemoWise do
       end
       memo_wise :with_positional_args
 
+      def with_positional_and_splat_args(a, *args) # rubocop:disable Naming/MethodParameterName
+        @with_positional_and_splat_args_counter += 1
+        "with_positional_and_splat_args: a=#{a}, args=#{args}"
+      end
+      memo_wise :with_positional_and_splat_args
+
       def with_keyword_args(a:, b:) # rubocop:disable Naming/MethodParameterName
         @with_keyword_args_counter += 1
         "with_keyword_args: a=#{a}, b=#{b}"
       end
       memo_wise :with_keyword_args
+
+      def with_keyword_and_double_splat_args(a:, **kwargs) # rubocop:disable Naming/MethodParameterName
+        @with_keyword_and_double_splat_args_counter += 1
+        "with_keyword_and_double_splat_args: a=#{a}, kwargs=#{kwargs}"
+      end
+      memo_wise :with_keyword_and_double_splat_args
+
+      def with_positional_and_keyword_args(a, b:) # rubocop:disable Naming/MethodParameterName
+        @with_positional_and_keyword_args_counter += 1
+        "with_positional_and_keyword_args: a=#{a}, b=#{b}"
+      end
+      memo_wise :with_positional_and_keyword_args
+
+      def with_positional_splat_keyword_and_double_splat_args(
+        a, # rubocop:disable Naming/MethodParameterName
+        *args,
+        b:, # rubocop:disable Naming/MethodParameterName
+        **kwargs
+      )
+        @with_positional_splat_keyword_and_double_splat_args_counter += 1
+        "with_positional_splat_keyword_and_double_splat_args: "\
+          "a=#{a}, args=#{args} b=#{b} kwargs=#{kwargs}"
+      end
+      memo_wise :with_positional_splat_keyword_and_double_splat_args
 
       def special_chars?
         @special_chars_counter += 1
@@ -105,6 +143,17 @@ RSpec.describe MemoWise do
       expect(instance.with_positional_args_counter).to eq(2)
     end
 
+    it "memoizes methods with positional and splat arguments" do
+      expect(Array.new(4) { instance.with_positional_and_splat_args(1, 2, 3) }).
+        to all eq("with_positional_and_splat_args: a=1, args=[2, 3]")
+
+      expect(Array.new(4) { instance.with_positional_and_splat_args(1, 3, 4) }).
+        to all eq("with_positional_and_splat_args: a=1, args=[3, 4]")
+
+      # This should be executed once for each set of arguments passed
+      expect(instance.with_positional_and_splat_args_counter).to eq(2)
+    end
+
     it "memoizes methods with keyword arguments" do
       expect(Array.new(4) { instance.with_keyword_args(a: 1, b: 2) }).
         to all eq("with_keyword_args: a=1, b=2")
@@ -114,6 +163,78 @@ RSpec.describe MemoWise do
 
       # This should be executed once for each set of arguments passed
       expect(instance.with_keyword_args_counter).to eq(2)
+    end
+
+    it "memoizes methods with keyword and double-splat arguments" do
+      expect(
+        Array.new(4) do
+          instance.with_keyword_and_double_splat_args(a: 1, b: 2, c: 3)
+        end
+      ).to all eq(
+        "with_keyword_and_double_splat_args: a=1, kwargs={:b=>2, :c=>3}"
+      )
+
+      expect(
+        Array.new(4) do
+          instance.with_keyword_and_double_splat_args(a: 1, b: 2, c: 4)
+        end
+      ).to all eq(
+        "with_keyword_and_double_splat_args: a=1, kwargs={:b=>2, :c=>4}"
+      )
+
+      # This should be executed once for each set of arguments passed
+      expect(instance.with_keyword_and_double_splat_args_counter).to eq(2)
+    end
+
+    it "memoizes methods with positional and keyword arguments" do
+      expect(
+        Array.new(4) { instance.with_positional_and_keyword_args(1, b: 2) }
+      ).to all eq("with_positional_and_keyword_args: a=1, b=2")
+
+      expect(
+        Array.new(4) { instance.with_positional_and_keyword_args(2, b: 3) }
+      ).to all eq("with_positional_and_keyword_args: a=2, b=3")
+
+      # This should be executed once for each set of arguments passed
+      expect(instance.with_positional_and_keyword_args_counter).to eq(2)
+    end
+
+    it "memoizes methods with positional, splat, keyword, and double-splat "\
+       "arguments" do
+      expect(
+        Array.new(4) do
+          instance.with_positional_splat_keyword_and_double_splat_args(
+            1,
+            2,
+            3,
+            b: 4,
+            c: 5,
+            d: 6
+          )
+        end
+      ).to all eq(
+        "with_positional_splat_keyword_and_double_splat_args: "\
+          "a=1, args=[2, 3] b=4 kwargs={:c=>5, :d=>6}"
+      )
+
+      expect(
+        Array.new(4) do
+          instance.with_positional_splat_keyword_and_double_splat_args(
+            1,
+            2,
+            b: 4,
+            c: 5
+          )
+        end
+      ).to all eq(
+        "with_positional_splat_keyword_and_double_splat_args: "\
+          "a=1, args=[2] b=4 kwargs={:c=>5}"
+      )
+
+      # This should be executed once for each set of arguments passed
+      expect(
+        instance.with_positional_splat_keyword_and_double_splat_args_counter
+      ).to eq(2)
     end
 
     it "memoizes methods with special characters in the name" do
