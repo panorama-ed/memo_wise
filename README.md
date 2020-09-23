@@ -27,13 +27,15 @@ TODO: Write usage instructions here
 Memoized value retrieval time using Ruby 2.7.1 and
 [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) 2.8.2:
 
-|Gem|Method with no arguments|Method with positional arguments|Method with keyword arguments|
-|---|------------------------|--------------------------------|-----------------------------|
-|**`memo_wise` (0.1.0)**|**baseline**|**baseline**|**baseline**|
-|`memery` (1.3.0)|11.80x (± 0.00) slower|2.00x (± 0.00) slower|1.93x (± 0.00) slower|
-|`memoist` (0.16.2)|2.55x (± 0.00) slower|2.20x (± 0.00) slower|2.01x (± 0.00) slower|
-|`memoized` (1.0.2)|1.19x  (± 0.00) slower|1.81x (± 0.00) slower|1.81x (± 0.00) slower|
-|`memoizer` (1.0.3)|2.93x (± 0.00) slower|1.97x (± 0.00) slower|1.90x (± 0.00) slower|
+|Method arguments|**`memo_wise` (0.1.0)**|`memery` (1.3.0)|`memoist` (0.16.2)|`memoized` (1.0.2)|`memoizer` (1.0.3)|
+|--|--|--|--|--|--|
+|`()` (none)|**baseline**|12.11x slower|2.49x slower|1.22x slower|3.21x slower|
+|`(a, b)`|**baseline**|2.00x slower|2.28x slower|1.84x slower|1.99x slower|
+|`(a:, b:)`|**baseline**|2.19x slower|2.36x slower|2.07x slower|2.17x slower|
+|`(a, b:)`|**baseline**|1.56x slower|1.70x slower|1.46x slower|1.54x slower|
+|`(a, *args)`|**baseline**|2.01x slower|2.34x slower|1.98x slower|2.01x slower|
+|`(a:, **kwargs)`|**baseline**|1.94x slower|2.11x slower|1.90x slower|1.92x slower|
+|`(a, *args, b:, **kwargs)`|**baseline**|1.94x slower|2.15x slower|1.92x slower|1.92x slower|
 
 You can run benchmarks yourself with:
 
