@@ -74,6 +74,7 @@ GEM
     tzinfo (1.2.7)
       thread_safe (~> 0.1)
     unicode-display_width (1.7.0)
+    values (1.8.0)
     zeitwerk (2.4.0)
 
 PLATFORMS
@@ -83,6 +84,7 @@ DEPENDENCIES
   memo_wise!
   panolint!
   rspec (~> 3.0)
+  values (~> 1)
 
 BUNDLED WITH
    2.1.4

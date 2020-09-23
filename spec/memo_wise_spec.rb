@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "values"
+
 RSpec.describe MemoWise do
   let(:class_with_memo) do
     Class.new do
@@ -283,6 +285,31 @@ RSpec.describe MemoWise do
       end
 
       it { expect { instance }.to raise_error(ArgumentError) }
+    end
+
+    context "when the class is a Value class using the 'values' gem" do
+      let(:external_counter) { [0] }
+
+      let(:increment_proc) { -> { external_counter[0] += 1 } }
+
+      let(:value_class) do
+        Value.new(:increment_proc) do
+          prepend MemoWise # rubocop:disable RSpec/DescribedClass
+
+          def no_args
+            increment_proc.call
+            "no_args"
+          end
+          memo_wise :no_args
+        end
+      end
+
+      let(:value_instance) { value_class.new(increment_proc) }
+
+      it "memoizes methods" do
+        expect(Array.new(4) { value_instance.no_args }).to all eq("no_args")
+        expect(external_counter[0]).to eq(1)
+      end
     end
   end
 
