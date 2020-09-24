@@ -76,6 +76,7 @@ GEM
       thread_safe (~> 0.1)
     unicode-display_width (1.7.0)
     values (1.8.0)
+    yard (0.9.25)
     zeitwerk (2.4.0)
 
 PLATFORMS
@@ -86,6 +87,7 @@ DEPENDENCIES
   panolint!
   rspec (~> 3.0)
   values (~> 1)
+  yard (~> 0.9)
 
 BUNDLED WITH
    2.1.4

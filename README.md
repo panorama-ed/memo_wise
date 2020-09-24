@@ -66,13 +66,29 @@ release a new version, update the version number in `version.rb`, and then run
 git commits and tags, and push the `.gem` file to
 [rubygems.org](https://rubygems.org).
 
+## Documentation
+
+We maintain API documentation using [YARD](https://yardoc.org/), which is
+published automatically at
+[RubyDoc.info](https://rubydoc.info/github/panorama-ed/memo_wise/main).
+
+To edit documentation locally and see it rendered in your browser, run:
+
+```bash
+bundle config set with 'docs'
+bundle install
+bundle exec yard server
+```
+
+And then open in your web browser: `http://localhost:8808`, refreshing to see
+your latest saved documentation changes rendered.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/panorama-ed/memo_wise. This project is intended to be a safe,
 welcoming space for collaboration, and contributors are expected to adhere to
 the [code of conduct](https://github.com/panorama-ed/memo_wise/blob/main/CODE_OF_CONDUCT.md).
-
 
 ## License
 
