@@ -2,7 +2,7 @@
 
 require "memo_wise/version"
 
-module MemoWise
+module MemoWise # rubocop:disable Metrics/ModuleLength
   def initialize(*values)
     @_memo_wise = Hash.new { |h, k| h[k] = {} }
     super
@@ -40,9 +40,9 @@ module MemoWise
                               :public
                             end
 
-        not_memoized_name = :"_not_memoized_#{method_name}"
-        alias_method not_memoized_name, method_name
-        private not_memoized_name
+        original_memo_wised_name = :"_memo_wise_original_#{method_name}"
+        alias_method original_memo_wised_name, method_name
+        private original_memo_wised_name
 
         method = instance_method(method_name)
 
@@ -52,7 +52,7 @@ module MemoWise
           module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}
               @_memo_wise.fetch(:#{method_name}) do
-                @_memo_wise[:#{method_name}] = #{not_memoized_name}
+                @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
               end
             end
           END_OF_METHOD
@@ -81,7 +81,7 @@ module MemoWise
             def #{method_name}#{args_str}
               hash = @_memo_wise[:#{method_name}]
               hash.fetch(#{fetch_key}) do
-                hash[#{fetch_key}] = #{not_memoized_name}#{args_str}
+                hash[#{fetch_key}] = #{original_memo_wised_name}#{args_str}
               end
             end
           END_OF_METHOD
@@ -95,6 +95,8 @@ module MemoWise
   end
 
   def reset_memo_wise(method_name, *args, **kwargs)
+    validate_memo_wised!(method_name)
+
     unless method_name.is_a?(Symbol)
       raise ArgumentError, "#{method_name.inspect} must be a Symbol"
     end
@@ -106,21 +108,54 @@ module MemoWise
     if args.empty? && kwargs.empty?
       @_memo_wise.delete(method_name)
     else
-      method = self.class.instance_method(method_name)
-
-      has_arg = MemoWise.has_arg?(method)
-
-      if has_arg && MemoWise.has_kwarg?(method)
-        @_memo_wise[method_name].delete([args, kwargs])
-      elsif has_arg
-        @_memo_wise[method_name].delete(args)
-      else
-        @_memo_wise[method_name].delete(kwargs)
-      end
+      @_memo_wise[method_name].delete(fetch_key(method_name, *args, **kwargs))
     end
   end
 
   def reset_all_memo_wise
     @_memo_wise.clear
   end
+
+  def preset_memo_wise(method_name, *args, **kwargs)
+    validate_memo_wised!(method_name)
+
+    unless block_given?
+      raise ArgumentError,
+            "Pass a block as the value to preset for #{method_name}, #{args}"
+    end
+
+    validate_params!(method_name, args)
+
+    if method(method_name).arity.zero?
+      @_memo_wise[method_name] = yield
+    else
+      @_memo_wise[method_name][fetch_key(method_name, *args, **kwargs)] = yield
+    end
+  end
+
+  private
+
+  def validate_memo_wised!(method_name)
+    original_memo_wised_name = :"_memo_wise_original_#{method_name}"
+
+    unless self.class.private_method_defined?(original_memo_wised_name)
+      raise ArgumentError, "#{method_name} is not a memo_wised method"
+    end
+  end
+
+  def fetch_key(method_name, *args, **kwargs)
+    method = self.class.instance_method(method_name)
+    has_arg = MemoWise.has_arg?(method)
+
+    if has_arg && MemoWise.has_kwarg?(method)
+      [args, kwargs].freeze
+    elsif has_arg
+      args
+    else
+      kwargs
+    end
+  end
+
+  # TODO: Parameter validation for presetting values
+  def validate_params!(method_name, args); end
 end
