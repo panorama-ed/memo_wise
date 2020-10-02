@@ -1,0 +1,6 @@
+--readme README.md
+--title 'MemoWise Documentation'
+--charset utf-8
+--markup markdown
+'lib/**/*.rb' - '*.md'
+LICENSE.txt

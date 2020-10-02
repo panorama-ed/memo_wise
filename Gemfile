@@ -7,10 +7,16 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gemspec
 
 group :test do
-  if RUBY_VERSION.start_with?("2.7")
-    # Match only Ruby version we run the linters on in CI
-    gem "panolint", github: "panorama-ed/panolint"
-  end
   gem "rspec", "~> 3.0"
   gem "values", "~> 1"
+end
+
+# Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
+group :linters do
+  gem "panolint", github: "panorama-ed/panolint"
+end
+
+# Install locally to iterate on YARD docs and see them rendered
+group :docs, optional: true do
+  gem "yard", "~> 0.9"
 end
