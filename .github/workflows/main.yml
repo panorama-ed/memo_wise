@@ -20,11 +20,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gems-
     - run: bundle config path vendor/bundle
-    - run: bundle config set without 'linters'
+    - run: bundle config set without 'linters:docs'
       if: matrix.ruby != 2.7
     - run: bundle install --jobs 4 --retry 3
     - run: bundle exec rspec
     - run: bundle exec rubocop
+      if: matrix.ruby == 2.7
+    - run: bundle exec yard doctest
       if: matrix.ruby == 2.7
     - run: |
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle install --jobs 4 --retry 3
