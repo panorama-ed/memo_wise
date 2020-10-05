@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary       = "The wisest choice for Ruby memoization."
   spec.homepage      = "https://github.com/panorama-ed/memo_wise"
   spec.license       = "MIT"
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added
