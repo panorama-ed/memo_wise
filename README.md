@@ -68,20 +68,25 @@ git commits and tags, and push the `.gem` file to
 
 ## Documentation
 
+#### Documentation is Automatically Generated
+
 We maintain API documentation using [YARD](https://yardoc.org/), which is
 published automatically at
-[RubyDoc.info](https://rubydoc.info/github/panorama-ed/memo_wise/main).
-
-To edit documentation locally and see it rendered in your browser, run:
+[RubyDoc.info](https://rubydoc.info/github/panorama-ed/memo_wise/main). To edit
+documentation locally and see it rendered in your browser, run:
 
 ```bash
-bundle config set with 'docs'
-bundle install
 bundle exec yard server
 ```
 
-And then open in your web browser: `http://localhost:8808`, refreshing to see
-your latest saved documentation changes rendered.
+#### Documentation Examples are Automatically Tested
+
+We use [yard-doctest](https://github.com/p0deje/yard-doctest) to test all
+code examples in our YARD documentation. To run `doctest` locally:
+
+```bash
+bundle exec yard doctest
+```
 
 ## Contributing
 

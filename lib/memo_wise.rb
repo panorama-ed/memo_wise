@@ -2,24 +2,113 @@
 
 require "memo_wise/version"
 
+# MemoWise is the wise choice for memoization in Ruby.
 module MemoWise # rubocop:disable Metrics/ModuleLength
-  def initialize(*values)
+  # Constructor to setup memoization state before
+  # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
+  # constructor.
+  #
+  # - **Q:** Why is [Module#prepend](https://ruby-doc.org/core-2.7.1/Module.html#method-i-prepend)
+  #          important here
+  #          ([more info](https://medium.com/@leo_hetsch/ruby-modules-include-vs-prepend-vs-extend-f09837a5b073))?
+  # - **A:** To setup *mutable state* inside the instance, even if the original
+  #          constructor will then call
+  #          [Object#freeze](https://ruby-doc.org/core-2.7.1/Object.html#method-i-freeze).
+  #
+  # This approach supports memoization on frozen (immutable) objects -- for
+  # example, classes created by the
+  # [Values](https://github.com/tcrayford/Values)
+  # [gem](https://rubygems.org/gems/values).
+  #
+  def initialize(*)
     @_memo_wise = Hash.new { |h, k| h[k] = {} }
     super
   end
 
+  # @private
+  #
+  # Determine whether `method` takes any *positional* args.
+  #
+  # These are the types of positional args:
+  #
+  #   * *Required* -- ex: `def foo(a)`
+  #   * *Optional* -- ex: `def foo(b=1)`
+  #   * *Splatted* -- ex: `def foo(*c)`
+  #
+  # @param method [Method, UnboundMethod]
+  #   Arguments of this method will be checked
+  #
+  # @return [Boolean]
+  #   Return `true` if `method` accepts one or more positional arguments
+  #
+  # @example
+  #   class Example
+  #     def no_args
+  #     end
+  #
+  #     def position_arg(a)
+  #     end
+  #   end
+  #
+  #   MemoWise.has_arg?(Example.instance_method(:no_args)) #=> false
+  #
+  #   MemoWise.has_arg?(Example.instance_method(:position_arg)) #=> true
+  #
   def self.has_arg?(method) # rubocop:disable Naming/PredicateName
     method.parameters.any? do |(param, _)|
       param == :req || param == :opt || param == :rest # rubocop:disable Style/MultipleComparison
     end
   end
 
+  # @private
+  #
+  # Determine whether `method` takes any *keyword* args.
+  #
+  # These are the types of keyword args:
+  #
+  #   * *Keyword Required* -- ex: `def foo(a:)`
+  #   * *Keyword Optional* -- ex: `def foo(b: 1)`
+  #   * *Keyword Splatted* -- ex: `def foo(**c)`
+  #
+  # @param method [Method, UnboundMethod]
+  #   Arguments of this method will be checked
+  #
+  # @return [Boolean]
+  #   Return `true` if `method` accepts one or more keyword arguments
+  #
+  # @example
+  #   class Example
+  #     def position_args(a, b=1)
+  #     end
+  #
+  #     def keyword_args(a:, b: 1)
+  #     end
+  #   end
+  #
+  #   MemoWise.has_kwarg?(Example.instance_method(:position_args)) #=> false
+  #
+  #   MemoWise.has_kwarg?(Example.instance_method(:keyword_args)) #=> true
+  #
   def self.has_kwarg?(method) # rubocop:disable Naming/PredicateName
     method.parameters.any? do |(param, _)|
       param == :keyreq || param == :key || param == :keyrest # rubocop:disable Style/MultipleComparison
     end
   end
 
+  # @private
+  #
+  # Private setup method, called automatically by `prepend MemoWise` in a class.
+  #
+  # @param target [Class]
+  #   The `Class` into to prepend the MemoWise methods e.g. `memo_wise`
+  #
+  # @see https://ruby-doc.org/core-2.7.1/Module.html#method-i-prepended
+  #
+  # @example
+  #   class Example
+  #     prepend MemoWise
+  #   end
+  #
   def self.prepended(target) # rubocop:disable Metrics/PerceivedComplexity
     class << target
       # Implements memoization for the given method name.
@@ -94,28 +183,56 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     end
   end
 
-  def reset_memo_wise(method_name, *args, **kwargs)
-    validate_memo_wised!(method_name)
-
-    unless method_name.is_a?(Symbol)
-      raise ArgumentError, "#{method_name.inspect} must be a Symbol"
-    end
-
-    unless respond_to?(method_name)
-      raise ArgumentError, "#{method_name} is not a defined method"
-    end
-
-    if args.empty? && kwargs.empty?
-      @_memo_wise.delete(method_name)
-    else
-      @_memo_wise[method_name].delete(fetch_key(method_name, *args, **kwargs))
-    end
-  end
-
-  def reset_all_memo_wise
-    @_memo_wise.clear
-  end
-
+  # Presets the memoized result for the given method to the result of the given
+  # block.
+  #
+  # This method is for situations where the caller *already* has the result of
+  # an expensive method call, and wants to preset that result as memoized for
+  # future calls. In other words, the memoized method will be called *zero*
+  # times rather than once.
+  #
+  # NOTE: Currently, no attempt is made to validate that the given arguments are
+  # valid for the given method.
+  #
+  # @param method_name [Symbol]
+  #   Name of a method previously setup with `#memo_wise`.
+  #
+  # @param args [Array]
+  #   (Optional) If the method takes positional args, these are the values of
+  #   position args for which the given block's result will be preset as the
+  #   memoized result.
+  #
+  # @param kwargs [Hash]
+  #   (Optional) If the method takes keyword args, these are the keys and values
+  #   of keyword args for which the given block's result will be preset as the
+  #   memoized result.
+  #
+  # @yieldreturn [Object]
+  #   The result of the given block will be preset as memoized for future calls
+  #   to the given method.
+  #
+  # @return [void]
+  #
+  # @example
+  #   class Example
+  #     prepend MemoWise
+  #     attr_reader :method_called_times
+  #
+  #     def method_to_preset
+  #       @method_called_times = (@method_called_times || 0) + 1
+  #       "A"
+  #     end
+  #     memo_wise :method_to_preset
+  #   end
+  #
+  #   ex = Example.new
+  #
+  #   ex.preset_memo_wise(:method_to_preset) { "B" }
+  #
+  #   ex.method_to_preset #=> "B"
+  #
+  #   ex.method_called_times #=> nil
+  #
   def preset_memo_wise(method_name, *args, **kwargs)
     validate_memo_wised!(method_name)
 
@@ -130,6 +247,103 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       @_memo_wise[method_name] = yield
     else
       @_memo_wise[method_name][fetch_key(method_name, *args, **kwargs)] = yield
+    end
+  end
+
+  # Resets memoized results of a given method, or all methods.
+  #
+  # There are three _reset modes_ depending on how this method is called:
+  #
+  # **method + args** mode (most specific)
+  #
+  # - If given `method_name` and *either* `args` *or* `kwargs` *or* both:
+  # - Resets *only* the memoized result of calling `method_name` with those
+  #   particular arguments.
+  #
+  # **method** (any args) mode
+  #
+  # - If given `method_name` and *neither* `args` *nor* `kwargs`:
+  # - Resets *all* memoized results of calling `method_name` with any arguments.
+  #
+  # **all methods** mode (most general)
+  #
+  # - If *not* given `method_name`:
+  # - Resets all memoized results of calling *all methods*.
+  #
+  # @param method_name [Symbol, nil]
+  #   (Optional) Name of a method previously setup with `#memo_wise`. If not
+  #   given, will reset *all* memoized results for *all* methods.
+  #
+  # @param args [Array]
+  #   (Optional) If the method takes positional args, these are the values of
+  #   position args for which the memoized result will be reset.
+  #
+  # @param kwargs [Hash]
+  #   (Optional) If the method takes keyword args, these are the keys and values
+  #   of keyword args for which the memoized result will be reset.
+  #
+  # @return [void]
+  #
+  # @example
+  #   class Example
+  #     prepend MemoWise
+  #
+  #     def method_to_reset(x)
+  #       @method_called_times = (@method_called_times || 0) + 1
+  #     end
+  #     memo_wise :method_to_reset
+  #   end
+  #
+  #   ex = Example.new
+  #
+  #   ex.method_to_reset("a") #=> 1
+  #   ex.method_to_reset("a") #=> 1
+  #
+  #   ex.method_to_reset("b") #=> 2
+  #   ex.method_to_reset("b") #=> 2
+  #
+  #   ex.reset_memo_wise(:method_to_reset, "a") # reset "method + args" mode
+  #
+  #   ex.method_to_reset("a") #=> 3
+  #   ex.method_to_reset("a") #=> 3
+  #
+  #   ex.method_to_reset("b") #=> 2
+  #   ex.method_to_reset("b") #=> 2
+  #
+  #   ex.reset_memo_wise(:method_to_reset) # reset "method" (any args) mode
+  #
+  #   ex.method_to_reset("a") #=> 4
+  #   ex.method_to_reset("b") #=> 5
+  #
+  #   ex.reset_memo_wise # reset "all methods" mode
+  #
+  def reset_memo_wise(method_name = nil, *args, **kwargs)
+    if method_name.nil?
+      unless args.empty?
+        raise ArgumentError, "Provided args when method_name = nil"
+      end
+
+      unless kwargs.empty?
+        raise ArgumentError, "Provided kwargs when method_name = nil"
+      end
+
+      return @_memo_wise.clear
+    end
+
+    unless method_name.is_a?(Symbol)
+      raise ArgumentError, "#{method_name.inspect} must be a Symbol"
+    end
+
+    unless respond_to?(method_name)
+      raise ArgumentError, "#{method_name} is not a defined method"
+    end
+
+    validate_memo_wised!(method_name)
+
+    if args.empty? && kwargs.empty?
+      @_memo_wise.delete(method_name)
+    else
+      @_memo_wise[method_name].delete(fetch_key(method_name, *args, **kwargs))
     end
   end
 

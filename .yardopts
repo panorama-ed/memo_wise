@@ -2,5 +2,7 @@
 --title 'MemoWise Documentation'
 --charset utf-8
 --markup markdown
+--plugin yard-doctest
+--no-private
 'lib/**/*.rb' - '*.md'
 LICENSE.txt
