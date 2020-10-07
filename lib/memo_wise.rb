@@ -3,6 +3,22 @@
 require "memo_wise/version"
 
 # MemoWise is the wise choice for memoization in Ruby.
+#
+# - **Q:** What is *memoization*?
+# - **A:** [via Wikipedia](https://en.wikipedia.org/wiki/Memoization):
+#
+#          [Memoization is] an optimization technique used primarily to speed up
+#          computer programs by storing the results of expensive function
+#          calls and returning the cached result when the same inputs occur
+#          again.
+#
+# To start using MemoWise in a class or module:
+#
+#   1. Add `prepend MemoWise` to the top of the class or module
+#   2. Call {.memo_wise} to implement memoization for a given method
+#
+# @see .memo_wise
+#
 module MemoWise # rubocop:disable Metrics/ModuleLength
   # Constructor to setup memoization state before
   # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
@@ -111,10 +127,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #
   def self.prepended(target) # rubocop:disable Metrics/PerceivedComplexity
     class << target
-      # Implements memoization for the given method name.
-      #
-      # @param method_name [Symbol]
-      #   Name of method for which to implement memoization.
+      # NOTE: See YARD docs for {.memo_wise} directly below this method!
       def memo_wise(method_name) # rubocop:disable Metrics/PerceivedComplexity
         unless method_name.is_a?(Symbol)
           raise ArgumentError,
@@ -182,6 +195,41 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       end
     end
   end
+
+  ##
+  # @!method self.memo_wise(method_name)
+  #   Implements memoization for the given method name.
+  #
+  #   - **Q:** What does it mean to "implement memoization"?
+  #   - **A:** To wrap the original method such that, for any given set of
+  #            arguments, the original method will be called at most *once*. The
+  #            result of that call will be stored on the object. All future
+  #            calls to the same method with the same set of arguments will then
+  #            return that saved result.
+  #
+  #   @param method_name [Symbol]
+  #     Name of method for which to implement memoization.
+  #
+  #   @return [void]
+  #
+  #   @example
+  #     class Example
+  #       prepend MemoWise
+  #
+  #       def method_to_memoize(x)
+  #         @method_called_times = (@method_called_times || 0) + 1
+  #       end
+  #       memo_wise :method_to_memoize
+  #     end
+  #
+  #     ex = Example.new
+  #
+  #     ex.method_to_memoize("a") #=> 1
+  #     ex.method_to_memoize("a") #=> 1
+  #
+  #     ex.method_to_memoize("b") #=> 2
+  #     ex.method_to_memoize("b") #=> 2
+  ##
 
   # Presets the memoized result for the given method to the result of the given
   # block.
