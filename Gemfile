@@ -12,7 +12,8 @@ group :test do
 end
 
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
-group :linters do
+group :checks do
+  gem "codecov"
   gem "panolint", github: "panorama-ed/panolint"
 end
 

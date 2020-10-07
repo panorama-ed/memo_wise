@@ -14,3 +14,13 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+if ENV["CI"] == "true" && Gem.loaded_specs.key?("codecov")
+  require "codecov"
+  require "simplecov"
+
+  SimpleCov.start do
+    enable_coverage :branch
+  end
+  SimpleCov.formatter = SimpleCov::Formatter::Codecov
+end
