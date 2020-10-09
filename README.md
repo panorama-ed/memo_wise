@@ -6,7 +6,14 @@
 [![Gem Version](https://img.shields.io/gem/v/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
 [![Gem Downloads](https://img.shields.io/gem/dt/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
 
-TODO: Write clear description of MemoWise
+## Why MemoWise?
+
+**MemoWise is the wise choice for memoization in Ruby.**
+
+  * Fast performance of memoized reads (see [Benchmarks](#benchmarks))
+  * Support for memoization on frozen objects
+  * Support for memoization of class and module methods (COMING SOON!)
+  * Full documentation and test coverage!
 
 ## Installation
 
@@ -26,7 +33,24 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+class Example
+  prepend MemoWise
+
+  def method_to_memoize(x)
+    @method_called_times = (@method_called_times || 0) + 1
+  end
+  memo_wise :method_to_memoize
+end
+
+ex = Example.new
+
+ex.method_to_memoize("a") #=> 1
+ex.method_to_memoize("a") #=> 1
+
+ex.method_to_memoize("b") #=> 2
+ex.method_to_memoize("b") #=> 2
+```
 
 ## Benchmarks
 
