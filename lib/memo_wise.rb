@@ -17,7 +17,10 @@ require "memo_wise/version"
 #   1. Add `prepend MemoWise` to the top of the class or module
 #   2. Call {.memo_wise} to implement memoization for a given method
 #
-# @see .memo_wise
+# **See Also:**
+#
+#   - {.memo_wise} for API and usage examples.
+#   - {file:README.md} for general project information.
 #
 module MemoWise # rubocop:disable Metrics/ModuleLength
   # Constructor to setup memoization state before
@@ -395,6 +398,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
   private
 
+  # Validates that {.memo_wise} has already been called on `method_name`.
   def validate_memo_wised!(method_name)
     original_memo_wised_name = :"_memo_wise_original_#{method_name}"
 
@@ -403,6 +407,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     end
   end
 
+  # Returns arguments key to lookup memoized results for given `method_name`.
   def fetch_key(method_name, *args, **kwargs)
     method = self.class.instance_method(method_name)
     has_arg = MemoWise.has_arg?(method)

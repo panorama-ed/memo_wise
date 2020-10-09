@@ -35,6 +35,8 @@ Or install it yourself as:
 
 ## Usage
 
+See [API docs](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise) for more details.
+
 ```ruby
 class Example
   prepend MemoWise
