@@ -115,15 +115,15 @@ RSpec.describe MemoWise do
         @private_memowise_method_counter += 1
         "private_memowise_method"
       end
-      memo_wise :private_memowise_method
       private :private_memowise_method
+      memo_wise :private_memowise_method
 
       def protected_memowise_method
         @protected_memowise_method_counter += 1
         "protected_memowise_method"
       end
-      memo_wise :protected_memowise_method
       protected :protected_memowise_method
+      memo_wise :protected_memowise_method
 
       def public_memowise_method
         @public_memowise_method_counter += 1

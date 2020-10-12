@@ -189,9 +189,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
           END_OF_METHOD
         end
 
-        module_eval <<-END_OF_VISIBILITY, __FILE__, __LINE__ + 1
-          "#{method_visibility} :#{method_name}"
-        END_OF_VISIBILITY
+        module_eval "#{method_visibility} :#{method_name}", __FILE__, __LINE__
       end
     end
   end
