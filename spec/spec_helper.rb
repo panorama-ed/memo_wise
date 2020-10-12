@@ -20,7 +20,7 @@ if Gem.loaded_specs.key?("codecov")
 
   # SimpleCov.refuse_coverage_drop is only implemented for line coverage, so for
   # branch coverage we must use `minimum_coverage`
-  SimpleCov.minimum_coverage branch: 90
+  SimpleCov.minimum_coverage branch: 100
 
   SimpleCov.refuse_coverage_drop
 end

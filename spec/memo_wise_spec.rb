@@ -132,9 +132,7 @@ RSpec.describe MemoWise do
       memo_wise :public_memowise_method
       public :public_memowise_method
 
-      def unmemoized_method
-        "unmemoized"
-      end
+      def unmemoized_method; end
     end
   end
 
@@ -276,19 +274,45 @@ RSpec.describe MemoWise do
       expect(instance2.no_args_counter).to eq(0)
     end
 
-    it "keeps private methods private" do
-      expect(instance.private_methods.include?(:private_memowise_method)).
-        to eq(true)
+    context "with private methods" do
+      it "keeps private methods private" do
+        expect(instance.private_methods.include?(:private_memowise_method)).
+          to eq(true)
+      end
+
+      it "memoizes private methods" do
+        expect(Array.new(4) do
+          instance.send(:private_memowise_method)
+        end).to all eq("private_memowise_method")
+        expect(instance.private_memowise_method_counter).to eq(1)
+      end
     end
 
-    it "keeps public methods public" do
-      expect(instance.public_methods.include?(:public_memowise_method)).
-        to eq(true)
+    context "with public methods" do
+      it "keeps public methods public" do
+        expect(instance.public_methods.include?(:public_memowise_method)).
+          to eq(true)
+      end
+
+      it "memoizes public methods" do
+        expect(Array.new(4) { instance.public_memowise_method }).
+          to all eq("public_memowise_method")
+        expect(instance.public_memowise_method_counter).to eq(1)
+      end
     end
 
-    it "keeps protected methods protected" do
-      expect(instance.protected_methods.include?(:protected_memowise_method)).
-        to eq(true)
+    context "with protected methods" do
+      it "keeps protected methods protected" do
+        expect(instance.protected_methods.include?(:protected_memowise_method)).
+          to eq(true)
+      end
+
+      it "memoizes protected methods" do
+        expect(Array.new(4) do
+          instance.send(:protected_memowise_method)
+        end).to all eq("protected_memowise_method")
+        expect(instance.protected_memowise_method_counter).to eq(1)
+      end
     end
 
     context "when the name of the method to memoize is not a symbol" do
@@ -394,6 +418,24 @@ RSpec.describe MemoWise do
         # This should be executed twice for each set of arguments passed,
         # and a third time for the set of arguments that was reset.
         expect(instance.with_keyword_args_counter).to eq(3)
+      end
+
+      it "resets memoization for methods with positional and keyword args" do
+        instance.with_positional_and_keyword_args(1, b: 2)
+        instance.with_positional_and_keyword_args(2, b: 3)
+        instance.reset_memo_wise(:with_positional_and_keyword_args, 1, b: 2)
+
+        expect(Array.new(4) do
+          instance.with_positional_and_keyword_args(1, b: 2)
+        end).to all eq("with_positional_and_keyword_args: a=1, b=2")
+
+        expect(Array.new(4) do
+          instance.with_positional_and_keyword_args(2, b: 3)
+        end).to all eq("with_positional_and_keyword_args: a=2, b=3")
+
+        # This should be executed twice for each set of arguments passed,
+        # and a third time for the set of arguments that was reset.
+        expect(instance.with_positional_and_keyword_args_counter).to eq(3)
       end
 
       it "resets memoization for methods with special characters in the name" do
@@ -605,6 +647,37 @@ RSpec.describe MemoWise do
             to all eq("second")
 
           expect(instance.with_keyword_args_counter).to eq(expected_counter)
+        end
+      end
+
+      context "with positional and keyword args" do
+        let(:expected_counter) { overriding ? 2 : 0 }
+
+        before(:each) do
+          if overriding
+            instance.with_positional_and_keyword_args(1, b: 2)
+            instance.with_positional_and_keyword_args(2, b: 3)
+          end
+        end
+
+        it "presets memoization" do
+          instance.preset_memo_wise(
+            :with_positional_and_keyword_args, 1, b: 2
+          ) { "first" }
+          instance.preset_memo_wise(
+            :with_positional_and_keyword_args, 2, b: 3
+          ) { "second" }
+
+          expect(Array.new(4) do
+            instance.with_positional_and_keyword_args(1, b: 2)
+          end).to all eq("first")
+
+          expect(Array.new(4) do
+            instance.with_positional_and_keyword_args(2, b: 3)
+          end).to all eq("second")
+
+          expect(instance.with_positional_and_keyword_args_counter).
+            to eq(expected_counter)
         end
       end
 
