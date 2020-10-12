@@ -276,8 +276,7 @@ RSpec.describe MemoWise do
 
     context "with private methods" do
       it "keeps private methods private" do
-        expect(instance.private_methods.include?(:private_memowise_method)).
-          to eq(true)
+        expect(instance.private_methods).to include(:private_memowise_method)
       end
 
       it "memoizes private methods" do
@@ -290,8 +289,7 @@ RSpec.describe MemoWise do
 
     context "with public methods" do
       it "keeps public methods public" do
-        expect(instance.public_methods.include?(:public_memowise_method)).
-          to eq(true)
+        expect(instance.public_methods).to include(:public_memowise_method)
       end
 
       it "memoizes public methods" do
@@ -303,8 +301,8 @@ RSpec.describe MemoWise do
 
     context "with protected methods" do
       it "keeps protected methods protected" do
-        expect(instance.protected_methods.include?(:protected_memowise_method)).
-          to eq(true)
+        expect(instance.protected_methods).
+          to include(:protected_memowise_method)
       end
 
       it "memoizes protected methods" do
@@ -433,7 +431,7 @@ RSpec.describe MemoWise do
           instance.with_positional_and_keyword_args(2, b: 3)
         end).to all eq("with_positional_and_keyword_args: a=2, b=3")
 
-        # This should be executed twice for each set of arguments passed,
+        # This should be executed once for each set of arguments passed,
         # and a third time for the set of arguments that was reset.
         expect(instance.with_positional_and_keyword_args_counter).to eq(3)
       end
