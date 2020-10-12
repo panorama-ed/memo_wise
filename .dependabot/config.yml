@@ -8,6 +8,6 @@ update_configs:
       - match:
           dependency_type: "development"
           update_type: "all"
-- package_manager: "ruby:bundler"
+  - package_manager: "ruby:bundler"
     directory: "/benchmarks"
     update_schedule: "live"
