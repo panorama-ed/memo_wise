@@ -25,7 +25,7 @@ GEM
       zeitwerk (~> 2.2, >= 2.2.2)
     ast (2.4.1)
     brakeman (4.10.0)
-    codecov (0.2.11)
+    codecov (0.2.12)
       json
       simplecov
     concurrent-ruby (1.1.7)
@@ -77,7 +77,7 @@ GEM
     rubocop-rspec (1.43.2)
       rubocop (~> 0.87)
     ruby-progressbar (1.10.1)
-    simplecov (0.19.0)
+    simplecov (0.18.5)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
     simplecov-html (0.12.3)
