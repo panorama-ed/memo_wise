@@ -58,8 +58,8 @@ ex.method_to_memoize("b") #=> 2
 
 ## Benchmarks
 
-Memoized value retrieval time using Ruby 2.7.1 and
-[`benchmark-ips`](https://github.com/evanphx/benchmark-ips) 2.8.2:
+Memoized value retrieval time using Ruby 2.7.2 and
+[`benchmark-ips`](https://github.com/evanphx/benchmark-ips) 2.8.3:
 
 |Method arguments|**`memo_wise` (0.1.0)**|`memery` (1.3.0)|`memoist` (0.16.2)|`memoized` (1.0.2)|`memoizer` (1.0.3)|
 |--|--|--|--|--|--|

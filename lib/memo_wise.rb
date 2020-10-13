@@ -27,12 +27,12 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
   # constructor.
   #
-  # - **Q:** Why is [Module#prepend](https://ruby-doc.org/core-2.7.1/Module.html#method-i-prepend)
+  # - **Q:** Why is [Module#prepend](https://ruby-doc.org/core-2.7.2/Module.html#method-i-prepend)
   #          important here
   #          ([more info](https://medium.com/@leo_hetsch/ruby-modules-include-vs-prepend-vs-extend-f09837a5b073))?
   # - **A:** To setup *mutable state* inside the instance, even if the original
   #          constructor will then call
-  #          [Object#freeze](https://ruby-doc.org/core-2.7.1/Object.html#method-i-freeze).
+  #          [Object#freeze](https://ruby-doc.org/core-2.7.2/Object.html#method-i-freeze).
   #
   # This approach supports memoization on frozen (immutable) objects -- for
   # example, classes created by the
@@ -121,7 +121,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # @param target [Class]
   #   The `Class` into to prepend the MemoWise methods e.g. `memo_wise`
   #
-  # @see https://ruby-doc.org/core-2.7.1/Module.html#method-i-prepended
+  # @see https://ruby-doc.org/core-2.7.2/Module.html#method-i-prepended
   #
   # @example
   #   class Example
