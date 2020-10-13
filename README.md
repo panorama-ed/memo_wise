@@ -58,18 +58,20 @@ ex.method_to_memoize("b") #=> 2
 
 ## Benchmarks
 
-Memoized value retrieval time using Ruby 2.7.1 and
-[`benchmark-ips`](https://github.com/evanphx/benchmark-ips) 2.8.2:
+Memoized value retrieval time using Ruby 2.7.2 and
+[`benchmark-ips`](https://github.com/evanphx/benchmark-ips) 2.8.3:
 
 |Method arguments|**`memo_wise` (0.1.0)**|`memery` (1.3.0)|`memoist` (0.16.2)|`memoized` (1.0.2)|`memoizer` (1.0.3)|
 |--|--|--|--|--|--|
-|`()` (none)|**baseline**|11.57x slower|2.47x slower|1.16x slower|2.88x slower|
-|`(a, b)`|**baseline**|2.02x slower|2.29x slower|1.83x slower|2.06x slower|
-|`(a:, b:)`|**baseline**|2.34x slower|2.40x slower|2.17x slower|2.30x slower|
-|`(a, b:)`|**baseline**|1.55x slower|1.61x slower|1.46x slower|1.51x slower|
-|`(a, *args)`|**baseline**|1.99x slower|2.21x slower|1.93x slower|2.00x slower|
-|`(a:, **kwargs)`|**baseline**|1.95x slower|2.07x slower|1.87x slower|1.97x slower|
-|`(a, *args, b:, **kwargs)`|**baseline**|1.82x slower|1.98x slower|1.87x slower|1.91x slower|
+|`()` (none)|**baseline**|11.90x slower|2.50x slower|1.25x slower|3.24x slower|
+|`(a, b)`|**baseline**|1.96x slower|2.25x slower|1.80x slower|1.97x slower|
+|`(a:, b:)`|**baseline**|2.16x slower|2.34x slower|2.09x slower|2.16x slower|
+|`(a, b:)`|**baseline**|1.55x slower|1.68x slower|1.49x slower|1.54x slower|
+|`(a, *args)`|**baseline**|2.01x slower|2.29x slower|1.93x slower|1.98x slower|
+|`(a:, **kwargs)`|**baseline**|1.87x slower|2.04x slower|1.86x slower|1.88x slower|
+|`(a, *args, b:, **kwargs)`|**baseline**|1.90x slower|2.15x slower|1.88x slower|1.88x slower|
+
+Benchmarks are run in GitHub Actions and updated in every PR.
 
 You can run benchmarks yourself with:
 
