@@ -71,7 +71,7 @@ Memoized value retrieval time using Ruby 2.7.2 and
 |`(a:, **kwargs)`|**baseline**|1.87x slower|2.04x slower|1.86x slower|1.88x slower|
 |`(a, *args, b:, **kwargs)`|**baseline**|1.90x slower|2.15x slower|1.88x slower|1.88x slower|
 
-Benchmarks are run in GitHub Actions and updated in every PR.
+Benchmarks are run in GitHub Actions and updated in every PR that changes code.
 
 You can run benchmarks yourself with:
 
