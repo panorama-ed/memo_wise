@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/panorama-ed/panolint.git
-  revision: b37d20ecd43dcede326fcae09567650d129fcd33
+  revision: 7e384fd7a6f24da988524625d22c37b0440766f8
   specs:
     panolint (0.1.2)
       brakeman (~> 4.8)
@@ -64,7 +64,7 @@ GEM
       rubocop-ast (>= 0.6.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 2.0)
-    rubocop-ast (0.7.1)
+    rubocop-ast (0.8.0)
       parser (>= 2.7.1.5)
     rubocop-performance (1.8.1)
       rubocop (>= 0.87.0)
