@@ -5,7 +5,7 @@ source "https://rubygems.org"
 # Keep updated to latest Ruby, and keep in sync with benchmarks/.ruby-version.
 ruby "~> 2.7.1"
 
-gem "benchmark-ips", "2.8.2"
+gem "benchmark-ips", "2.8.3"
 gem "memery", "1.3.0"
 gem "memoist", "0.16.2"
 gem "memoized", "1.0.2"
