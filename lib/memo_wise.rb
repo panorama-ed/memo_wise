@@ -40,7 +40,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # [gem](https://rubygems.org/gems/values).
   #
   def initialize(*)
-    @_memo_wise = Hash.new { |h, k| h[k] = {} }
+    MemoWise.create_memo_wise_state!(self)
     super
   end
 
@@ -148,6 +148,163 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
   # @private
   #
+  # Returns scope, visibility, class, and method object for a given method name.
+  #
+  # @param klass [Class]
+  #   Class in which to search for a method by name.
+  #
+  # @param method_name [Symbol]
+  #   Name of method to search for at both class and instance levels.
+  #
+  # @return [(Symbol, Symbol, Class, UnboundMethod)]
+  #   Return **scope**, **visibility**, **class**, and **method** corresponding
+  #   to the given method name on the target class.
+  #
+  #     - **scope**      -- either `:class` or `:instance`
+  #     - **visibility** -- either `:private`, `:protected`, or `:public`
+  #     - **class**      -- either `klass` or its
+  #                         [singleton class](https://medium.com/@leo_hetsch/demystifying-singleton-classes-in-ruby-caf3fa4c9d91)
+  #     - **method**     -- instance of {UnboundMethod}
+  #
+  # @raise ArgumentError
+  #   Raises `ArgumentError` unless `method_name` is a `Symbol` corresponding
+  #   to a class or instance method defined on `klass`.
+  #
+  # rubocop:disable Layout/LineLength
+  # @example
+  #   class Example
+  #     def an_instance_method; end
+  #
+  #     class << self
+  #       def a_class_method; end
+  #       private :a_class_method
+  #     end
+  #   end
+  #
+  #   MemoWise.method_info(Example, :an_instance_method)[0, 2] #=> [:instance, :public]
+  #
+  #   MemoWise.method_info(Example, :a_class_method)[0, 2] #=> [:class, :private]
+  # rubocop:enable Layout/LineLength
+  #
+  def self.method_info(klass, method_name)
+    unless klass.is_a?(Class) || klass.is_a?(Module)
+      raise ArgumentError, "#{klass.inspect} must be a Class or Module"
+    end
+
+    unless method_name.is_a?(Symbol)
+      raise ArgumentError, "#{method_name.inspect} must be a Symbol"
+    end
+
+    # In Ruby, "class methods" are implemented as normal instance methods
+    # on the "singleton class" of a given Class object, found via
+    # {Class#singleton_class}.
+    # See: https://medium.com/@leo_hetsch/demystifying-singleton-classes-in-ruby-caf3fa4c9d91
+    singleton = klass.singleton_class
+
+    is_singleton_method =
+      singleton.private_instance_methods.include?(method_name) ||
+      singleton.instance_methods.include?(method_name)
+
+    if is_singleton_method
+      visibility = method_visibility(singleton, method_name)
+      [:class, visibility, singleton, singleton.instance_method(method_name)]
+    else
+      visibility = method_visibility(klass, method_name)
+      [:instance, visibility, klass, klass.instance_method(method_name)]
+    end
+  end
+
+  # @private
+  #
+  # Returns visibility of an instance method defined on a class.
+  #
+  # @param klass [Class]
+  #   Class in which to find the visibility of an existing *instance* method.
+  #
+  # @param method_name [Symbol]
+  #   Name of existing *instance* method find the visibility of.
+  #
+  # @return [:private, :protected, :public]
+  #   Visibility of existing instance method of the class.
+  #
+  # @raise ArgumentError
+  #   Raises `ArgumentError` unless `method_name` is a `Symbol` corresponding
+  #   to an existing **instance** method defined on `klass`.
+  #
+  def self.method_visibility(klass, method_name)
+    if klass.private_method_defined?(method_name)
+      :private
+    elsif klass.protected_method_defined?(method_name)
+      :protected
+    elsif klass.public_method_defined?(method_name)
+      :public
+    else
+      raise ArgumentError, "#{method_name.inspect} must be a method on #{klass}"
+    end
+  end
+
+  # @private
+  #
+  # Find the original class for which the given class is the corresponding
+  # "singleton class".
+  #
+  # See https://stackoverflow.com/questions/54531270/retrieve-a-ruby-object-from-its-singleton-class
+  #
+  # @param klass [Class]
+  #   Singleton class to find the original class of
+  #
+  # @return Class
+  #   Original class for which `klass` is the singleton class.
+  #
+  # @raise ArgumentError
+  #   Raises if `klass` is not a singleton class.
+  #
+  def self.original_class_from_singleton(klass)
+    unless klass.singleton_class?
+      raise ArgumentError, "Must be a singleton class: #{klass.inspect}"
+    end
+
+    # Option 1: Derive from `#to_s` of the singleton class
+    #   * Works unless original class NOT assigned to constant
+    #   * Depends on an undocumented naming convention in Ruby, where singleton
+    #     class of `Foo` will return "#<Class:Foo>" from `#to_s` method.
+    name = klass.to_s.match(/#<Class:([^>]+)>/)&.[](1)
+    raise NameError if name.nil?
+
+    Object.const_get(name) # raises NameError if not found
+  rescue NameError
+    # Option 2: Search ObjectSpace
+    #   * Works in all cases, so makes a good fallback option
+    #   * 1:1 relationship of singleton class to original class is documented
+    #   * Even though this only runs at load time, searches all Class objects
+    ObjectSpace.each_object(Class).find do |cls|
+      !cls.singleton_class? && cls.singleton_class == klass
+    end
+  end
+
+  # @private
+  #
+  # Create initial mutable state to store memoized values.
+  #
+  # @param [Object] obj
+  #   Object in which to create mutable state to store future memoized values
+  #
+  # @raise ArgumentError
+  #   Raises `ArgumentError` if the state variable already exists on `obj`.
+  #
+  def self.create_memo_wise_state!(obj)
+    if obj.instance_variables.include?(:@_memo_wise)
+      raise ArgumentError, "MemoWise state already created: #{obj.inspect}"
+    end
+
+    obj.instance_variable_set(
+      :@_memo_wise,
+      Hash.new { |h, k| h[k] = {} }
+    )
+  end
+
+  # @private
+  #
   # Private setup method, called automatically by `prepend MemoWise` in a class.
   #
   # @param target [Class]
@@ -164,24 +321,19 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     class << target
       # NOTE: See YARD docs for {.memo_wise} directly below this method!
       def memo_wise(method_name) # rubocop:disable Metrics/PerceivedComplexity
-        unless method_name.is_a?(Symbol)
-          raise ArgumentError,
-                "#{method_name.inspect} must be a Symbol"
-        end
-
-        method_visibility = if private_method_defined?(method_name)
-                              :private
-                            elsif protected_method_defined?(method_name)
-                              :protected
-                            else
-                              :public
-                            end
+        scope, visibility, klass, method =
+          MemoWise.method_info(self, method_name)
 
         original_memo_wised_name = :"_memo_wise_original_#{method_name}"
-        alias_method original_memo_wised_name, method_name
-        private original_memo_wised_name
+        klass.send(:alias_method, original_memo_wised_name, method_name)
+        klass.send(:private, original_memo_wised_name)
 
-        method = instance_method(method_name)
+        if scope == :class
+          MemoWise.create_memo_wise_state!(self)
+        elsif scope == :instance && klass.singleton_class?
+          original_class = MemoWise.original_class_from_singleton(klass)
+          MemoWise.create_memo_wise_state!(original_class)
+        end
 
         if MemoWise.has_block_arg?(method)
           raise ArgumentError,
@@ -191,7 +343,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         # Zero-arg methods can use simpler/more performant logic because the
         # hash key is just the method name.
         if method.arity.zero?
-          module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}
               @_memo_wise.fetch(:#{method_name}) do
                 @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
@@ -219,7 +371,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
           # Note that we don't need to freeze args before using it as a hash key
           # because Ruby always copies argument arrays when splatted.
-          module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}#{args_str}
               hash = @_memo_wise[:#{method_name}]
               hash.fetch(#{fetch_key}) do
@@ -229,7 +381,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
           END_OF_METHOD
         end
 
-        module_eval "#{method_visibility} :#{method_name}", __FILE__, __LINE__
+        klass.send(visibility, method_name)
       end
     end
   end
