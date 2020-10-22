@@ -1,6 +1,7 @@
-# MemoWise
+# `MemoWise`
 
 [![Tests](https://github.com/panorama-ed/memo_wise/workflows/Main/badge.svg)](https://github.com/panorama-ed/memo_wise/actions?query=workflow%3AMain)
+[![Code Coverage](https://codecov.io/gh/panorama-ed/memo_wise/branch/main/graph/badge.svg)](https://codecov.io/gh/panorama-ed/memo_wise)
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/panorama-ed/memo_wise)
 [![Inline docs](http://inch-ci.org/github/panorama-ed/memo_wise.svg?branch=main)](http://inch-ci.org/github/panorama-ed/memo_wise)
 [![Gem Version](https://img.shields.io/gem/v/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
@@ -8,14 +9,18 @@
 [![Code Coverage](https://codecov.io/gh/panorama-ed/memo_wise/branch/main/graph/badge.svg)](https://codecov.io/gh/panorama-ed/memo_wise/branches/main)
 
 
-## Why MemoWise?
+## Why `MemoWise`?
 
-**MemoWise is the wise choice for memoization in Ruby.**
+`MemoWise` is **the wise choice for Ruby memoization**, featuring:
 
-  * Fast performance of memoized reads (see [Benchmarks](#benchmarks))
+  * Fast performance of memoized reads (with [benchmarks](#benchmarks))
+  * Support for [resetting](
+- [`preset_memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#reset_memo_wise-instance_method)) and [presetting](
+- [`preset_memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#preset_memo_wise-instance_method)) memoized values
   * Support for memoization on frozen objects
   * Support for memoization of class and module methods (COMING SOON!)
-  * Full documentation and test coverage!
+  * Full [documentation](
+- [`preset_memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise) and [test coverage](https://codecov.io/gh/panorama-ed/memo_wise)!
 
 ## Installation
 
@@ -35,26 +40,38 @@ Or install it yourself as:
 
 ## Usage
 
-See [API docs](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise) for more details.
+When you `prepend MemoWise` within a class or module, `MemoWise` exposes three
+methods:
+
+- [`memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#memo_wise-class_method)
+- [`preset_memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#preset_memo_wise-instance_method)
+- [`reset_memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#reset_memo_wise-instance_method)
 
 ```ruby
 class Example
   prepend MemoWise
-
-  def method_to_memoize(x)
-    @method_called_times = (@method_called_times || 0) + 1
+  def slow_value(x)
+    sleep x
+    x
   end
-  memo_wise :method_to_memoize
+  memo_wise :slow_value
 end
 
 ex = Example.new
+ex.slow_value(2) # => 2 # Sleeps for 2 seconds before returning
+ex.slow_value(2) # => 2 # Returns immediately because the result is memoized
 
-ex.method_to_memoize("a") #=> 1
-ex.method_to_memoize("a") #=> 1
+ex.reset_memo_wise(:slow_value) # Resets all memoized results for slow_value
+ex.slow_value(2) # => 2 # Sleeps for 2 seconds before returning
+ex.slow_value(2) # => 2 # Returns immediately because the result is memoized
+# NOTE: Memoization can also be reset for all methods, or for just one argument.
 
-ex.method_to_memoize("b") #=> 2
-ex.method_to_memoize("b") #=> 2
+ex.preset_memo_wise(:slow_value, 3) { 4 } # Store 4 as the result for slow_value(3)
+ex.slow_value(3) # => 4 # Returns immediately because the result is memoized
+ex.reset_memo_wise # Resets all memoized results for all methods on ex
 ```
+
+For more usage details, see our detailed [documentation](#documentation).
 
 ## Benchmarks
 
@@ -98,18 +115,18 @@ git commits and tags, and push the `.gem` file to
 
 ## Documentation
 
-#### Documentation is Automatically Generated
+### Documentation is Automatically Generated
 
 We maintain API documentation using [YARD](https://yardoc.org/), which is
 published automatically at
-[RubyDoc.info](https://rubydoc.info/github/panorama-ed/memo_wise/main). To edit
-documentation locally and see it rendered in your browser, run:
+[RubyDoc.info](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise). To
+edit documentation locally and see it rendered in your browser, run:
 
 ```bash
 bundle exec yard server
 ```
 
-#### Documentation Examples are Automatically Tested
+### Documentation Examples are Automatically Tested
 
 We use [yard-doctest](https://github.com/p0deje/yard-doctest) to test all
 code examples in our YARD documentation. To run `doctest` locally:
@@ -132,6 +149,6 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the MemoWise project's codebases, issue trackers, chat
+Everyone interacting in the `MemoWise` project's codebases, issue trackers, chat
 rooms and mailing lists is expected to follow the
 [code of conduct](https://github.com/panorama-ed/memo_wise/blob/main/CODE_OF_CONDUCT.md).

@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Panorama Education"]
   spec.email         = ["engineering@panoramaed.com"]
 
-  spec.summary       = "The wisest choice for Ruby memoization."
+  spec.summary       = "The wise choice for Ruby memoization"
   spec.homepage      = "https://github.com/panorama-ed/memo_wise"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
