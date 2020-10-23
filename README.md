@@ -1,12 +1,11 @@
 # `MemoWise`
 
 [![Tests](https://github.com/panorama-ed/memo_wise/workflows/Main/badge.svg)](https://github.com/panorama-ed/memo_wise/actions?query=workflow%3AMain)
-[![Code Coverage](https://codecov.io/gh/panorama-ed/memo_wise/branch/main/graph/badge.svg)](https://codecov.io/gh/panorama-ed/memo_wise)
+[![Code Coverage](https://codecov.io/gh/panorama-ed/memo_wise/branch/main/graph/badge.svg)](https://codecov.io/gh/panorama-ed/memo_wise/branches/main)
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/panorama-ed/memo_wise)
 [![Inline docs](http://inch-ci.org/github/panorama-ed/memo_wise.svg?branch=main)](http://inch-ci.org/github/panorama-ed/memo_wise)
 [![Gem Version](https://img.shields.io/gem/v/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
 [![Gem Downloads](https://img.shields.io/gem/dt/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
-[![Code Coverage](https://codecov.io/gh/panorama-ed/memo_wise/branch/main/graph/badge.svg)](https://codecov.io/gh/panorama-ed/memo_wise/branches/main)
 
 
 ## Why `MemoWise`?
@@ -71,6 +70,8 @@ ex.slow_value(3) # => 4 # Returns immediately because the result is memoized
 ex.reset_memo_wise # Resets all memoized results for all methods on ex
 ```
 
+Methods which take implicit or explicit block arguments cannot be memoized.
+
 For more usage details, see our detailed [documentation](#documentation).
 
 ## Benchmarks
@@ -80,13 +81,13 @@ Memoized value retrieval time using Ruby 2.7.2 and
 
 |Method arguments|**`memo_wise` (0.1.0)**|`memery` (1.3.0)|`memoist` (0.16.2)|`memoized` (1.0.2)|`memoizer` (1.0.3)|
 |--|--|--|--|--|--|
-|`()` (none)|**baseline**|11.90x slower|2.50x slower|1.25x slower|3.24x slower|
-|`(a, b)`|**baseline**|1.96x slower|2.25x slower|1.80x slower|1.97x slower|
-|`(a:, b:)`|**baseline**|2.16x slower|2.34x slower|2.09x slower|2.16x slower|
-|`(a, b:)`|**baseline**|1.55x slower|1.68x slower|1.49x slower|1.54x slower|
-|`(a, *args)`|**baseline**|2.01x slower|2.29x slower|1.93x slower|1.98x slower|
-|`(a:, **kwargs)`|**baseline**|1.87x slower|2.04x slower|1.86x slower|1.88x slower|
-|`(a, *args, b:, **kwargs)`|**baseline**|1.90x slower|2.15x slower|1.88x slower|1.88x slower|
+|`()` (none)|**baseline**|11.99x slower|2.53x slower|1.29x slower|3.01x slower|
+|`(a, b)`|**baseline**|1.94x slower|2.28x slower|1.80x slower|1.96x slower|
+|`(a:, b:)`|**baseline**|2.20x slower|2.37x slower|2.15x slower|2.18x slower|
+|`(a, b:)`|**baseline**|1.51x slower|1.68x slower|1.46x slower|1.54x slower|
+|`(a, *args)`|**baseline**|2.00x slower|2.33x slower|1.96x slower|1.97x slower|
+|`(a:, **kwargs)`|**baseline**|1.94x slower|2.12x slower|1.87x slower|1.96x slower|
+|`(a, *args, b:, **kwargs)`|**baseline**|1.92x slower|2.15x slower|1.90x slower|1.91x slower|
 
 Benchmarks are run in GitHub Actions and updated in every PR that changes code.
 

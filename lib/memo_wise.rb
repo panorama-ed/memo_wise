@@ -116,6 +116,38 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
   # @private
   #
+  # Determine whether `method` takes a *block* arg.
+  #
+  # There is one type of block arg:
+  #
+  #   * *Block* -- ex: `def foo(&block)`
+  #
+  # @param method [Method, UnboundMethod]
+  #   Arguments of this method will be checked
+  #
+  # @return [Boolean]
+  #   Return `true` if `method` accepts a block argument
+  #
+  # @example
+  #   class Example
+  #     def position_args(a, b=1)
+  #     end
+  #
+  #     def block_args(&block)
+  #       block.call
+  #     end
+  #   end
+  #
+  #   MemoWise.has_block_arg?(Example.instance_method(:position_args)) #=> false
+  #
+  #   MemoWise.has_block_arg?(Example.instance_method(:block_args)) #=> true
+  #
+  def self.has_block_arg?(method) # rubocop:disable Naming/PredicateName
+    method.parameters.last&.first == :block
+  end
+
+  # @private
+  #
   # Private setup method, called automatically by `prepend MemoWise` in a class.
   #
   # @param target [Class]
@@ -150,6 +182,11 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         private original_memo_wised_name
 
         method = instance_method(method_name)
+
+        if MemoWise.has_block_arg?(method)
+          raise ArgumentError,
+                "Methods which take block arguments cannot be memoized"
+        end
 
         # Zero-arg methods can use simpler/more performant logic because the
         # hash key is just the method name.
@@ -207,6 +244,9 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #            result of that call will be stored on the object. All future
   #            calls to the same method with the same set of arguments will then
   #            return that saved result.
+  #
+  #   Methods which implicitly or explicitly take block arguments cannot be
+  #   memoized.
   #
   #   @param method_name [Symbol]
   #     Name of method for which to implement memoization.
