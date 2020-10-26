@@ -22,6 +22,7 @@ RSpec.describe MemoWise do
         @private_memowise_method_counter = 0
         @protected_memowise_method_counter = 0
         @public_memowise_method_counter = 0
+        @proc_method_counter = 0
       end
 
       attr_reader :no_args_counter,
@@ -37,7 +38,8 @@ RSpec.describe MemoWise do
                   :nil_method_counter,
                   :private_memowise_method_counter,
                   :protected_memowise_method_counter,
-                  :public_memowise_method_counter
+                  :public_memowise_method_counter,
+                  :proc_method_counter
 
       def no_args
         @no_args_counter += 1
@@ -133,6 +135,19 @@ RSpec.describe MemoWise do
       public :public_memowise_method
 
       def unmemoized_method; end
+
+      def proc_method(proc)
+        @proc_method_counter += 1
+        proc.call
+      end
+      memo_wise :proc_method
+
+      def explicit_block_method(&block); end
+
+      def implicit_block_method
+        yield
+      end
+      memo_wise :implicit_block_method
     end
   end
 
@@ -344,6 +359,27 @@ RSpec.describe MemoWise do
         expect(Array.new(4) { value_instance.no_args }).to all eq("no_args")
         expect(external_counter[0]).to eq(1)
       end
+    end
+
+    it "memoizes methods with proc arguments" do
+      proc_param = proc { true }
+      expect(Array.new(4) { instance.proc_method(proc_param) }).
+        to all eq(true)
+
+      expect(instance.proc_method_counter).to eq(1)
+    end
+
+    it "will not memoize methods with implicit block arguments" do
+      expect { instance.implicit_block_method }.
+        to raise_error(LocalJumpError)
+    end
+
+    it "will not memoize methods with explicit block arguments" do
+      expect { instance.class.memo_wise(:explicit_block_method) }.
+        to raise_error(
+          ArgumentError,
+          "Methods which take block arguments cannot be memoized"
+        )
     end
   end
 
