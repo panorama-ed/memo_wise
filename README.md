@@ -1,3 +1,8 @@
+
+<p>
+  <img src="logo/logo.png" width="175"/>
+</p>
+
 # `MemoWise`
 
 [![Tests](https://github.com/panorama-ed/memo_wise/workflows/Main/badge.svg)](https://github.com/panorama-ed/memo_wise/actions?query=workflow%3AMain)
