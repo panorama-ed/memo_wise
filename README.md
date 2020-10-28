@@ -14,13 +14,10 @@
 `MemoWise` is **the wise choice for Ruby memoization**, featuring:
 
   * Fast performance of memoized reads (with [benchmarks](#benchmarks))
-  * Support for [resetting](
-- [`preset_memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#reset_memo_wise-instance_method)) and [presetting](
-- [`preset_memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#preset_memo_wise-instance_method)) memoized values
+  * Support for [resetting](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#reset_memo_wise-instance_method) and [presetting](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#preset_memo_wise-instance_method) memoized values
   * Support for memoization on frozen objects
   * Support for memoization of class and module methods (COMING SOON!)
-  * Full [documentation](
-- [`preset_memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise) and [test coverage](https://codecov.io/gh/panorama-ed/memo_wise)!
+  * Full [documentation](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise) and [test coverage](https://codecov.io/gh/panorama-ed/memo_wise)!
 
 ## Installation
 
