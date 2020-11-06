@@ -138,6 +138,12 @@ code examples in our YARD documentation. To run `doctest` locally:
 bundle exec yard doctest
 ```
 
+## Logo
+
+`MemoWise`'s logo was created by [Luci Cooke](https://www.lucicooke.com/). The
+logo is licensed under a
+[Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/deed.en).
+
 ## Contributing
 
 [Bug reports](https://github.com/panorama-ed/memo_wise/issues) and
