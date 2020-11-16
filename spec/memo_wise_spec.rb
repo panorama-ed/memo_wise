@@ -863,16 +863,6 @@ RSpec.describe MemoWise do
   end
 
   describe "private APIs" do
-    describe ".method_info" do
-      subject { described_class.method_info(klass, :method_name) }
-
-      context "when klass is neither Class nor Module" do
-        let(:klass) { "not a class" }
-
-        it { expect { subject }.to raise_error(ArgumentError) }
-      end
-    end
-
     describe ".method_visibility" do
       subject { described_class.method_visibility(String, method_name) }
 
