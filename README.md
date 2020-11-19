@@ -20,7 +20,7 @@
   * Fast performance of memoized reads (with [benchmarks](#benchmarks))
   * Support for [resetting](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#reset_memo_wise-instance_method) and [presetting](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#preset_memo_wise-instance_method) memoized values
   * Support for memoization on frozen objects
-  * Support for memoization of class and module methods (COMING SOON!)
+  * Support for memoization of class and module methods
   * Full [documentation](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise) and [test coverage](https://codecov.io/gh/panorama-ed/memo_wise)!
 
 ## Installation
@@ -83,13 +83,13 @@ Memoized value retrieval time using Ruby 2.7.2 and
 
 |Method arguments|**`memo_wise` (0.1.0)**|`memery` (1.3.0)|`memoist` (0.16.2)|`memoized` (1.0.2)|`memoizer` (1.0.3)|
 |--|--|--|--|--|--|
-|`()` (none)|**baseline**|11.99x slower|2.53x slower|1.29x slower|3.01x slower|
-|`(a, b)`|**baseline**|1.94x slower|2.28x slower|1.80x slower|1.96x slower|
-|`(a:, b:)`|**baseline**|2.20x slower|2.37x slower|2.15x slower|2.18x slower|
-|`(a, b:)`|**baseline**|1.51x slower|1.68x slower|1.46x slower|1.54x slower|
-|`(a, *args)`|**baseline**|2.00x slower|2.33x slower|1.96x slower|1.97x slower|
-|`(a:, **kwargs)`|**baseline**|1.94x slower|2.12x slower|1.87x slower|1.96x slower|
-|`(a, *args, b:, **kwargs)`|**baseline**|1.92x slower|2.15x slower|1.90x slower|1.91x slower|
+|`()` (none)|**baseline**|11.62x slower|2.35x slower|1.16x slower|3.01x slower|
+|`(a, b)`|**baseline**|2.00x slower|2.26x slower|1.85x slower|2.01x slower|
+|`(a:, b:)`|**baseline**|2.27x slower|2.45x slower|2.16x slower|2.27x slower|
+|`(a, b:)`|**baseline**|1.57x slower|1.72x slower|1.50x slower|1.57x slower|
+|`(a, *args)`|**baseline**|2.02x slower|2.28x slower|1.99x slower|1.99x slower|
+|`(a:, **kwargs)`|**baseline**|1.93x slower|2.07x slower|1.87x slower|1.92x slower|
+|`(a, *args, b:, **kwargs)`|**baseline**|1.94x slower|2.15x slower|1.92x slower|1.93x slower|
 
 Benchmarks are run in GitHub Actions and updated in every PR that changes code.
 
