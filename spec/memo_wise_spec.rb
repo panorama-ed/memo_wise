@@ -148,6 +148,15 @@ RSpec.describe MemoWise do
         yield
       end
       memo_wise :implicit_block_method
+
+      def self.class_positional_args_counter
+        @class_positional_args_counter || 0
+      end
+
+      def self.with_positional_args(a, b) # rubocop:disable Naming/MethodParameterName
+        @class_positional_args_counter = class_positional_args_counter + 1
+        "class_with_positional_args: a=#{a}, b=#{b}"
+      end
     end
   end
 
@@ -289,6 +298,162 @@ RSpec.describe MemoWise do
       expect(instance2.no_args_counter).to eq(0)
     end
 
+    context "when memo_wise has *not* been called on a *class* method" do
+      it "does *not* create class-level instance variable" do
+        expect(class_with_memo.instance_variables).not_to include(:@_memo_wise)
+      end
+    end
+
+    context "with class methods" do
+      context "when defined with 'def self.'" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            def self.class_method_counter
+              @class_method_counter || 0
+            end
+
+            def self.self_dot_method(a, b: "default") # rubocop:disable Naming/MethodParameterName
+              @class_method_counter = class_method_counter + 1
+              "self_dot_method: a=#{a}, b=#{b}"
+            end
+            memo_wise self: :self_dot_method
+
+            def self.private_class_method_counter
+              @private_class_method_counter || 0
+            end
+
+            def self.self_dot_private_class_method
+              @private_class_method_counter = private_class_method_counter + 1
+              "private class method"
+            end
+            private_class_method :self_dot_private_class_method
+            memo_wise self: :self_dot_private_class_method
+
+            def instance_method_counter
+              @instance_method_counter || 0
+            end
+
+            def self_dot_method(a, b: "default") # rubocop:disable Naming/MethodParameterName
+              @instance_method_counter = instance_method_counter + 1
+              "instance_self_dot_method: a=#{a}, b=#{b}"
+            end
+          end
+        end
+
+        it "memoizes class methods defined with 'def self.'" do
+          expect(Array.new(4) { class_with_memo.self_dot_method(1, b: 2) }).
+            to all eq("self_dot_method: a=1, b=2")
+
+          expect(Array.new(4) { class_with_memo.self_dot_method(1, b: 3) }).
+            to all eq("self_dot_method: a=1, b=3")
+
+          expect(class_with_memo.class_method_counter).to eq(2)
+        end
+
+        it "creates a class-level instance variable" do
+          # NOTE: test implementation detail to ensure the inverse test is valid
+          expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+
+        it "memoizes private class methods defined with 'def self.'" do
+          expect(Array.new(4) do
+            class_with_memo.send(:self_dot_private_class_method)
+          end).
+            to all eq("private class method")
+
+          expect(class_with_memo.private_class_method_counter).to eq(1)
+        end
+
+        context "with instance methods with the same name as class methods" do
+          let(:instance) { class_with_memo.new }
+
+          it "doesn't memoize instance methods when passed self: keyword" do
+            expect(Array.new(4) { instance.self_dot_method(1) }).
+              to all eq("instance_self_dot_method: a=1, b=default")
+
+            expect(instance.instance_method_counter).to eq(4)
+          end
+        end
+      end
+
+      context "with an invalid hash key" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            def self.class_method; end
+          end
+        end
+
+        it "raises an error when passing a key which is not `self:`" do
+          expect { class_with_memo.send(:memo_wise, bad_key: :class_method) }.
+            to raise_error(
+              ArgumentError,
+              "`:self` is the only key allowed in memo_wise"
+            )
+        end
+      end
+
+      context "when defined with scope 'class << self'" do
+        let(:class_with_memo) do
+          Class.new do
+            class << self
+              prepend MemoWise
+
+              def class_method_counter
+                @class_method_counter || 0
+              end
+
+              def class_self_method(a, b: "default") # rubocop:disable Naming/MethodParameterName
+                @class_method_counter = class_method_counter + 1
+                "class_self_method: a=#{a}, b=#{b}"
+              end
+              memo_wise :class_self_method
+
+              def private_class_method_counter
+                @private_class_method_counter || 0
+              end
+
+              private
+
+              def private_class_self_method
+                @private_class_method_counter = private_class_method_counter + 1
+                "private_class_self_method"
+              end
+              memo_wise :private_class_self_method
+            end
+          end
+        end
+
+        it "memoizes class methods defined with scope 'class << self'" do
+          expect(Array.new(4) { class_with_memo.class_self_method(1, b: 2) }).
+            to all eq("class_self_method: a=1, b=2")
+
+          expect(Array.new(4) { class_with_memo.class_self_method(1, b: 3) }).
+            to all eq("class_self_method: a=1, b=3")
+
+          expect(class_with_memo.class_method_counter).to eq(2)
+        end
+
+        it "creates a class-level instance variable" do
+          # NOTE: this test ensure the inverse test above continues to be valid
+          expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+
+        context "with private class methods" do
+          it "memoizes private class methods defined with 'class << self'" do
+            expect(
+              Array.new(4) { class_with_memo.send(:private_class_self_method) }
+            ).to all eq("private_class_self_method")
+
+            expect(class_with_memo.private_class_method_counter).to eq(1)
+          end
+        end
+      end
+    end
+
     context "with private methods" do
       it "keeps private methods private" do
         expect(instance.private_methods).to include(:private_memowise_method)
@@ -380,6 +545,15 @@ RSpec.describe MemoWise do
           ArgumentError,
           "Methods which take block arguments cannot be memoized"
         )
+    end
+
+    context "with class methods with same name as memoized instance methods" do
+      it "does not memoize the class methods" do
+        expect(Array.new(4) { class_with_memo.with_positional_args(1, 2) }).
+          to all eq("class_with_positional_args: a=1, b=2")
+
+        expect(class_with_memo.class_positional_args_counter).to eq(4)
+      end
     end
   end
 
@@ -782,6 +956,49 @@ RSpec.describe MemoWise do
       it do
         expect { instance.preset_memo_wise(:no_args) }.
           to raise_error(ArgumentError)
+      end
+    end
+  end
+
+  describe "private APIs" do
+    describe ".method_visibility" do
+      subject { described_class.method_visibility(String, method_name) }
+
+      context "when method_name not a method on klass" do
+        let(:method_name) { :not_a_method }
+
+        it { expect { subject }.to raise_error(ArgumentError) }
+      end
+    end
+
+    describe ".original_class_from_singleton" do
+      subject { described_class.original_class_from_singleton(klass) }
+
+      context "when klass is not a singleton class" do
+        let(:klass) { String }
+
+        it { expect { subject }.to raise_error(ArgumentError) }
+      end
+
+      context "when klass is a singleton class of an original class" do
+        let(:klass) { original_class.singleton_class }
+
+        context "when assigned to a constant" do
+          let(:original_class) { String }
+
+          it { is_expected.to eq(original_class) }
+        end
+
+        context "when singleton class #to_s convention not followed" do
+          let(:original_class) { class_with_memo }
+          let(:klass) do
+            super().tap do |sc|
+              sc.define_singleton_method(:to_s) { "not following convention" }
+            end
+          end
+
+          it { is_expected.to eq(original_class) }
+        end
       end
     end
   end
