@@ -285,6 +285,12 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         # hash key is just the method name.
         if method.arity.zero?
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+            # def foo
+            #   @_memo_wise.fetch(:foo}) do
+            #     @_memo_wise[:foo] = _memo_wise_original_foo
+            #   end
+            # end
+
             def #{method_name}
               @_memo_wise.fetch(:#{method_name}) do
                 @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
@@ -313,6 +319,13 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
           # Note that we don't need to freeze args before using it as a hash key
           # because Ruby always copies argument arrays when splatted.
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+            # def foo(*args, **kwargs)
+            #   hash = @_memo_wise[:foo]
+            #   hash.fetch([args, kwargs].freeze) do
+            #     hash[[args, kwargs].freeze] = _memo_wise_original_foo(*args, **kwargs)
+            #   end
+            # end
+
             def #{method_name}#{args_str}
               hash = @_memo_wise[:#{method_name}]
               hash.fetch(#{fetch_key}) do

@@ -52,7 +52,9 @@ BENCHMARK_GEMS = [
 # Use metaprogramming to ensure that each class is created in exactly the
 # the same way.
 BENCHMARK_GEMS.each do |benchmark_gem|
-  eval <<-CLASS, binding, __FILE__, __LINE__ + 1 # rubocop:disable Security/Eval
+  # rubocop:disable Security/Eval
+  # rubocop:disable Style/DocumentDynamicEvalDefinition
+  eval <<-CLASS, binding, __FILE__, __LINE__ + 1
     class #{benchmark_gem.klass}Example
       #{benchmark_gem.inheritance_method} #{benchmark_gem.klass}
 
@@ -92,6 +94,8 @@ BENCHMARK_GEMS.each do |benchmark_gem|
       #{benchmark_gem.memoization_method} :positional_splat_keyword_and_double_splat_args
     end
   CLASS
+  # rubocop:enable Style/DocumentDynamicEvalDefinition
+  # rubocop:enable Security/Eval
 end
 
 # We pre-create argument lists for our memoized methods with arguments, so that
