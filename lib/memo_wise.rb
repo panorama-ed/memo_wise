@@ -321,17 +321,15 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             # def foo(*args, **kwargs)
             #   hash = @_memo_wise[:foo]
-            #   key = [args, kwargs].freeze
-            #   hash.fetch(key) do
-            #     hash[key] = _memo_wise_original_foo(*args, **kwargs)
+            #   hash.fetch([args, kwargs].freeze) do
+            #     hash[[args, kwargs].freeze] = _memo_wise_original_foo(*args, **kwargs)
             #   end
             # end
 
             def #{method_name}#{args_str}
               hash = @_memo_wise[:#{method_name}]
-              key = #{fetch_key}
-              hash.fetch(key) do
-                hash[key] = #{original_memo_wised_name}#{args_str}
+              hash.fetch(#{fetch_key}) do
+                hash[#{fetch_key}] = #{original_memo_wised_name}#{args_str}
               end
             end
           END_OF_METHOD
