@@ -19,16 +19,9 @@ jobs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-    - uses: actions/cache@v1
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-gems-
-    - run: bundle config path vendor/bundle
+        bundler-cache: true
     - run: bundle config set without 'checks:docs'
       if: matrix.ruby != 2.7
-    - run: bundle install --jobs 4 --retry 3
     - run: bundle exec rspec
     - run: bundle exec rubocop
       if: matrix.ruby == 2.7
