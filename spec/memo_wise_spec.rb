@@ -7,72 +7,101 @@ RSpec.describe MemoWise do
     Class.new do
       prepend MemoWise
 
-      def initialize
-        @no_args_counter = 0
-        @with_positional_args_counter = 0
-        @with_positional_and_splat_args_counter = 0
-        @with_keyword_args_counter = 0
-        @with_keyword_and_double_splat_args_counter = 0
-        @with_positional_and_keyword_args_counter = 0
-        @with_positional_splat_keyword_and_double_splat_args_counter = 0
-        @special_chars_counter = 0
-        @false_method_counter = 0
-        @true_method_counter = 0
-        @nil_method_counter = 0
-        @private_memowise_method_counter = 0
-        @protected_memowise_method_counter = 0
-        @public_memowise_method_counter = 0
-        @proc_method_counter = 0
+      def no_args_counter
+        @no_args_counter || 0
       end
 
-      attr_reader :no_args_counter,
-                  :with_positional_args_counter,
-                  :with_positional_and_splat_args_counter,
-                  :with_keyword_args_counter,
-                  :with_keyword_and_double_splat_args_counter,
-                  :with_positional_and_keyword_args_counter,
-                  :with_positional_splat_keyword_and_double_splat_args_counter,
-                  :special_chars_counter,
-                  :false_method_counter,
-                  :true_method_counter,
-                  :nil_method_counter,
-                  :private_memowise_method_counter,
-                  :protected_memowise_method_counter,
-                  :public_memowise_method_counter,
-                  :proc_method_counter
+      def with_positional_args_counter
+        @with_positional_args_counter || 0
+      end
+
+      def with_positional_and_splat_args_counter
+        @with_positional_and_splat_args_counter || 0
+      end
+
+      def with_keyword_args_counter
+        @with_keyword_args_counter || 0
+      end
+
+      def with_keyword_and_double_splat_args_counter
+        @with_keyword_and_double_splat_args_counter || 0
+      end
+
+      def with_positional_and_keyword_args_counter
+        @with_positional_and_keyword_args_counter || 0
+      end
+
+      def with_positional_splat_keyword_and_double_splat_args_counter
+        @with_positional_splat_keyword_and_double_splat_args_counter || 0
+      end
+
+      def special_chars_counter
+        @special_chars_counter || 0
+      end
+
+      def false_method_counter
+        @false_method_counter || 0
+      end
+
+      def true_method_counter
+        @true_method_counter || 0
+      end
+
+      def nil_method_counter
+        @nil_method_counter || 0
+      end
+
+      def private_memowise_method_counter
+        @private_memowise_method_counter || 0
+      end
+
+      def protected_memowise_method_counter
+        @protected_memowise_method_counter || 0
+      end
+
+      def public_memowise_method_counter
+        @public_memowise_method_counter || 0
+      end
+
+      def proc_method_counter
+        @proc_method_counter || 0
+      end
 
       def no_args
-        @no_args_counter += 1
+        @no_args_counter = no_args_counter + 1
         "no_args"
       end
       memo_wise :no_args
 
       def with_positional_args(a, b) # rubocop:disable Naming/MethodParameterName
-        @with_positional_args_counter += 1
+        @with_positional_args_counter = with_positional_args_counter + 1
         "with_positional_args: a=#{a}, b=#{b}"
       end
       memo_wise :with_positional_args
 
       def with_positional_and_splat_args(a, *args) # rubocop:disable Naming/MethodParameterName
-        @with_positional_and_splat_args_counter += 1
+        @with_positional_and_splat_args_counter =
+          with_positional_and_splat_args_counter + 1
         "with_positional_and_splat_args: a=#{a}, args=#{args}"
       end
       memo_wise :with_positional_and_splat_args
 
       def with_keyword_args(a:, b:) # rubocop:disable Naming/MethodParameterName
-        @with_keyword_args_counter += 1
+        @with_keyword_args_counter = with_keyword_args_counter + 1
         "with_keyword_args: a=#{a}, b=#{b}"
       end
       memo_wise :with_keyword_args
 
       def with_keyword_and_double_splat_args(a:, **kwargs) # rubocop:disable Naming/MethodParameterName
-        @with_keyword_and_double_splat_args_counter += 1
+        @with_keyword_and_double_splat_args_counter =
+          with_keyword_and_double_splat_args_counter + 1
         "with_keyword_and_double_splat_args: a=#{a}, kwargs=#{kwargs}"
       end
       memo_wise :with_keyword_and_double_splat_args
 
       def with_positional_and_keyword_args(a, b:) # rubocop:disable Naming/MethodParameterName
-        @with_positional_and_keyword_args_counter += 1
+        @with_positional_and_keyword_args_counter =
+          with_positional_and_keyword_args_counter + 1
         "with_positional_and_keyword_args: a=#{a}, b=#{b}"
       end
       memo_wise :with_positional_and_keyword_args
@@ -83,52 +112,54 @@ RSpec.describe MemoWise do
         b:, # rubocop:disable Naming/MethodParameterName
         **kwargs
       )
-        @with_positional_splat_keyword_and_double_splat_args_counter += 1
+        @with_positional_splat_keyword_and_double_splat_args_counter =
+          with_positional_splat_keyword_and_double_splat_args_counter + 1
         "with_positional_splat_keyword_and_double_splat_args: "\
           "a=#{a}, args=#{args} b=#{b} kwargs=#{kwargs}"
       end
       memo_wise :with_positional_splat_keyword_and_double_splat_args
 
       def special_chars?
-        @special_chars_counter += 1
+        @special_chars_counter = special_chars_counter + 1
         "special_chars?"
       end
       memo_wise :special_chars?
 
       def false_method
-        @false_method_counter += 1
+        @false_method_counter = false_method_counter + 1
         false
       end
       memo_wise :false_method
 
       def true_method
-        @true_method_counter += 1
+        @true_method_counter = true_method_counter + 1
         true
       end
       memo_wise :true_method
 
       def nil_method
-        @nil_method_counter += 1
+        @nil_method_counter = nil_method_counter + 1
         nil
       end
       memo_wise :nil_method
 
       def private_memowise_method
-        @private_memowise_method_counter += 1
+        @private_memowise_method_counter = private_memowise_method_counter + 1
         "private_memowise_method"
       end
       private :private_memowise_method
       memo_wise :private_memowise_method
 
       def protected_memowise_method
-        @protected_memowise_method_counter += 1
+        @protected_memowise_method_counter =
+          protected_memowise_method_counter + 1
         "protected_memowise_method"
       end
       protected :protected_memowise_method
       memo_wise :protected_memowise_method
 
       def public_memowise_method
-        @public_memowise_method_counter += 1
+        @public_memowise_method_counter = public_memowise_method_counter + 1
         "public_memowise_method"
       end
       memo_wise :public_memowise_method
@@ -137,7 +168,7 @@ RSpec.describe MemoWise do
       def unmemoized_method; end
 
       def proc_method(proc)
-        @proc_method_counter += 1
+        @proc_method_counter = proc_method_counter + 1
         proc.call
       end
       memo_wise :proc_method
@@ -301,6 +332,15 @@ RSpec.describe MemoWise do
     context "when memo_wise has *not* been called on a *class* method" do
       it "does *not* create class-level instance variable" do
         expect(class_with_memo.instance_variables).not_to include(:@_memo_wise)
+      end
+    end
+
+    context "when instances are created with Class#allocate" do
+      let(:instance) { class_with_memo.allocate }
+
+      it "memoizes correctly" do
+        expect(Array.new(4) { instance.no_args }).to all eq("no_args")
+        expect(instance.no_args_counter).to eq(1)
       end
     end
 

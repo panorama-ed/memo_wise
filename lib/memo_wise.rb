@@ -23,14 +23,14 @@ require "memo_wise/version"
 #   - {file:README.md} for general project information.
 #
 module MemoWise # rubocop:disable Metrics/ModuleLength
-  # Constructor to setup memoization state before
+  # Constructor to set up memoization state before
   # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
   # constructor.
   #
   # - **Q:** Why is [Module#prepend](https://ruby-doc.org/core-2.7.2/Module.html#method-i-prepend)
   #          important here
   #          ([more info](https://medium.com/@leo_hetsch/ruby-modules-include-vs-prepend-vs-extend-f09837a5b073))?
-  # - **A:** To setup *mutable state* inside the instance, even if the original
+  # - **A:** To set up *mutable state* inside the instance, even if the original
   #          constructor will then call
   #          [Object#freeze](https://ruby-doc.org/core-2.7.2/Object.html#method-i-freeze).
   #
@@ -211,6 +211,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # @param [Object] obj
   #   Object in which to create mutable state to store future memoized values
   #
+  # @return [Object] the passed-in obj
   def self.create_memo_wise_state!(obj)
     unless obj.instance_variables.include?(:@_memo_wise)
       obj.instance_variable_set(
@@ -218,6 +219,8 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         Hash.new { |h, k| h[k] = {} }
       )
     end
+
+    obj
   end
 
   # @private
@@ -236,6 +239,23 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #
   def self.prepended(target) # rubocop:disable Metrics/PerceivedComplexity
     class << target
+      # Allocator to set up memoization state before
+      # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
+      # allocator.
+      #
+      # This is necessary in addition to the `#initialize` method definition
+      # above because
+      # [`Class#allocate`](https://ruby-doc.org/core-3.0.0/Class.html#method-i-allocate)
+      # bypasses `#initialize`, and when it's used (e.g.,
+      # [in ActiveRecord](https://github.com/rails/rails/blob/a395c3a6af1e079740e7a28994d77c8baadd2a9d/activerecord/lib/active_record/persistence.rb#L411))
+      # we still need to be able to access MemoWise's instance variable. Despite
+      # Ruby documentation indicating otherwise, `Class#new` does not call
+      # `Class#allocate`, so we need to override both.
+      #
+      def allocate
+        MemoWise.create_memo_wise_state!(super)
+      end
+
       # NOTE: See YARD docs for {.memo_wise} directly below this method!
       def memo_wise(method_name_or_hash) # rubocop:disable Metrics/PerceivedComplexity
         klass = self
