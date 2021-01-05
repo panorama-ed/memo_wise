@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [jruby, 2.4, 2.5, 2.6, 2.7]
+        ruby: [jruby, 2.4, 2.5, 2.6, 2.7, 3.0]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@main
@@ -27,14 +27,14 @@ jobs:
           ${{ runner.os }}-gems-
     - run: bundle config path vendor/bundle
     - run: bundle config set without 'checks:docs'
-      if: matrix.ruby != 2.7
+      if: matrix.ruby != 3.0
     - run: bundle install --jobs 4 --retry 3
     - run: bundle exec rspec
     - run: bundle exec rubocop
-      if: matrix.ruby == 2.7
+      if: matrix.ruby == 3.0
     - run: bundle exec yard doctest
-      if: matrix.ruby == 2.7
+      if: matrix.ruby == 3.0
     - run: |
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle install --jobs 4 --retry 3
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle exec ruby benchmarks/benchmarks.rb
-      if: matrix.ruby == 2.7
+      if: matrix.ruby == '2.7' || matrix.ruby == '3.0'
