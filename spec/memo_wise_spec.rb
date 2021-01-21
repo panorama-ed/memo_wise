@@ -173,7 +173,10 @@ RSpec.describe MemoWise do
       end
       memo_wise :proc_method
 
-      def explicit_block_method(&block); end
+      def explicit_block_method(&block) # rubocop:disable Lint/UnusedMethodArgument
+        yield
+      end
+      memo_wise :explicit_block_method
 
       def implicit_block_method
         yield
@@ -580,11 +583,8 @@ RSpec.describe MemoWise do
     end
 
     it "will not memoize methods with explicit block arguments" do
-      expect { instance.class.memo_wise(:explicit_block_method) }.
-        to raise_error(
-          ArgumentError,
-          "Methods which take block arguments cannot be memoized"
-        )
+      expect { instance.explicit_block_method { nil  } }.
+        to raise_error(LocalJumpError)
     end
 
     context "with class methods with same name as memoized instance methods" do
