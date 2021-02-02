@@ -2,13 +2,16 @@
 
 require "benchmark/ips"
 
-require "memery"
 require "memo_wise"
-require "memoist"
-require "memoized"
-require "memoized/version" # Memoized::VERSION does not get loaded above.
-require "memoizer"
-require "memoizer/version" # Memoizer::VERSION does not get loaded above.
+
+# Some gems do not yet work in Ruby 3 so we only require them if they're loaded
+# in the Gemfile.
+%w[memery memoist memoized memoizer].
+  each { |gem| require gem if Gem.loaded_specs.key?(gem) }
+
+# The VERSION constant does not get loaded above for these gems.
+%w[memoized memoizer].
+  each { |gem| require "#{gem}/version" if Gem.loaded_specs.key?(gem) }
 
 class BenchmarkSuiteWithoutGC
   def warming(*)
@@ -41,13 +44,15 @@ end
 
 # We alphabetize this list for easier readability, but shuffle the list before
 # using it to minimize the chance that our benchmarks are affected by ordering.
+# NOTE: Some gems do not yet work in Ruby 3 so we only test with them if they've
+# been `require`d.
 BENCHMARK_GEMS = [
-  BenchmarkGem.new(Memery, :include, :memoize),
   BenchmarkGem.new(MemoWise, :prepend, :memo_wise),
-  BenchmarkGem.new(Memoist, :extend, :memoize),
-  BenchmarkGem.new(Memoized, :include, :memoize),
-  BenchmarkGem.new(Memoizer, :include, :memoize)
-].shuffle
+  (BenchmarkGem.new(Memery, :include, :memoize) if defined?(Memery)),
+  (BenchmarkGem.new(Memoist, :extend, :memoize) if defined?(Memoist)),
+  (BenchmarkGem.new(Memoized, :include, :memoize) if defined?(Memoized)),
+  (BenchmarkGem.new(Memoizer, :include, :memoize) if defined?(Memoizer))
+].compact.shuffle
 
 # Use metaprogramming to ensure that each class is created in exactly the
 # the same way.
@@ -115,7 +120,7 @@ Benchmark.ips do |x|
     # retrieval time.
     instance.no_args
 
-    x.report("#{benchmark_gem.benchmark_name}: no_args") { instance.no_args }
+    x.report("#{benchmark_gem.benchmark_name}: ()") { instance.no_args }
   end
 
   x.compare!
@@ -130,7 +135,7 @@ Benchmark.ips do |x|
     # benchmark only tests memoized retrieval time.
     ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
 
-    x.report("#{benchmark_gem.benchmark_name}: positional_args") do
+    x.report("#{benchmark_gem.benchmark_name}: (a, b)") do
       ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
     end
   end
@@ -147,7 +152,7 @@ Benchmark.ips do |x|
     # benchmark only tests memoized retrieval time.
     ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
 
-    x.report("#{benchmark_gem.benchmark_name}: keyword_args") do
+    x.report("#{benchmark_gem.benchmark_name}: (a:, b:)") do
       ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
     end
   end
@@ -164,7 +169,7 @@ Benchmark.ips do |x|
     # benchmark only tests memoized retrieval time.
     ARGUMENTS.each { |a, b| instance.positional_and_keyword_args(a, b: b) }
 
-    x.report("#{benchmark_gem.benchmark_name}: positional_and_keyword_args") do
+    x.report("#{benchmark_gem.benchmark_name}: (a, b:)") do
       ARGUMENTS.each { |a, b| instance.positional_and_keyword_args(a, b: b) }
     end
   end
@@ -181,7 +186,7 @@ Benchmark.ips do |x|
     # benchmark only tests memoized retrieval time.
     ARGUMENTS.each { |a, b| instance.positional_and_splat_args(a, b) }
 
-    x.report("#{benchmark_gem.benchmark_name}: positional_and_splat_args") do
+    x.report("#{benchmark_gem.benchmark_name}: (a, *args)") do
       ARGUMENTS.each { |a, b| instance.positional_and_splat_args(a, b) }
     end
   end
@@ -199,9 +204,11 @@ Benchmark.ips do |x|
     ARGUMENTS.each { |a, b| instance.keyword_and_double_splat_args(a: a, b: b) }
 
     x.report(
-      "#{benchmark_gem.benchmark_name}: keyword_and_double_splat_args"
+      "#{benchmark_gem.benchmark_name}: (a:, **kwargs)"
     ) do
-      ARGUMENTS.each { |a, b| instance.positional_and_splat_args(a: a, b: b) }
+      ARGUMENTS.each do |a, b|
+        instance.keyword_and_double_splat_args(a: a, b: b)
+      end
     end
   end
 
@@ -216,15 +223,15 @@ Benchmark.ips do |x|
     # Run once with each set of arguments to memoize the result values, so our
     # benchmark only tests memoized retrieval time.
     ARGUMENTS.each do |a, b|
-      instance.positional_splat_keyword_and_double_splat_args(a, b, a: a, b: b)
+      instance.positional_splat_keyword_and_double_splat_args(a, b, b: b, a: a)
     end
 
     x.report(
-      "#{benchmark_gem.benchmark_name}: "\
-        "positional_splat_keyword_and_double_splat_args"
+      "#{benchmark_gem.benchmark_name}: (a, *args, b:, **kwargs)"
     ) do
       ARGUMENTS.each do |a, b|
-        instance.positional_and_splat_args(a, b, a: a, b: b)
+        instance.
+          positional_splat_keyword_and_double_splat_args(a, b, b: b, a: a)
       end
     end
   end
