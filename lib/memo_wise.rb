@@ -512,7 +512,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       raise ArgumentError, "#{method_name.inspect} must be a Symbol"
     end
 
-    unless respond_to?(method_name)
+    unless respond_to?(method_name, true)
       raise ArgumentError, "#{method_name} is not a defined method"
     end
 
