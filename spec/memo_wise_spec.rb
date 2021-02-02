@@ -708,6 +708,14 @@ RSpec.describe MemoWise do
         expect(instance.nil_method_counter).to eq(2)
       end
 
+      it "resets memoization for private methods" do
+        instance.send(:private_memowise_method)
+        instance.reset_memo_wise(:private_memowise_method)
+        expect(Array.new(4) { instance.send(:private_memowise_method) }).
+          to all eq("private_memowise_method")
+        expect(instance.private_memowise_method_counter).to eq(2)
+      end
+
       it "does not reset memoization methods across instances" do
         instance2 = class_with_memo.new
 
