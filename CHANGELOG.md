@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Memoization of class methods
 - Support for instances created with `Class#allocate`
 - Official testing and benchmarks for Ruby 3.0
+- Release procedure for gem
 
 ## [0.2.0] - 2020-10-28
 ### Added
