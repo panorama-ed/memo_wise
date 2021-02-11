@@ -38,6 +38,7 @@ GEM
       ast (~> 2.4.1)
     rack (2.2.3)
     rainbow (3.0.0)
+    rake (13.0.3)
     redcarpet (3.5.1)
     regexp_parser (2.0.3)
     rexml (3.2.4)
@@ -99,6 +100,7 @@ DEPENDENCIES
   codecov
   memo_wise!
   panolint!
+  rake
   redcarpet (~> 3.5)
   rspec (~> 3.10)
   values (~> 1)

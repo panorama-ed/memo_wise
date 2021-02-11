@@ -155,6 +155,30 @@ https://github.com/panorama-ed/memo_wise. This project is intended to be a safe,
 welcoming space for collaboration, and contributors are expected to adhere to
 the [code of conduct](https://github.com/panorama-ed/memo_wise/blob/main/CODE_OF_CONDUCT.md).
 
+## Releasing
+
+To make a new release of `MemoWise` to
+[RubyGems](https://rubygems.org/gems/memo_wise), first install the release
+dependencies (e.g. `rake`) as follows:
+
+```shell
+bundle config set --local with 'release'
+bundle install
+```
+
+Then carry out these steps:
+
+1. Update `CHANGELOG.md`:
+   - Add an entry for the upcoming version _x.y.z_
+   - Move content from _Unreleased_ to the upcoming version _x.y.z_
+   - Commit with title `Update CHANGELOG.md for x.y.z`
+
+2. Update `lib/memo_wise/version.rb`
+   - Replace with upcoming version _x.y.z_
+   - Commit with title `Bump version to x.y.z`
+
+3. `bundle exec rake release`
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
