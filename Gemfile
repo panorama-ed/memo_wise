@@ -14,7 +14,7 @@ end
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
 group :checks do
   gem "codecov"
-  gem "panolint", github: "panorama-ed/panolint"
+  gem "panolint", github: "panorama-ed/panolint", branch: "main"
 end
 
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
