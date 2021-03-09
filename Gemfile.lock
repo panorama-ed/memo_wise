@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/panorama-ed/panolint.git
-  revision: 4b39e31ffd8ca41acbe2ba11a768f9342b9b5227
+  revision: 4a2d719034dd976a16ddc952c25aaede1825e8ae
   branch: main
   specs:
     panolint (0.1.2)
@@ -19,12 +19,11 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (6.1.3)
+    activesupport (5.2.4.5)
       concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (>= 1.6, < 2)
-      minitest (>= 5.1)
-      tzinfo (~> 2.0)
-      zeitwerk (~> 2.3)
+      i18n (>= 0.7, < 2)
+      minitest (~> 5.1)
+      tzinfo (~> 1.1)
     ast (2.4.2)
     brakeman (5.0.0)
     codecov (0.5.1)
@@ -85,15 +84,15 @@ GEM
       docile (~> 1.1)
       simplecov-html (~> 0.11)
     simplecov-html (0.12.3)
-    tzinfo (2.0.4)
-      concurrent-ruby (~> 1.0)
+    thread_safe (0.3.6)
+    tzinfo (1.2.9)
+      thread_safe (~> 0.1)
     unicode-display_width (2.0.0)
     values (1.8.0)
     yard (0.9.26)
     yard-doctest (0.1.17)
       minitest
       yard
-    zeitwerk (2.4.2)
 
 PLATFORMS
   ruby
