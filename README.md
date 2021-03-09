@@ -12,7 +12,6 @@
 [![Gem Version](https://img.shields.io/gem/v/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
 [![Gem Downloads](https://img.shields.io/gem/dt/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
 
-
 ## Why `MemoWise`?
 
 `MemoWise` is **the wise choice for Ruby memoization**, featuring:
@@ -139,6 +138,25 @@ code examples in our YARD documentation. To run `doctest` locally:
 
 ```bash
 bundle exec yard doctest
+```
+
+### A Note on Testing
+
+When testing memoized *module* methods, note that some testing setups will
+reuse the same instance (which `include`s/`extend`s/`prepend`s the module)
+across tests, which can result in confusing test failures when this differs from
+how you use the code in production.
+
+For example, Rails view helpers are modules that are commonly tested with a
+[shared `view` instance](https://github.com/rails/rails/blob/291a3d2ef29a3842d1156ada7526f4ee60dd2b59/actionview/lib/action_view/test_case.rb#L203-L214). Rails initializes a new view instance for each web request so any view helper
+methods would only be memoized for the duration of that web request, but in
+tests (such as when using
+[`rspec-rails`'s `helper`](https://github.com/rspec/rspec-rails/blob/main/lib/rspec/rails/example/helper_example_group.rb#L22-L27)),
+the memoization may persist across tests. In this case, simply reset the
+memoization between your tests with something like:
+
+```ruby
+after(:each) { helper.reset_memo_wise }
 ```
 
 ## Logo

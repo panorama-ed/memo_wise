@@ -373,7 +373,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # valid for the given method.
   #
   # @param method_name [Symbol]
-  #   Name of a method previously setup with `#memo_wise`.
+  #   Name of a method previously set up with `#memo_wise`.
   #
   # @param args [Array]
   #   (Optional) If the method takes positional args, these are the values of
@@ -449,7 +449,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # - Resets all memoized results of calling *all methods*.
   #
   # @param method_name [Symbol, nil]
-  #   (Optional) Name of a method previously setup with `#memo_wise`. If not
+  #   (Optional) Name of a method previously set up with `#memo_wise`. If not
   #   given, will reset *all* memoized results for *all* methods.
   #
   # @param args [Array]
