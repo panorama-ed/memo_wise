@@ -25,9 +25,6 @@ if Gem.loaded_specs.key?("codecov")
   SimpleCov.refuse_coverage_drop
 end
 
-require "bundler/setup"
-require "memo_wise"
-
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -39,3 +36,11 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+require "bundler/setup"
+
+# The gem that we are testing! :)
+require "memo_wise"
+
+# Support code for tests
+require "support/define_methods_for_testing_memo_wise"
