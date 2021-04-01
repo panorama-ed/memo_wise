@@ -595,6 +595,50 @@ RSpec.describe MemoWise do
         expect(class_with_memo.class_positional_args_counter).to eq(4)
       end
     end
+
+    context "when the class's initializer take arguments" do
+      context "when it only takes positional arguments" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            def initialize(arg); end
+          end
+        end
+
+        it "does not raise an error when initializing the class" do
+          expect { class_with_memo.new(:pos) }.to_not raise_error
+        end
+      end
+
+      context "when it only takes keyword arguments" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            def initialize(kwarg:); end
+          end
+        end
+
+        it "does not raise an error when initializing the class" do
+          expect { class_with_memo.new(kwarg: :kw) }.to_not raise_error
+        end
+      end
+
+      context "when it take both positional and keyword arguments" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            def initialize(arg, kwarg:); end
+          end
+        end
+
+        it "does not raise an error when initializing the class" do
+          expect { class_with_memo.new(:pos, kwarg: :kw) }.to_not raise_error
+        end
+      end
+    end
   end
 
   describe "#reset_memo_wise" do

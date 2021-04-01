@@ -39,7 +39,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # [Values](https://github.com/tcrayford/Values)
   # [gem](https://rubygems.org/gems/values).
   #
-  def initialize(*)
+  def initialize(*, **)
     MemoWise.create_memo_wise_state!(self)
     super
   end
