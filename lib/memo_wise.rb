@@ -39,17 +39,20 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # [Values](https://github.com/tcrayford/Values)
   # [gem](https://rubygems.org/gems/values).
   #
-  if RUBY_VERSION < "2.7"
-    def initialize(*, &block)
+  # To support syntax differences with keyword and positional arguments starting
+  # with ruby 2.7, we have to set up the initializer with some slightly
+  # different syntax for the different versions.
+  #
+  # See
+  # [this article](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/)
+  # for more information.
+  all_args = RUBY_VERSION < "2.7" ? "*" : "..."
+  class_eval <<-END_OF_METHOD
+    def initialize(#{all_args})
       MemoWise.create_memo_wise_state!(self)
       super
     end
-  else
-    def initialize(*, **, &block)
-      MemoWise.create_memo_wise_state!(self)
-      super
-    end
-  end
+  END_OF_METHOD
 
   # @private
   #
