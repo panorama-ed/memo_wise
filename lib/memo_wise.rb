@@ -39,10 +39,40 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # [Values](https://github.com/tcrayford/Values)
   # [gem](https://rubygems.org/gems/values).
   #
-  def initialize(*)
-    MemoWise.create_memo_wise_state!(self)
-    super
-  end
+  # To support syntax differences with keyword and positional arguments starting
+  # with ruby 2.7, we have to set up the initializer with some slightly
+  # different syntax for the different versions.  This variance in syntax is not
+  # included in coverage reports since the branch chosen will never differ
+  # within a single ruby version.  This means it is impossible for us to get
+  # 100% coverage of this line within a single CI run.
+  #
+  # See
+  # [this article](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/)
+  # for more information.
+  #
+  # :nocov:
+  all_args = RUBY_VERSION < "2.7" ? "*" : "..."
+  # :nocov:
+  class_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+    # On Ruby 2.7 or greater:
+    #
+    # def initialize(...)
+    #   MemoWise.create_memo_wise_state!(self)
+    #   super
+    # end
+    #
+    # On Ruby 2.6 or lower:
+    #
+    # def initialize(*)
+    #   MemoWise.create_memo_wise_state!(self)
+    #   super
+    # end
+
+    def initialize(#{all_args})
+      MemoWise.create_memo_wise_state!(self)
+      super
+    end
+  END_OF_METHOD
 
   # @private
   #
