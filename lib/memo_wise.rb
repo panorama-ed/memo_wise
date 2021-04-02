@@ -2,6 +2,14 @@
 
 require "memo_wise/version"
 
+# This is required to shim keyword argument handling for backwards compatibility
+# for ruby versions before 2.7.
+#
+# See https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/
+# for more information.
+def ruby2_keywords(*)
+end if RUBY_VERSION < "2.7"
+
 # MemoWise is the wise choice for memoization in Ruby.
 #
 # - **Q:** What is *memoization*?
@@ -39,7 +47,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # [Values](https://github.com/tcrayford/Values)
   # [gem](https://rubygems.org/gems/values).
   #
-  def initialize(*, **)
+  ruby2_keywords def initialize(*)
     MemoWise.create_memo_wise_state!(self)
     super
   end
