@@ -53,7 +53,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # :nocov:
   all_args = RUBY_VERSION < "2.7" ? "*" : "..."
   # :nocov:
-  class_eval <<-END_OF_METHOD
+  class_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
     # On Ruby 2.7 or greater:
     #
     # def initialize(...)
