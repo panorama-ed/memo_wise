@@ -638,6 +638,22 @@ RSpec.describe MemoWise do
           expect { class_with_memo.new(:pos, kwarg: :kw) }.to_not raise_error
         end
       end
+
+      context "when the method takes positional arguments, keyword arguments, "\
+              "and a block" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            def initialize(arg, kwarg:, &block); end
+          end
+        end
+
+        it "does not raise an error when initializing the class" do
+          expect { class_with_memo.new(:pos, kwarg: :kw) { true } }.
+            to_not raise_error
+        end
+      end
     end
   end
 
