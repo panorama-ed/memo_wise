@@ -54,6 +54,20 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   all_args = RUBY_VERSION < "2.7" ? "*" : "..."
   # :nocov:
   class_eval <<-END_OF_METHOD
+    # On Ruby 2.7 or greater:
+    #
+    # def initialize(...)
+    #   MemoWise.create_memo_wise_state!(self)
+    #   super
+    # end
+    #
+    # On Ruby 2.6 or lower:
+    #
+    # def initialize(*)
+    #   MemoWise.create_memo_wise_state!(self)
+    #   super
+    # end
+
     def initialize(#{all_args})
       MemoWise.create_memo_wise_state!(self)
       super
