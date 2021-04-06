@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/panorama-ed/panolint.git
-  revision: 2819f15348b6574cebaf9481c607e4201938c9f6
+  revision: 02ded3990334e65d757b2490d7f5f299434f9d74
   branch: main
   specs:
     panolint (0.1.2)
@@ -31,7 +31,7 @@ GEM
     concurrent-ruby (1.1.8)
     diff-lcs (1.4.4)
     docile (1.3.5)
-    i18n (1.8.9)
+    i18n (1.8.10)
       concurrent-ruby (~> 1.0)
     minitest (5.14.4)
     parallel (1.20.1)
@@ -42,7 +42,7 @@ GEM
     rake (13.0.3)
     redcarpet (3.5.1)
     regexp_parser (2.1.1)
-    rexml (3.2.4)
+    rexml (3.2.5)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
       rspec-expectations (~> 3.10.0)
@@ -56,7 +56,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.0)
-    rubocop (1.12.0)
+    rubocop (1.12.1)
       parallel (~> 1.10)
       parser (>= 3.0.0.0)
       rainbow (>= 2.2.2, < 4.0)
