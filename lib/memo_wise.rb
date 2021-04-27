@@ -402,6 +402,27 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         klass.send(visibility, method_name)
       end
     end
+
+    unless target.singleton_class?
+      # Create certain class methods to implement .preset_memo_wise
+      %i[
+        preset_memo_wise
+        validate_memo_wised!
+        validate_params!
+        fetch_key
+      ].each do |method_name|
+        # Like calling 'module_function', but original method stays public
+        target.define_singleton_method(
+          method_name,
+          MemoWise.instance_method(method_name)
+        )
+
+        # Make private the class method copies of private instance methods
+        unless MemoWise.public_method_defined?(method_name)
+          target.singleton_class.send(:private, method_name)
+        end
+      end
+    end
   end
 
   ##
@@ -440,6 +461,11 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #
   #     ex.method_to_memoize("b") #=> 2
   #     ex.method_to_memoize("b") #=> 2
+  ##
+
+  ##
+  # @!method self.preset_memo_wise(method_name, *args, **kwargs)
+  #   Implementation of {#preset_memo_wise} for class methods
   ##
 
   # Presets the memoized result for the given method to the result of the given
@@ -613,16 +639,18 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
   # Validates that {.memo_wise} has already been called on `method_name`.
   def validate_memo_wised!(method_name)
+    klass = instance_of?(Class) ? singleton_class : self.class
     original_memo_wised_name = :"_memo_wise_original_#{method_name}"
 
-    unless self.class.private_method_defined?(original_memo_wised_name)
+    unless klass.private_method_defined?(original_memo_wised_name)
       raise ArgumentError, "#{method_name} is not a memo_wised method"
     end
   end
 
   # Returns arguments key to lookup memoized results for given `method_name`.
-  def fetch_key(method_name, *args, **kwargs)
-    method = self.class.instance_method(method_name)
+  def fetch_key(method_name, *args, **kwargs) # rubocop:disable Metrics/PerceivedComplexity
+    klass = instance_of?(Class) ? singleton_class : self.class
+    method = klass.instance_method(method_name)
 
     if MemoWise.has_only_required_args?(method)
       key = method.parameters.map.with_index do |(type, name), index|
