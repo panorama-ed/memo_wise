@@ -212,10 +212,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # @return [Object] the passed-in obj
   def self.create_memo_wise_state!(obj)
     unless obj.instance_variables.include?(:@_memo_wise)
-      obj.instance_variable_set(
-        :@_memo_wise,
-        Hash.new { |h, k| h[k] = {} }
-      )
+      obj.instance_variable_set(:@_memo_wise, {})
     end
 
     obj
@@ -299,7 +296,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         if method.arity.zero?
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             # def foo
-            #   @_memo_wise.fetch(:foo}) do
+            #   @_memo_wise.fetch(:foo) do
             #     @_memo_wise[:foo] = _memo_wise_original_foo
             #   end
             # end
@@ -333,14 +330,18 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
           # because Ruby always copies argument arrays when splatted.
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             # def foo(*args, **kwargs)
-            #   hash = @_memo_wise[:foo]
+            #   hash = @_memo_wise.fetch(:foo) do
+            #     @_memo_wise[:foo] = {}
+            #   end
             #   hash.fetch([args, kwargs].freeze) do
             #     hash[[args, kwargs].freeze] = _memo_wise_original_foo(*args, **kwargs)
             #   end
             # end
 
             def #{method_name}#{args_str}
-              hash = @_memo_wise[:#{method_name}]
+              hash = @_memo_wise.fetch(:#{method_name}) do
+                @_memo_wise[:#{method_name}] = {}
+              end
               hash.fetch(#{fetch_key}) do
                 hash[#{fetch_key}] = #{original_memo_wised_name}#{args_str}
               end
@@ -454,7 +455,10 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     if method(method_name).arity.zero?
       @_memo_wise[method_name] = yield
     else
-      @_memo_wise[method_name][fetch_key(method_name, *args, **kwargs)] = yield
+      hash = @_memo_wise.fetch(method_name) do
+        @_memo_wise[method_name] = {}
+      end
+      hash[fetch_key(method_name, *args, **kwargs)] = yield
     end
   end
 
@@ -551,7 +555,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     if args.empty? && kwargs.empty?
       @_memo_wise.delete(method_name)
     else
-      @_memo_wise[method_name].delete(fetch_key(method_name, *args, **kwargs))
+      @_memo_wise[method_name]&.delete(fetch_key(method_name, *args, **kwargs))
     end
   end
 

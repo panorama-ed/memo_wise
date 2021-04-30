@@ -84,13 +84,13 @@ run in GitHub Actions and updated in every PR that changes code.
 
 |Method arguments|**`memo_wise` (0.1.0)**|`memery` (1.3.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|
 |--|--|--|--|--|--|
-|`()` (none)|**baseline**|14.69x slower|2.59x slower|1.15x slower|2.91x slower|
-|`(a, b)`|**baseline**|1.93x slower|2.20x slower|1.79x slower|1.96x slower|
-|`(a:, b:)`|**baseline**|3.01x slower|2.41x slower|2.18x slower|2.28x slower|
-|`(a, b:)`|**baseline**|1.49x slower|1.75x slower|1.51x slower|1.60x slower|
-|`(a, *args)`|**baseline**|1.92x slower|2.23x slower|1.94x slower|1.98x slower|
-|`(a:, **kwargs)`|**baseline**|3.08x slower|2.48x slower|2.17x slower|2.28x slower|
-|`(a, *args, b:, **kwargs)`|**baseline**|1.55x slower|1.73x slower|1.65x slower|1.67x slower|
+|`()` (none)|**baseline**|13.17x slower|2.85x slower|1.30x slower|3.05x slower|
+|`(a, b)`|**baseline**|1.93x slower|2.20x slower|1.97x slower|1.86x slower|
+|`(a:, b:)`|**baseline**|3.05x slower|2.34x slower|2.27x slower|2.14x slower|
+|`(a, b:)`|**baseline**|1.50x slower|1.63x slower|1.56x slower|1.48x slower|
+|`(a, *args)`|**baseline**|1.91x slower|2.13x slower|1.90x slower|1.88x slower|
+|`(a:, **kwargs)`|**baseline**|3.08x slower|2.37x slower|2.24x slower|2.09x slower|
+|`(a, *args, b:, **kwargs)`|**baseline**|1.72x slower|1.61x slower|1.56x slower|1.67x slower|
 
 _\*Indicates a benchmark run on Ruby 2.7.2 because the gem raises errors in Ruby
 3.0.0 due to its incorrect handling of keyword arguments._
