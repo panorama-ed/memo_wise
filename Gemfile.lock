@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/panorama-ed/panolint.git
-  revision: 06ab6cb4ef0fa803445854af8d124db07bcfaa5c
+  revision: 2487fee1001b164ba9b1c5f2178c96896288a7c8
   branch: main
   specs:
     panolint (0.1.3)
@@ -19,7 +19,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (5.2.5)
+    activesupport (5.2.6)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
