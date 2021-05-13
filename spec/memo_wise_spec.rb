@@ -113,6 +113,17 @@ RSpec.describe MemoWise do
         expect(target.no_args_counter).to eq(1)
       end
 
+      it "memoizes methods with one positional argument" do
+        expect(Array.new(4) { target.with_one_positional_arg(1) }).
+          to all eq("with_one_positional_arg: a=1")
+
+        expect(Array.new(4) { target.with_one_positional_arg(2) }).
+          to all eq("with_one_positional_arg: a=2")
+
+        # This should be executed once for each set of arguments passed
+        expect(target.with_one_positional_arg_counter).to eq(2)
+      end
+
       it "memoizes methods with positional arguments" do
         expect(Array.new(4) { target.with_positional_args(1, 2) }).
           to all eq("with_positional_args: a=1, b=2")
@@ -139,6 +150,17 @@ RSpec.describe MemoWise do
 
         # This should be executed once for each set of arguments passed
         expect(target.with_positional_and_splat_args_counter).to eq(2)
+      end
+
+      it "memoizes methods with one keyword argument" do
+        expect(Array.new(4) { target.with_one_keyword_arg(a: 1) }).
+          to all eq("with_one_keyword_arg: a=1")
+
+        expect(Array.new(4) { target.with_one_keyword_arg(a: 2) }).
+          to all eq("with_one_keyword_arg: a=2")
+
+        # This should be executed once for each set of arguments passed
+        expect(target.with_one_keyword_arg_counter).to eq(2)
       end
 
       it "memoizes methods with keyword arguments" do
@@ -448,6 +470,38 @@ RSpec.describe MemoWise do
           expect(instance.no_args_counter).to eq(2)
         end
 
+        it "resets memoization for methods with one positional argument" do
+          instance.with_one_positional_arg(1)
+          instance.with_one_positional_arg(2)
+          instance.reset_memo_wise(:with_one_positional_arg)
+
+          expect(Array.new(4) { instance.with_one_positional_arg(1) }).
+            to all eq("with_one_positional_arg: a=1")
+
+          expect(Array.new(4) { instance.with_one_positional_arg(2) }).
+            to all eq("with_one_positional_arg: a=2")
+
+          # This should be executed twice for each set of arguments passed
+          expect(instance.with_one_positional_arg_counter).to eq(4)
+        end
+
+        it "resets memoization for methods for one specific positional "\
+           "argument" do
+          instance.with_one_positional_arg(1)
+          instance.with_one_positional_arg(2)
+          instance.reset_memo_wise(:with_one_positional_arg, 1)
+
+          expect(Array.new(4) { instance.with_one_positional_arg(1) }).
+            to all eq("with_one_positional_arg: a=1")
+
+          expect(Array.new(4) { instance.with_one_positional_arg(2) }).
+            to all eq("with_one_positional_arg: a=2")
+
+          # This should be executed twice for each set of arguments passed,
+          # and a third time for the argument that was reset.
+          expect(instance.with_one_positional_arg_counter).to eq(3)
+        end
+
         it "resets memoization for methods with positional arguments" do
           instance.with_positional_args(1, 2)
           instance.with_positional_args(2, 3)
@@ -477,6 +531,37 @@ RSpec.describe MemoWise do
           # This should be executed twice for each set of arguments passed,
           # and a third time for the set of arguments that was reset.
           expect(instance.with_positional_args_counter).to eq(3)
+        end
+
+        it "resets memoization for methods with one keyword argument" do
+          instance.with_one_keyword_arg(a: 1)
+          instance.with_one_keyword_arg(a: 2)
+          instance.reset_memo_wise(:with_one_keyword_arg)
+
+          expect(Array.new(4) { instance.with_one_keyword_arg(a: 1) }).
+            to all eq("with_one_keyword_arg: a=1")
+
+          expect(Array.new(4) { instance.with_one_keyword_arg(a: 2) }).
+            to all eq("with_one_keyword_arg: a=2")
+
+          # This should be executed twice for each set of arguments passed
+          expect(instance.with_one_keyword_arg_counter).to eq(4)
+        end
+
+        it "resets memoization for methods for one specific keyword argument" do
+          instance.with_one_keyword_arg(a: 1)
+          instance.with_one_keyword_arg(a: 2)
+          instance.reset_memo_wise(:with_one_keyword_arg, a: 1)
+
+          expect(Array.new(4) { instance.with_one_keyword_arg(a: 1) }).
+            to all eq("with_one_keyword_arg: a=1")
+
+          expect(Array.new(4) { instance.with_one_keyword_arg(a: 2) }).
+            to all eq("with_one_keyword_arg: a=2")
+
+          # This should be executed twice for each set of arguments passed,
+          # and a third time for the argument that was reset.
+          expect(instance.with_one_keyword_arg_counter).to eq(3)
         end
 
         it "resets memoization for methods with keyword arguments" do
@@ -716,6 +801,31 @@ RSpec.describe MemoWise do
           end
         end
 
+        context "with one positional arg" do
+          let(:expected_counter) { overriding ? 2 : 0 }
+
+          before(:each) do
+            if overriding
+              instance.with_one_positional_arg(1)
+              instance.with_one_positional_arg(2)
+            end
+          end
+
+          it "presets memoization" do
+            instance.preset_memo_wise(:with_one_positional_arg, 1) { "preset1" }
+            instance.preset_memo_wise(:with_one_positional_arg, 2) { "preset2" }
+
+            expect(Array.new(4) { instance.with_one_positional_arg(1) }).
+              to all eq("preset1")
+
+            expect(Array.new(4) { instance.with_one_positional_arg(2) }).
+              to all eq("preset2")
+
+            expect(instance.with_one_positional_arg_counter).
+              to eq(expected_counter)
+          end
+        end
+
         context "with positional args" do
           let(:expected_counter) { overriding ? 2 : 0 }
 
@@ -741,6 +851,66 @@ RSpec.describe MemoWise do
           end
         end
 
+        context "with optional positional args" do
+          let(:expected_counter) { overriding ? 2 : 0 }
+
+          before(:each) do
+            if overriding
+              instance.with_optional_positional_args(1, 2)
+              instance.with_optional_positional_args(3, 4)
+            end
+          end
+
+          it "presets memoization" do
+            instance.preset_memo_wise(
+              :with_optional_positional_args,
+              1,
+              2
+            ) { "preset1" }
+            instance.preset_memo_wise(
+              :with_optional_positional_args,
+              3,
+              4
+            ) { "preset3" }
+
+            expect(Array.new(4) do
+              instance.with_optional_positional_args(1, 2)
+            end).to all eq("preset1")
+
+            expect(Array.new(4) do
+              instance.with_optional_positional_args(3, 4)
+            end).to all eq("preset3")
+
+            expect(instance.with_optional_positional_args_counter).
+              to eq(expected_counter)
+          end
+        end
+
+        context "with one keyword arg" do
+          let(:expected_counter) { overriding ? 2 : 0 }
+
+          before(:each) do
+            if overriding
+              instance.with_one_keyword_arg(a: 1)
+              instance.with_one_keyword_arg(a: 2)
+            end
+          end
+
+          it "presets memoization" do
+            instance.preset_memo_wise(:with_one_keyword_arg, a: 1) { "1st" }
+            instance.preset_memo_wise(:with_one_keyword_arg, a: 2) { "2nd" }
+
+            expect(Array.new(4) { instance.with_one_keyword_arg(a: 1) }).
+              to all eq("1st")
+
+            expect(Array.new(4) { instance.with_one_keyword_arg(a: 2) }).
+              to all eq("2nd")
+
+            expect(instance.with_one_keyword_arg_counter).
+              to eq(expected_counter)
+          end
+        end
+
         context "with keyword args" do
           let(:expected_counter) { overriding ? 2 : 0 }
 
@@ -762,6 +932,41 @@ RSpec.describe MemoWise do
               to all eq("2nd")
 
             expect(instance.with_keyword_args_counter).to eq(expected_counter)
+          end
+        end
+
+        context "with optional keyword args" do
+          let(:expected_counter) { overriding ? 2 : 0 }
+
+          before(:each) do
+            if overriding
+              instance.with_optional_keyword_args(a: 1, b: 2)
+              instance.with_optional_keyword_args(a: 2, b: 3)
+            end
+          end
+
+          it "presets memoization" do
+            instance.preset_memo_wise(
+              :with_optional_keyword_args,
+              a: 1,
+              b: 2
+            ) { "1st" }
+            instance.preset_memo_wise(
+              :with_optional_keyword_args,
+              a: 2,
+              b: 3
+            ) { "2nd" }
+
+            expect(Array.new(4) do
+              instance.with_optional_keyword_args(a: 1, b: 2)
+            end).to all eq("1st")
+
+            expect(Array.new(4) do
+              instance.with_optional_keyword_args(a: 2, b: 3)
+            end).to all eq("2nd")
+
+            expect(instance.with_optional_keyword_args_counter).
+              to eq(expected_counter)
           end
         end
 
@@ -792,6 +997,37 @@ RSpec.describe MemoWise do
             end).to all eq("second")
 
             expect(instance.with_positional_and_keyword_args_counter).
+              to eq(expected_counter)
+          end
+        end
+
+        context "with optional positional and keyword args" do
+          let(:expected_counter) { overriding ? 2 : 0 }
+
+          before(:each) do
+            if overriding
+              instance.with_optional_positional_and_keyword_args(1, b: 2)
+              instance.with_optional_positional_and_keyword_args(2, b: 3)
+            end
+          end
+
+          it "presets memoization" do
+            instance.preset_memo_wise(
+              :with_optional_positional_and_keyword_args, 1, b: 2
+            ) { "first" }
+            instance.preset_memo_wise(
+              :with_optional_positional_and_keyword_args, 2, b: 3
+            ) { "second" }
+
+            expect(Array.new(4) do
+              instance.with_optional_positional_and_keyword_args(1, b: 2)
+            end).to all eq("first")
+
+            expect(Array.new(4) do
+              instance.with_optional_positional_and_keyword_args(2, b: 3)
+            end).to all eq("second")
+
+            expect(instance.with_optional_positional_and_keyword_args_counter).
               to eq(expected_counter)
           end
         end

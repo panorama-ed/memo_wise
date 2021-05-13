@@ -79,21 +79,23 @@ For more usage details, see our detailed [documentation](#documentation).
 
 Benchmarks measure memoized value retrieval time using
 [`benchmark-ips`](https://github.com/evanphx/benchmark-ips). All benchmarks are
-run on Ruby 3.0.0, except as indicated below for specific gems. Benchmarks are
+run on Ruby 3.0.1, except as indicated below for specific gems. Benchmarks are
 run in GitHub Actions and updated in every PR that changes code.
 
-|Method arguments|**`memo_wise` (0.1.0)**|`memery` (1.3.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|
+|Method arguments|**`memo_wise` (0.4.0)**|`memery` (1.4.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|
 |--|--|--|--|--|--|
-|`()` (none)|**baseline**|13.17x slower|2.85x slower|1.30x slower|3.05x slower|
-|`(a, b)`|**baseline**|1.93x slower|2.20x slower|1.97x slower|1.86x slower|
-|`(a:, b:)`|**baseline**|3.05x slower|2.34x slower|2.27x slower|2.14x slower|
-|`(a, b:)`|**baseline**|1.50x slower|1.63x slower|1.56x slower|1.48x slower|
-|`(a, *args)`|**baseline**|1.91x slower|2.13x slower|1.90x slower|1.88x slower|
-|`(a:, **kwargs)`|**baseline**|3.08x slower|2.37x slower|2.24x slower|2.09x slower|
-|`(a, *args, b:, **kwargs)`|**baseline**|1.72x slower|1.61x slower|1.56x slower|1.67x slower|
+|`()` (none)|**baseline**|12.67x slower|2.57x slower|1.25x slower|2.87x slower|
+|`(a)`|**baseline**|1.90x slower|2.26x slower|1.73x slower|1.94x slower|
+|`(a, b)`|**baseline**|1.95x slower|2.21x slower|1.81x slower|1.98x slower|
+|`(a:)`|**baseline**|3.16x slower|2.66x slower|2.32x slower|2.39x slower|
+|`(a:, b:)`|**baseline**|3.05x slower|2.36x slower|2.16x slower|2.20x slower|
+|`(a, b:)`|**baseline**|1.50x slower|1.69x slower|1.48x slower|1.54x slower|
+|`(a, *args)`|**baseline**|1.96x slower|2.25x slower|1.95x slower|1.97x slower|
+|`(a:, **kwargs)`|**baseline**|3.05x slower|2.43x slower|2.15x slower|2.18x slower|
+|`(a, *args, b:, **kwargs)`|**baseline**|1.57x slower|1.79x slower|1.67x slower|1.66x slower|
 
-_\*Indicates a benchmark run on Ruby 2.7.2 because the gem raises errors in Ruby
-3.0.0 due to its incorrect handling of keyword arguments._
+_\*Indicates a benchmark run on Ruby 2.7.3 because the gem raises errors in Ruby
+3.0.1 due to its incorrect handling of keyword arguments._
 
 You can run benchmarks yourself with:
 

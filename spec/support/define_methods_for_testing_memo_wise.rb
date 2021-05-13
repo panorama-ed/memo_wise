@@ -44,16 +44,32 @@ module DefineMethodsForTestingMemoWise # rubocop:disable Metrics/ModuleLength
         @no_args_counter || 0
       end
 
+      def #{self_prefix}with_one_positional_arg_counter
+        @with_one_positional_arg_counter || 0
+      end
+
       def #{self_prefix}with_positional_args_counter
         @with_positional_args_counter || 0
+      end
+
+      def #{self_prefix}with_optional_positional_args_counter
+        @with_optional_positional_args_counter || 0
       end
 
       def #{self_prefix}with_positional_and_splat_args_counter
         @with_positional_and_splat_args_counter || 0
       end
 
+      def #{self_prefix}with_one_keyword_arg_counter
+        @with_one_keyword_arg_counter || 0
+      end
+
       def #{self_prefix}with_keyword_args_counter
         @with_keyword_args_counter || 0
+      end
+
+      def #{self_prefix}with_optional_keyword_args_counter
+        @with_optional_keyword_args_counter || 0
       end
 
       def #{self_prefix}with_keyword_and_double_splat_args_counter
@@ -62,6 +78,10 @@ module DefineMethodsForTestingMemoWise # rubocop:disable Metrics/ModuleLength
 
       def #{self_prefix}with_positional_and_keyword_args_counter
         @with_positional_and_keyword_args_counter || 0
+      end
+
+      def #{self_prefix}with_optional_positional_and_keyword_args_counter
+        @with_optional_positional_and_keyword_args_counter || 0
       end
 
       def #{self_prefix}with_positional_splat_keyword_and_double_splat_args_counter
@@ -102,11 +122,23 @@ module DefineMethodsForTestingMemoWise # rubocop:disable Metrics/ModuleLength
       end
       memo_wise #{self_kw_arg}:no_args
 
+      def #{self_prefix}with_one_positional_arg(a) # rubocop:disable Naming/MethodParameterName
+        @with_one_positional_arg_counter = with_one_positional_arg_counter + 1
+        "with_one_positional_arg: a=\#{a}"
+      end
+      memo_wise #{self_kw_arg}:with_one_positional_arg
+
       def #{self_prefix}with_positional_args(a, b) # rubocop:disable Naming/MethodParameterName
         @with_positional_args_counter = with_positional_args_counter + 1
         "with_positional_args: a=\#{a}, b=\#{b}"
       end
       memo_wise #{self_kw_arg}:with_positional_args
+
+      def #{self_prefix}with_optional_positional_args(a=1, b=2) # rubocop:disable Naming/MethodParameterName
+        @with_optional_positional_args_counter = with_optional_positional_args_counter + 1
+        "with_optional_positional_args: a=\#{a}, b=\#{b}"
+      end
+      memo_wise #{self_kw_arg}:with_optional_positional_args
 
       def #{self_prefix}with_positional_and_splat_args(a, *args) # rubocop:disable Naming/MethodParameterName
         @with_positional_and_splat_args_counter =
@@ -115,11 +147,23 @@ module DefineMethodsForTestingMemoWise # rubocop:disable Metrics/ModuleLength
       end
       memo_wise #{self_kw_arg}:with_positional_and_splat_args
 
+      def #{self_prefix}with_one_keyword_arg(a:) # rubocop:disable Naming/MethodParameterName
+        @with_one_keyword_arg_counter = with_one_keyword_arg_counter + 1
+        "with_one_keyword_arg: a=\#{a}"
+      end
+      memo_wise #{self_kw_arg}:with_one_keyword_arg
+
       def #{self_prefix}with_keyword_args(a:, b:) # rubocop:disable Naming/MethodParameterName
         @with_keyword_args_counter = with_keyword_args_counter + 1
         "with_keyword_args: a=\#{a}, b=\#{b}"
       end
       memo_wise #{self_kw_arg}:with_keyword_args
+
+      def #{self_prefix}with_optional_keyword_args(a: 1, b: 2) # rubocop:disable Naming/MethodParameterName
+        @with_optional_keyword_args_counter = with_optional_keyword_args_counter + 1
+        "with_optional_keyword_args: a=\#{a}, b=\#{b}"
+      end
+      memo_wise #{self_kw_arg}:with_optional_keyword_args
 
       def #{self_prefix}with_keyword_and_double_splat_args(a:, **kwargs) # rubocop:disable Naming/MethodParameterName
         @with_keyword_and_double_splat_args_counter =
@@ -134,6 +178,13 @@ module DefineMethodsForTestingMemoWise # rubocop:disable Metrics/ModuleLength
         "with_positional_and_keyword_args: a=\#{a}, b=\#{b}"
       end
       memo_wise #{self_kw_arg}:with_positional_and_keyword_args
+
+      def #{self_prefix}with_optional_positional_and_keyword_args(a=1, b: 2) # rubocop:disable Naming/MethodParameterName
+        @with_optional_positional_and_keyword_args_counter =
+          with_optional_positional_and_keyword_args_counter + 1
+        "with_optional_positional_and_keyword_args: a=\#{a}, b=\#{b}"
+      end
+      memo_wise #{self_kw_arg}:with_optional_positional_and_keyword_args
 
       def #{self_prefix}with_positional_splat_keyword_and_double_splat_args(
         a, # rubocop:disable Naming/MethodParameterName
