@@ -104,7 +104,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #   MemoWise.has_arg?(Example.instance_method(:position_arg)) #=> true
   #
   def self.has_arg?(method) # rubocop:disable Naming/PredicateName
-    method.parameters.any? do |(param, _)|
+    method.parameters.any? do |param, _|
       param == :req || param == :opt || param == :rest # rubocop:disable Style/MultipleComparison
     end
   end
@@ -139,9 +139,42 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #   MemoWise.has_kwarg?(Example.instance_method(:keyword_args)) #=> true
   #
   def self.has_kwarg?(method) # rubocop:disable Naming/PredicateName
-    method.parameters.any? do |(param, _)|
+    method.parameters.any? do |param, _|
       param == :keyreq || param == :key || param == :keyrest # rubocop:disable Style/MultipleComparison
     end
+  end
+
+  # @private
+  #
+  # Determine whether `method` takes only *required* args.
+  #
+  # These are the types of required args:
+  #
+  #   * *Required* -- ex: `def foo(a)`
+  #   * *Keyword Required* -- ex: `def foo(a:)`
+  #
+  # @param method [Method, UnboundMethod]
+  #   Arguments of this method will be checked
+  #
+  # @return [Boolean]
+  #   Return `true` if `method` accepts only required arguments
+  #
+  # @example
+  #   class Example
+  #     def optional_args(a=1, b: 1)
+  #     end
+  #
+  #     def required_args(a, b:)
+  #     end
+  #   end
+  #
+  #   MemoWise.has_only_required_args?(Example.instance_method(:optional_args))
+  #     #=> false
+  #
+  #   MemoWise.has_only_required_args?(Example.instance_method(:required_args))
+  #     #=> true
+  def self.has_only_required_args?(method) # rubocop:disable Naming/PredicateName
+    method.parameters.all? { |type, _| type == :req || type == :keyreq } # rubocop:disable Style/MultipleComparison
   end
 
   # @private
@@ -308,22 +341,39 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
             end
           END_OF_METHOD
         else
-          # If our method has arguments, we need to separate out our handling of
-          # normal args vs. keyword args due to the changes in Ruby 3.
-          # See: <link>
-          # By only including logic for *args or **kwargs when they are used in
-          # the method, we can avoid allocating unnecessary arrays and hashes.
-          has_arg = MemoWise.has_arg?(method)
-
-          if has_arg && MemoWise.has_kwarg?(method)
-            args_str = "(*args, **kwargs)"
-            fetch_key = "[args, kwargs].freeze"
-          elsif has_arg
-            args_str = "(*args)"
-            fetch_key = "args"
+          if MemoWise.has_only_required_args?(method)
+            args_str = method.parameters.map do |type, name|
+              "#{name}#{':' if type == :keyreq}"
+            end.join(", ")
+            args_str = "(#{args_str})"
+            call_str = method.parameters.map do |type, name|
+              type == :req ? name : "#{name}: #{name}"
+            end.join(", ")
+            call_str = "(#{call_str})"
+            fetch_key = method.parameters.map(&:last)
+            fetch_key = if fetch_key.size > 1
+                          "[#{fetch_key.join(', ')}].freeze"
+                        else
+                          fetch_key.first.to_s
+                        end
           else
-            args_str = "(**kwargs)"
-            fetch_key = "kwargs"
+            # If our method has arguments, we need to separate out our handling
+            # of normal args vs. keyword args due to the changes in Ruby 3.
+            # See: <link>
+            # By only including logic for *args, **kwargs when they are used in
+            # the method, we can avoid allocating unnecessary arrays and hashes.
+            has_arg = MemoWise.has_arg?(method)
+
+            if has_arg && MemoWise.has_kwarg?(method)
+              args_str = "(*args, **kwargs)"
+              fetch_key = "[args, kwargs].freeze"
+            elsif has_arg
+              args_str = "(*args)"
+              fetch_key = "args"
+            else
+              args_str = "(**kwargs)"
+              fetch_key = "kwargs"
+            end
           end
 
           # Note that we don't need to freeze args before using it as a hash key
@@ -343,7 +393,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
                 @_memo_wise[:#{method_name}] = {}
               end
               hash.fetch(#{fetch_key}) do
-                hash[#{fetch_key}] = #{original_memo_wised_name}#{args_str}
+                hash[#{fetch_key}] = #{original_memo_wised_name}#{call_str || args_str}
               end
             end
           END_OF_METHOD
@@ -573,14 +623,22 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   # Returns arguments key to lookup memoized results for given `method_name`.
   def fetch_key(method_name, *args, **kwargs)
     method = self.class.instance_method(method_name)
-    has_arg = MemoWise.has_arg?(method)
 
-    if has_arg && MemoWise.has_kwarg?(method)
-      [args, kwargs].freeze
-    elsif has_arg
-      args
+    if MemoWise.has_only_required_args?(method)
+      key = method.parameters.map.with_index do |(type, name), index|
+        type == :req ? args[index] : kwargs[name]
+      end
+      key.size == 1 ? key.first : key
     else
-      kwargs
+      has_arg = MemoWise.has_arg?(method)
+
+      if has_arg && MemoWise.has_kwarg?(method)
+        [args, kwargs].freeze
+      elsif has_arg
+        args
+      else
+        kwargs
+      end
     end
   end
 
