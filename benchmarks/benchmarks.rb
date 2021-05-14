@@ -68,10 +68,20 @@ BENCHMARK_GEMS.each do |benchmark_gem|
       end
       #{benchmark_gem.memoization_method} :no_args
 
+      def one_positional_arg(a)
+        100
+      end
+      #{benchmark_gem.memoization_method} :one_positional_arg
+
       def positional_args(a, b)
         100
       end
       #{benchmark_gem.memoization_method} :positional_args
+
+      def one_keyword_arg(a:)
+        100
+      end
+      #{benchmark_gem.memoization_method} :one_keyword_arg
 
       def keyword_args(a:, b:)
         100
@@ -133,10 +143,44 @@ Benchmark.ips do |x|
 
     # Run once with each set of arguments to memoize the result values, so our
     # benchmark only tests memoized retrieval time.
+    ARGUMENTS.each { |a, _| instance.one_positional_arg(a) }
+
+    x.report("#{benchmark_gem.benchmark_name}: (a)") do
+      ARGUMENTS.each { |a, _| instance.one_positional_arg(a) }
+    end
+  end
+
+  x.compare!
+end
+
+Benchmark.ips do |x|
+  x.config(suite: suite)
+  BENCHMARK_GEMS.each do |benchmark_gem|
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once with each set of arguments to memoize the result values, so our
+    # benchmark only tests memoized retrieval time.
     ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
 
     x.report("#{benchmark_gem.benchmark_name}: (a, b)") do
       ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
+    end
+  end
+
+  x.compare!
+end
+
+Benchmark.ips do |x|
+  x.config(suite: suite)
+  BENCHMARK_GEMS.each do |benchmark_gem|
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once with each set of arguments to memoize the result values, so our
+    # benchmark only tests memoized retrieval time.
+    ARGUMENTS.each { |a, _| instance.one_keyword_arg(a: a) }
+
+    x.report("#{benchmark_gem.benchmark_name}: (a:)") do
+      ARGUMENTS.each { |a, _| instance.one_keyword_arg(a: a) }
     end
   end
 

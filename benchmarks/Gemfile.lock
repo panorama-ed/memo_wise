@@ -1,13 +1,13 @@
 PATH
   remote: ..
   specs:
-    memo_wise (0.3.0)
+    memo_wise (0.4.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
     benchmark-ips (2.8.4)
-    memery (1.3.0)
+    memery (1.4.0)
       ruby2_keywords (~> 0.0.2)
     ruby2_keywords (0.0.4)
 
@@ -16,7 +16,7 @@ PLATFORMS
 
 DEPENDENCIES
   benchmark-ips (= 2.8.4)
-  memery (= 1.3.0)
+  memery (= 1.4.0)
   memo_wise!
 
 RUBY VERSION
