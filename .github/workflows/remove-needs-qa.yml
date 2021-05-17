@@ -23,7 +23,7 @@ jobs:
       # merging to production. This removes that label when dependabot is doing
       # the merging.
       - name: Remove QA Label
-        uses: actions/github-script@0.4.0
+        uses: actions/github-script@v4.0.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
