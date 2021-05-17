@@ -407,6 +407,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       # Create certain class methods to implement .preset_memo_wise
       %i[
         preset_memo_wise
+        reset_memo_wise
         validate_memo_wised!
         validate_params!
         fetch_key

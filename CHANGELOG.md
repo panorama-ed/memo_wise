@@ -6,8 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Support for `.preset_memo_wise` on class methods
+- Support for `.reset_memo_wise` on class methods
 ### Updated
-  Improved perfomance for common cases by reducing array allocations
+- Improved performance for common cases by reducing array allocations
 
 ## [0.4.0] - 2021-04-30
 ### Added
