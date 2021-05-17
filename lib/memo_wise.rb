@@ -178,7 +178,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   end
 
   def self.has_only_keyword_required_args?(method) # rubocop:disable Naming/PredicateName
-    method.parameters.all? { |type, _| type == :keyreq } # rubocop:disable Style/MultipleComparison
+    method.parameters.all? { |type, _| type == :keyreq || type == :keyrest } # rubocop:disable Style/MultipleComparison
   end
 
   # @private
@@ -674,8 +674,6 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         [args, kwargs].freeze
       elsif has_arg
         args
-      else
-        kwargs
       end
     end
   end
