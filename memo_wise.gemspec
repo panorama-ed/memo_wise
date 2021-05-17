@@ -2,7 +2,7 @@
 
 require_relative "lib/memo_wise/version"
 
-Gem::Specification.new do |spec|
+Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.name     = "memo_wise"
   spec.version  = MemoWise::VERSION
   spec.summary  = "The wise choice for Ruby memoization"
@@ -34,4 +34,9 @@ Gem::Specification.new do |spec|
     end
   end
   spec.require_paths = ["lib"]
+
+  spec.metadata = {
+    "changelog_uri" => "https://github.com/panorama-ed/memo_wise/blob/main/CHANGELOG.md",
+    "source_code_uri" => "https://github.com/panorama-ed/memo_wise"
+  }
 end
