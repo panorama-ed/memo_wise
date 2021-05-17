@@ -1,16 +1,20 @@
 version: 2
+
 updates:
-- package-ecosystem: bundler
-  directory: "/"
-  schedule:
-    interval: daily
-    time: "02:00"
-    timezone: America/New_York
-  open-pull-requests-limit: 99
-- package-ecosystem: bundler
-  directory: "/benchmarks"
-  schedule:
-    interval: daily
-    time: "02:00"
-    timezone: America/New_York
-  open-pull-requests-limit: 99
+  # Maintain dependencies for Ruby's Bundler
+  - package-ecosystem: bundler
+    directory: "/"
+    schedule:
+      interval: daily
+
+  # Maintain dependencies for Ruby's Bundler (for Benchmarks!)
+  - package-ecosystem: bundler
+    directory: "/benchmarks"
+    schedule:
+      interval: daily
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
