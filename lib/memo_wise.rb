@@ -177,6 +177,10 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     method.parameters.all? { |type, _| type == :req || type == :keyreq } # rubocop:disable Style/MultipleComparison
   end
 
+  def self.has_only_keyword_required_args?(method) # rubocop:disable Naming/PredicateName
+    method.parameters.all? { |type, _| type == :keyreq } # rubocop:disable Style/MultipleComparison
+  end
+
   # @private
   #
   # Returns visibility of an instance method defined on a class.
@@ -341,7 +345,10 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
             end
           END_OF_METHOD
         else
-          if MemoWise.has_only_required_args?(method)
+          if MemoWise.has_only_keyword_required_args?(method)
+            args_str = "(**kwargs)"
+            fetch_key = "kwargs"
+          elsif MemoWise.has_only_required_args?(method)
             args_str = method.parameters.map do |type, name|
               "#{name}#{':' if type == :keyreq}"
             end.join(", ")
@@ -653,7 +660,9 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     klass = instance_of?(Class) ? singleton_class : self.class
     method = klass.instance_method(method_name)
 
-    if MemoWise.has_only_required_args?(method)
+    if MemoWise.has_only_keyword_required_args?(method)
+      kwargs
+    elsif MemoWise.has_only_required_args?(method)
       key = method.parameters.map.with_index do |(type, name), index|
         type == :req ? args[index] : kwargs[name]
       end
