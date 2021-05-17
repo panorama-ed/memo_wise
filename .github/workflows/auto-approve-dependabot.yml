@@ -21,6 +21,6 @@ jobs:
 
     steps:
       - name: Auto-approve for dependabot
-        uses: hmarr/auto-approve-action@v2.0.0
+        uses: hmarr/auto-approve-action@v2.1.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
