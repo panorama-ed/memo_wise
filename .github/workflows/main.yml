@@ -39,7 +39,8 @@ jobs:
     - run: bundle exec yard doctest
       if: matrix.ruby == 3.0
 
-    - run: |
+    - name: Run benchmarks on Ruby 2.7 or 3.0
+      run: |
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle install --jobs 4 --retry 3
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle exec ruby benchmarks/benchmarks.rb
       if: matrix.ruby == '2.7' || matrix.ruby == '3.0'
