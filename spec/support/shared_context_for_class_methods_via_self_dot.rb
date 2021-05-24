@@ -17,7 +17,7 @@ RSpec.shared_context "with context for class methods via 'def self.'" do
 
       # See: "doesn't memoize instance methods when passed self: keyword"
       #
-      # Used by spec below to verify that `memo_wise self: :with_keyword_args`
+      # Used by that spec to verify that `memo_wise self: :with_keyword_args`
       # memoizes only the class method, and not this instance method sharing
       # the same name.
       def with_keyword_args(a:, b:) # rubocop:disable Naming/MethodParameterName
