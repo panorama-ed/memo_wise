@@ -50,6 +50,7 @@ methods:
 ```ruby
 class Example
   prepend MemoWise
+
   def slow_value(x)
     sleep x
     x
@@ -71,7 +72,31 @@ ex.slow_value(3) # => 4 # Returns immediately because the result is memoized
 ex.reset_memo_wise # Resets all memoized results for all methods on ex
 ```
 
-Methods which take implicit or explicit block arguments cannot be memoized.
+The same three methods are exposed for class methods as well:
+
+```ruby
+class Example
+  prepend MemoWise
+
+  def self.class_slow_value(x)
+    sleep x
+    x
+  end
+  memo_wise self: :class_slow_value
+end
+
+Example.class_slow_value(2) # => 2 # Sleeps for 2 seconds before returning
+Example.class_slow_value(2) # => 2 # Returns immediately because the result is memoized
+
+Example.reset_memo_wise(:class_slow_value) # Resets all memoized results for class_slow_value
+
+Example.preset_memo_wise(:class_slow_value, 3) { 4 } # Store 4 as the result for slow_value(3)
+Example.class_slow_value(3) # => 4 # Returns immediately because the result is memoized
+Example.reset_memo_wise # Resets all memoized results for all methods on class
+```
+
+**NOTE:** Methods which take implicit or explicit block arguments cannot be
+memoized.
 
 For more usage details, see our detailed [documentation](#documentation).
 
@@ -131,6 +156,14 @@ code examples in our YARD documentation. To run `doctest` locally:
 
 ```bash
 bundle exec yard doctest
+```
+
+We use [dokaz](https://github.com/zverok/dokaz) to test all code examples in
+this README.md file, and all other non-code documentation. To run `dokaz`
+locally:
+
+```bash
+bundle exec dokaz
 ```
 
 ### A Note on Testing
