@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 ruby ">= 2.7.2"
 
-gem "benchmark-ips", "2.8.4"
+gem "benchmark-ips", "2.9.0"
 
 if RUBY_VERSION > "3"
   gem "memery", "1.4.0"
