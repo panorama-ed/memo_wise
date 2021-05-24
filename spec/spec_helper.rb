@@ -44,3 +44,6 @@ require "memo_wise"
 
 # Support code for tests
 require "support/define_methods_for_testing_memo_wise"
+require "support/shared_context_for_instance_methods"
+require "support/shared_context_for_class_methods_via_self_dot"
+require "support/shared_context_for_class_methods_via_class_scope"
