@@ -8,6 +8,7 @@ if Gem.loaded_specs.key?("codecov")
 
   SimpleCov.start do
     enable_coverage :branch
+    add_filter "/spec/"
   end
 
   SimpleCov.formatter = if ENV["CI"] == "true"
