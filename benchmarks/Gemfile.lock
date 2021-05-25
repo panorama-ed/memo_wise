@@ -6,18 +6,21 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    benchmark-ips (2.8.4)
-    memery (1.4.0)
-      ruby2_keywords (~> 0.0.2)
-    ruby2_keywords (0.0.4)
+    benchmark-ips (2.9.1)
+    memoist (0.16.2)
+    memoized (1.0.2)
+    memoizer (1.0.3)
 
 PLATFORMS
   x86_64-darwin-19
+  x86_64-linux
 
 DEPENDENCIES
-  benchmark-ips (= 2.8.4)
-  memery (= 1.4.0)
+  benchmark-ips (= 2.9.1)
   memo_wise!
+  memoist (= 0.16.2)
+  memoized (= 1.0.2)
+  memoizer (= 1.0.3)
 
 RUBY VERSION
    ruby 3.0.0p0
