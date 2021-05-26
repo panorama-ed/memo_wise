@@ -404,7 +404,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     end
 
     unless target.singleton_class?
-      # Create certain class methods to implement .preset_memo_wise
+      # Create class methods to implement .preset_memo_wise and .reset_memo_wise
       %i[
         preset_memo_wise
         reset_memo_wise
@@ -421,6 +421,42 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         # Make private the class method copies of private instance methods
         unless MemoWise.public_method_defined?(method_name)
           target.singleton_class.send(:private, method_name)
+        end
+      end
+
+      # Override [Module#instance_method](https://ruby-doc.org/core-3.0.0/Module.html#method-i-instance_method)
+      # to proxy the original `UnboundMethod#parameters` results. We want the
+      # parameters to reflect the original method in order to support callers
+      # who want to use Ruby reflection to process the method parameters,
+      # because our overridden `#initialize` method, and in some cases the
+      # generated memoized methods, will have a generic set of parameters (e.g.
+      # `...` or `*args, **kwargs, &block`), making reflection on method
+      # parameters useless without this.
+      def target.instance_method(symbol)
+        # TODO: Extract this method naming pattern
+        original_memo_wised_name = :"_memo_wise_original_#{symbol}"
+
+        super.tap do |curr_method|
+          # Start with calling the original `instance_method` on `symbol`,
+          # which returns an `UnboundMethod`.
+          #   IF it was replaced by MemoWise,
+          #   THEN find the original method's parameters, and modify current
+          #        `UnboundMethod#parameters` to return them.
+          if symbol == :initialize
+            # For `#initialize` - because `prepend MemoWise` overrides the same
+            # method in the module ancestors, use `UnboundMethod#super_method`
+            # to find the original method.
+            orig_method = curr_method.super_method
+            orig_params = orig_method.parameters
+            curr_method.define_singleton_method(:parameters) { orig_params }
+          elsif private_method_defined?(original_memo_wised_name)
+            # For any memoized method - because the original method was renamed,
+            # call the original `instance_method` again to find the renamed
+            # original method.
+            orig_method = super(original_memo_wised_name)
+            orig_params = orig_method.parameters
+            curr_method.define_singleton_method(:parameters) { orig_params }
+          end
         end
       end
     end
