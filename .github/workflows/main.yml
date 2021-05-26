@@ -36,7 +36,9 @@ jobs:
     - run: bundle exec rubocop
       if: matrix.ruby == 3.0
 
-    - run: bundle exec yard doctest
+    - run: |
+        bundle exec yard doctest
+        bundle exec dokaz
       if: matrix.ruby == 3.0
 
     - name: Run benchmarks on Ruby 2.7 or 3.0

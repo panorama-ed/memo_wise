@@ -466,8 +466,65 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
   ##
   # @!method self.preset_memo_wise(method_name, *args, **kwargs)
-  #   Implementation of {#preset_memo_wise} for class methods
+  #   Implementation of {#preset_memo_wise} for class methods.
+  #
+  #   @example
+  #     class Example
+  #       prepend MemoWise
+  #
+  #       def self.method_called_times
+  #         @method_called_times
+  #       end
+  #
+  #       def self.method_to_preset
+  #         @method_called_times = (@method_called_times || 0) + 1
+  #         "A"
+  #       end
+  #       memo_wise self: :method_to_preset
+  #     end
+  #
+  #     Example.preset_memo_wise(:method_to_preset) { "B" }
+  #
+  #     Example.method_to_preset #=> "B"
+  #
+  #     Example.method_called_times #=> nil
   ##
+
+  # rubocop:disable Layout/LineLength
+  ##
+  # @!method self.reset_memo_wise(method_name = nil, *args, **kwargs)
+  #   Implementation of {#reset_memo_wise} for class methods.
+  #
+  #   @example
+  #     class Example
+  #       prepend MemoWise
+  #
+  #       def self.method_to_reset(x)
+  #         @method_called_times = (@method_called_times || 0) + 1
+  #       end
+  #       memo_wise self: :method_to_reset
+  #     end
+  #
+  #     Example.method_to_reset("a") #=> 1
+  #     Example.method_to_reset("a") #=> 1
+  #     Example.method_to_reset("b") #=> 2
+  #     Example.method_to_reset("b") #=> 2
+  #
+  #     Example.reset_memo_wise(:method_to_reset, "a") # reset "method + args" mode
+  #
+  #     Example.method_to_reset("a") #=> 3
+  #     Example.method_to_reset("a") #=> 3
+  #     Example.method_to_reset("b") #=> 2
+  #     Example.method_to_reset("b") #=> 2
+  #
+  #     Example.reset_memo_wise(:method_to_reset) # reset "method" (any args) mode
+  #
+  #     Example.method_to_reset("a") #=> 4
+  #     Example.method_to_reset("b") #=> 5
+  #
+  #     Example.reset_memo_wise # reset "all methods" mode
+  ##
+  # rubocop:enable Layout/LineLength
 
   # Presets the memoized result for the given method to the result of the given
   # block.
@@ -587,7 +644,6 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #
   #   ex.method_to_reset("a") #=> 1
   #   ex.method_to_reset("a") #=> 1
-  #
   #   ex.method_to_reset("b") #=> 2
   #   ex.method_to_reset("b") #=> 2
   #
@@ -595,7 +651,6 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #
   #   ex.method_to_reset("a") #=> 3
   #   ex.method_to_reset("a") #=> 3
-  #
   #   ex.method_to_reset("b") #=> 2
   #   ex.method_to_reset("b") #=> 2
   #
