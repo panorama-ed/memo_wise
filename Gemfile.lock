@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/panorama-ed/panolint.git
-  revision: 7f70d4c0b88ab64a0f61be05c1832c36de7773f7
+  revision: 78a4ddf3ab8d7ecd519bbf96a238f337245343de
   branch: main
   specs:
     panolint (0.1.3)
@@ -29,7 +29,7 @@ GEM
     brakeman (5.0.1)
     codecov (0.5.2)
       simplecov (>= 0.15, < 0.22)
-    concurrent-ruby (1.1.8)
+    concurrent-ruby (1.1.9)
     diff-lcs (1.4.4)
     docile (1.3.5)
     dokaz (0.0.4)
