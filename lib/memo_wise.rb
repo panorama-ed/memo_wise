@@ -429,9 +429,9 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       # parameters to reflect the original method in order to support callers
       # who want to use Ruby reflection to process the method parameters,
       # because our overridden `#initialize` method, and in some cases the
-      # generated memoized methods, will have a generic set of parameters (e.g.
-      # `...` or `*args, **kwargs, &block`), making reflection on method
-      # parameters useless without this.
+      # generated memoized methods, will have a generic set of parameters
+      # (`...` or `*args, **kwargs`), making reflection on method parameters
+      # useless without this.
       def target.instance_method(symbol)
         # TODO: Extract this method naming pattern
         original_memo_wised_name = :"_memo_wise_original_#{symbol}"
