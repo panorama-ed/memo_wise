@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "memo_wise/internal_api"
 require "memo_wise/version"
 
 # MemoWise is the wise choice for memoization in Ruby.
@@ -57,199 +58,22 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     # On Ruby 2.7 or greater:
     #
     # def initialize(...)
-    #   MemoWise.create_memo_wise_state!(self)
+    #   MemoWise::InternalAPI.create_memo_wise_state!(self)
     #   super
     # end
     #
     # On Ruby 2.6 or lower:
     #
     # def initialize(*)
-    #   MemoWise.create_memo_wise_state!(self)
+    #   MemoWise::InternalAPI.create_memo_wise_state!(self)
     #   super
     # end
 
     def initialize(#{all_args})
-      MemoWise.create_memo_wise_state!(self)
+      MemoWise::InternalAPI.create_memo_wise_state!(self)
       super
     end
   END_OF_METHOD
-
-  # @private
-  #
-  # Determine whether `method` takes any *positional* args.
-  #
-  # These are the types of positional args:
-  #
-  #   * *Required* -- ex: `def foo(a)`
-  #   * *Optional* -- ex: `def foo(b=1)`
-  #   * *Splatted* -- ex: `def foo(*c)`
-  #
-  # @param method [Method, UnboundMethod]
-  #   Arguments of this method will be checked
-  #
-  # @return [Boolean]
-  #   Return `true` if `method` accepts one or more positional arguments
-  #
-  # @example
-  #   class Example
-  #     def no_args
-  #     end
-  #
-  #     def position_arg(a)
-  #     end
-  #   end
-  #
-  #   MemoWise.has_arg?(Example.instance_method(:no_args)) #=> false
-  #
-  #   MemoWise.has_arg?(Example.instance_method(:position_arg)) #=> true
-  #
-  def self.has_arg?(method) # rubocop:disable Naming/PredicateName
-    method.parameters.any? do |param, _|
-      param == :req || param == :opt || param == :rest # rubocop:disable Style/MultipleComparison
-    end
-  end
-
-  # @private
-  #
-  # Determine whether `method` takes any *keyword* args.
-  #
-  # These are the types of keyword args:
-  #
-  #   * *Keyword Required* -- ex: `def foo(a:)`
-  #   * *Keyword Optional* -- ex: `def foo(b: 1)`
-  #   * *Keyword Splatted* -- ex: `def foo(**c)`
-  #
-  # @param method [Method, UnboundMethod]
-  #   Arguments of this method will be checked
-  #
-  # @return [Boolean]
-  #   Return `true` if `method` accepts one or more keyword arguments
-  #
-  # @example
-  #   class Example
-  #     def position_args(a, b=1)
-  #     end
-  #
-  #     def keyword_args(a:, b: 1)
-  #     end
-  #   end
-  #
-  #   MemoWise.has_kwarg?(Example.instance_method(:position_args)) #=> false
-  #
-  #   MemoWise.has_kwarg?(Example.instance_method(:keyword_args)) #=> true
-  #
-  def self.has_kwarg?(method) # rubocop:disable Naming/PredicateName
-    method.parameters.any? do |param, _|
-      param == :keyreq || param == :key || param == :keyrest # rubocop:disable Style/MultipleComparison
-    end
-  end
-
-  # @private
-  #
-  # Determine whether `method` takes only *required* args.
-  #
-  # These are the types of required args:
-  #
-  #   * *Required* -- ex: `def foo(a)`
-  #   * *Keyword Required* -- ex: `def foo(a:)`
-  #
-  # @param method [Method, UnboundMethod]
-  #   Arguments of this method will be checked
-  #
-  # @return [Boolean]
-  #   Return `true` if `method` accepts only required arguments
-  #
-  # @example
-  #   class Example
-  #     def optional_args(a=1, b: 1)
-  #     end
-  #
-  #     def required_args(a, b:)
-  #     end
-  #   end
-  #
-  #   MemoWise.has_only_required_args?(Example.instance_method(:optional_args))
-  #     #=> false
-  #
-  #   MemoWise.has_only_required_args?(Example.instance_method(:required_args))
-  #     #=> true
-  def self.has_only_required_args?(method) # rubocop:disable Naming/PredicateName
-    method.parameters.all? { |type, _| type == :req || type == :keyreq } # rubocop:disable Style/MultipleComparison
-  end
-
-  # @private
-  #
-  # Returns visibility of an instance method defined on a class.
-  #
-  # @param klass [Class]
-  #   Class in which to find the visibility of an existing *instance* method.
-  #
-  # @param method_name [Symbol]
-  #   Name of existing *instance* method find the visibility of.
-  #
-  # @return [:private, :protected, :public]
-  #   Visibility of existing instance method of the class.
-  #
-  # @raise ArgumentError
-  #   Raises `ArgumentError` unless `method_name` is a `Symbol` corresponding
-  #   to an existing **instance** method defined on `klass`.
-  #
-  def self.method_visibility(klass, method_name)
-    if klass.private_method_defined?(method_name)
-      :private
-    elsif klass.protected_method_defined?(method_name)
-      :protected
-    elsif klass.public_method_defined?(method_name)
-      :public
-    else
-      raise ArgumentError, "#{method_name.inspect} must be a method on #{klass}"
-    end
-  end
-
-  # @private
-  #
-  # Find the original class for which the given class is the corresponding
-  # "singleton class".
-  #
-  # See https://stackoverflow.com/questions/54531270/retrieve-a-ruby-object-from-its-singleton-class
-  #
-  # @param klass [Class]
-  #   Singleton class to find the original class of
-  #
-  # @return Class
-  #   Original class for which `klass` is the singleton class.
-  #
-  # @raise ArgumentError
-  #   Raises if `klass` is not a singleton class.
-  #
-  def self.original_class_from_singleton(klass)
-    unless klass.singleton_class?
-      raise ArgumentError, "Must be a singleton class: #{klass.inspect}"
-    end
-
-    # Search ObjectSpace
-    #   * 1:1 relationship of singleton class to original class is documented
-    #   * Performance concern: searches all Class objects
-    #     But, only runs at load time
-    ObjectSpace.each_object(Class).find { |cls| cls.singleton_class == klass }
-  end
-
-  # @private
-  #
-  # Create initial mutable state to store memoized values if it doesn't
-  # already exist
-  #
-  # @param [Object] obj
-  #   Object in which to create mutable state to store future memoized values
-  #
-  # @return [Object] the passed-in obj
-  def self.create_memo_wise_state!(obj)
-    unless obj.instance_variables.include?(:@_memo_wise)
-      obj.instance_variable_set(:@_memo_wise, {})
-    end
-
-    obj
-  end
 
   # @private
   #
@@ -281,7 +105,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       # `Class#allocate`, so we need to override both.
       #
       def allocate
-        MemoWise.create_memo_wise_state!(super)
+        MemoWise::InternalAPI.create_memo_wise_state!(super)
       end
 
       # NOTE: See YARD docs for {.memo_wise} directly below this method!
@@ -292,8 +116,8 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
           method_name = method_name_or_hash
 
           if klass.singleton_class?
-            MemoWise.create_memo_wise_state!(
-              MemoWise.original_class_from_singleton(klass)
+            MemoWise::InternalAPI.create_memo_wise_state!(
+              MemoWise::InternalAPI.original_class_from_singleton(klass)
             )
           end
         when Hash
@@ -304,7 +128,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
           method_name = method_name_or_hash[:self]
 
-          MemoWise.create_memo_wise_state!(self)
+          MemoWise::InternalAPI.create_memo_wise_state!(self)
 
           # In Ruby, "class methods" are implemented as normal instance methods
           # on the "singleton class" of a given Class object, found via
@@ -317,7 +141,8 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
           raise ArgumentError, "#{method_name.inspect} must be a Symbol"
         end
 
-        visibility = MemoWise.method_visibility(klass, method_name)
+        api = MemoWise::InternalAPI.new(klass)
+        visibility = api.method_visibility(method_name)
         method = klass.instance_method(method_name)
 
         original_memo_wised_name = :"_memo_wise_original_#{method_name}"
@@ -341,7 +166,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
             end
           END_OF_METHOD
         else
-          if MemoWise.has_only_required_args?(method)
+          if MemoWise::InternalAPI.has_only_required_args?(method)
             args_str = method.parameters.map do |type, name|
               "#{name}#{':' if type == :keyreq}"
             end.join(", ")
@@ -362,9 +187,9 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
             # See: <link>
             # By only including logic for *args, **kwargs when they are used in
             # the method, we can avoid allocating unnecessary arrays and hashes.
-            has_arg = MemoWise.has_arg?(method)
+            has_arg = MemoWise::InternalAPI.has_arg?(method)
 
-            if has_arg && MemoWise.has_kwarg?(method)
+            if has_arg && MemoWise::InternalAPI.has_kwarg?(method)
               args_str = "(*args, **kwargs)"
               fetch_key = "[args, kwargs].freeze"
             elsif has_arg
@@ -405,23 +230,12 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
     unless target.singleton_class?
       # Create class methods to implement .preset_memo_wise and .reset_memo_wise
-      %i[
-        preset_memo_wise
-        reset_memo_wise
-        validate_memo_wised!
-        validate_params!
-        fetch_key
-      ].each do |method_name|
+      %i[preset_memo_wise reset_memo_wise].each do |method_name|
         # Like calling 'module_function', but original method stays public
         target.define_singleton_method(
           method_name,
           MemoWise.instance_method(method_name)
         )
-
-        # Make private the class method copies of private instance methods
-        unless MemoWise.public_method_defined?(method_name)
-          target.singleton_class.send(:private, method_name)
-        end
       end
 
       # Override [Module#instance_method](https://ruby-doc.org/core-3.0.0/Module.html#method-i-instance_method)
@@ -613,14 +427,13 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #   ex.method_called_times #=> nil
   #
   def preset_memo_wise(method_name, *args, **kwargs)
-    validate_memo_wised!(method_name)
-
     unless block_given?
       raise ArgumentError,
             "Pass a block as the value to preset for #{method_name}, #{args}"
     end
 
-    validate_params!(method_name, args)
+    api = MemoWise::InternalAPI.new(self)
+    api.validate_memo_wised!(method_name)
 
     if method(method_name).arity.zero?
       @_memo_wise[method_name] = yield
@@ -628,7 +441,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       hash = @_memo_wise.fetch(method_name) do
         @_memo_wise[method_name] = {}
       end
-      hash[fetch_key(method_name, *args, **kwargs)] = yield
+      hash[api.fetch_key(method_name, *args, **kwargs)] = yield
     end
   end
 
@@ -718,50 +531,14 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       raise ArgumentError, "#{method_name} is not a defined method"
     end
 
-    validate_memo_wised!(method_name)
+    api = MemoWise::InternalAPI.new(self)
+    api.validate_memo_wised!(method_name)
 
     if args.empty? && kwargs.empty?
       @_memo_wise.delete(method_name)
     else
-      @_memo_wise[method_name]&.delete(fetch_key(method_name, *args, **kwargs))
+      @_memo_wise[method_name]&.
+        delete(api.fetch_key(method_name, *args, **kwargs))
     end
   end
-
-  private
-
-  # Validates that {.memo_wise} has already been called on `method_name`.
-  def validate_memo_wised!(method_name)
-    klass = instance_of?(Class) ? singleton_class : self.class
-    original_memo_wised_name = :"_memo_wise_original_#{method_name}"
-
-    unless klass.private_method_defined?(original_memo_wised_name)
-      raise ArgumentError, "#{method_name} is not a memo_wised method"
-    end
-  end
-
-  # Returns arguments key to lookup memoized results for given `method_name`.
-  def fetch_key(method_name, *args, **kwargs) # rubocop:disable Metrics/PerceivedComplexity
-    klass = instance_of?(Class) ? singleton_class : self.class
-    method = klass.instance_method(method_name)
-
-    if MemoWise.has_only_required_args?(method)
-      key = method.parameters.map.with_index do |(type, name), index|
-        type == :req ? args[index] : kwargs[name]
-      end
-      key.size == 1 ? key.first : key
-    else
-      has_arg = MemoWise.has_arg?(method)
-
-      if has_arg && MemoWise.has_kwarg?(method)
-        [args, kwargs].freeze
-      elsif has_arg
-        args
-      else
-        kwargs
-      end
-    end
-  end
-
-  # TODO: Parameter validation for presetting values
-  def validate_params!(method_name, args); end
 end
