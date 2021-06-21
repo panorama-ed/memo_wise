@@ -146,6 +146,19 @@ module MemoWise
       ObjectSpace.each_object(Class).find { |cls| cls.singleton_class == klass }
     end
 
+    # Convention we use for renaming the original method when we replace with
+    # the memoized version in {MemoWise.memo_wise}.
+    #
+    # @param method_name [Symbol]
+    #   Name for which to return the renaming for the original method
+    #
+    # @return [Symbol]
+    #   Renamed method to use for the original method with name `method_name`
+    #
+    def self.original_memo_wised_name(method_name)
+      :"_memo_wise_original_#{method_name}"
+    end
+
     # @param target [Class, Module]
     #   The class to which we are prepending MemoWise to provide memoization;
     #   the `InternalAPI` *instance* methods will refer to this `target` class.
@@ -173,9 +186,8 @@ module MemoWise
     #     - A nested `Array<Array, Hash>` if *both* positional and keyword.
     #     - A `Hash` if only keyword parameters.
     #     - A single object if there is only a single parameter.
-    def fetch_key(method_name, *args, **kwargs) # rubocop:disable Metrics/PerceivedComplexity
-      klass = target.instance_of?(Class) ? target.singleton_class : target.class
-      method = klass.instance_method(method_name)
+    def fetch_key(method_name, *args, **kwargs)
+      method = target_class.instance_method(method_name)
 
       if MemoWise::InternalAPI.has_only_required_args?(method)
         key = method.parameters.map.with_index do |(type, name), index|
@@ -225,11 +237,21 @@ module MemoWise
     # @param method_name [Symbol]
     #   Name of method to validate has already been setup with {.memo_wise}
     def validate_memo_wised!(method_name)
-      klass = target.instance_of?(Class) ? target.singleton_class : target.class
-      original_memo_wised_name = :"_memo_wise_original_#{method_name}"
+      original_name = self.class.original_memo_wised_name(method_name)
 
-      unless klass.private_method_defined?(original_memo_wised_name)
+      unless target_class.private_method_defined?(original_name)
         raise ArgumentError, "#{method_name} is not a memo_wised method"
+      end
+    end
+
+    # @return [Class] where we look for method definitions
+    def target_class
+      if target.instance_of?(Class)
+        # A class's methods are defined in its singleton class
+        target.singleton_class
+      else
+        # An object's methods are defined in its class
+        target.class
       end
     end
   end
