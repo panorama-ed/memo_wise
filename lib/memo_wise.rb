@@ -143,9 +143,10 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
         api = MemoWise::InternalAPI.new(klass)
         visibility = api.method_visibility(method_name)
+        original_memo_wised_name =
+          MemoWise::InternalAPI.original_memo_wised_name(method_name)
         method = klass.instance_method(method_name)
 
-        original_memo_wised_name = :"_memo_wise_original_#{method_name}"
         klass.send(:alias_method, original_memo_wised_name, method_name)
         klass.send(:private, original_memo_wised_name)
 
