@@ -110,17 +110,17 @@ run in GitHub Actions and updated in every PR that changes code.
 **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval
 is than the latest commit of `memo_wise`.**
 
-|Method arguments|`memery` (1.4.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|
+|Method arguments|`memery` (1.4.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|`ddmemoize`\* (1.0.0)|
 |--|--|--|--|--|
-|`()` (none)|13.17x|2.64x|1.46x|3.10x|
-|`(a)`|9.76x|15.44x|11.98x|13.12x|
-|`(a, b)`|1.98x|2.25x|1.82x|1.98x|
-|`(a:)`|17.65x|23.64x|20.69x|21.61x|
-|`(a:, b:)`|4.16x|3.94x|3.53x|3.67x|
-|`(a, b:)`|3.96x|3.72x|3.27x|3.42x|
-|`(a, *args)`|1.93x|2.25x|1.93x|1.95x|
-|`(a:, **kwargs)`|3.06x|2.38x|2.10x|2.20x|
-|`(a, *args, b:, **kwargs)`|1.52x|1.79x|1.65x|1.65x|
+|`()` (none)|13.17x|2.64x|1.46x|3.10x|22.11x|
+|`(a)`|9.76x|15.44x|11.98x|13.12x|17.83x|
+|`(a, b)`|1.98x|2.25x|1.82x|1.98x|2.98x|
+|`(a:)`|17.65x|23.64x|20.69x|21.61x|24.78x|
+|`(a:, b:)`|4.16x|3.94x|3.53x|3.67x|4.74x|
+|`(a, b:)`|3.96x|3.72x|3.27x|3.42x|4.47x|
+|`(a, *args)`|1.93x|2.25x|1.93x|1.95x|2.94x|
+|`(a:, **kwargs)`|3.06x|2.38x|2.10x|2.20x|2.47x|
+|`(a, *args, b:, **kwargs)`|1.52x|1.79x|1.65x|1.65x|1.95x|
 
 _\*Indicates a benchmark run on Ruby 2.7.3 because the gem raises errors in Ruby
 3.0.1 due to its incorrect handling of keyword arguments._
