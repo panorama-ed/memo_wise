@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/panorama-ed/panolint.git
-  revision: 6f38f73dafdc25370ecc367dc87d7e6340ae664d
+  revision: b9c110bad5afd2be17d09053b9cd53b6b9f85748
   branch: main
   specs:
     panolint (0.1.3)
