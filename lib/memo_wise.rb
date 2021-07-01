@@ -248,8 +248,8 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       # (`...` or `*args, **kwargs`), making reflection on method parameters
       # useless without this.
       def target.instance_method(symbol)
-        # TODO: Extract this method naming pattern
-        original_memo_wised_name = :"_memo_wise_original_#{symbol}"
+        original_memo_wised_name =
+          MemoWise::InternalAPI.original_memo_wised_name(symbol)
 
         super.tap do |curr_method|
           # Start with calling the original `instance_method` on `symbol`,
