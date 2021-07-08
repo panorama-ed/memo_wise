@@ -9,6 +9,7 @@ gem "benchmark-ips", "2.9.1"
 if RUBY_VERSION > "3"
   gem "memery", "1.4.0"
 else
+  gem "ddmemoize", "1.0.0"
   gem "memoist", "0.16.2"
   gem "memoized", "1.0.2"
   gem "memoizer", "1.0.3"

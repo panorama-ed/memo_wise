@@ -6,7 +6,7 @@ require "memo_wise"
 
 # Some gems do not yet work in Ruby 3 so we only require them if they're loaded
 # in the Gemfile.
-%w[memery memoist memoized memoizer].
+%w[memery memoist memoized memoizer ddmemoize].
   each { |gem| require gem if Gem.loaded_specs.key?(gem) }
 
 # The VERSION constant does not get loaded above for these gems.
@@ -36,7 +36,7 @@ class BenchmarkSuiteWithoutGC
 end
 suite = BenchmarkSuiteWithoutGC.new
 
-BenchmarkGem = Struct.new(:klass, :inheritance_method, :memoization_method) do
+BenchmarkGem = Struct.new(:klass, :activation_code, :memoization_method) do
   def benchmark_name
     "#{klass} (#{klass::VERSION})"
   end
@@ -46,13 +46,16 @@ end
 # using it to minimize the chance that our benchmarks are affected by ordering.
 # NOTE: Some gems do not yet work in Ruby 3 so we only test with them if they've
 # been `require`d.
+# rubocop:disable Layout/LineLength
 BENCHMARK_GEMS = [
-  BenchmarkGem.new(MemoWise, :prepend, :memo_wise),
-  (BenchmarkGem.new(Memery, :include, :memoize) if defined?(Memery)),
-  (BenchmarkGem.new(Memoist, :extend, :memoize) if defined?(Memoist)),
-  (BenchmarkGem.new(Memoized, :include, :memoize) if defined?(Memoized)),
-  (BenchmarkGem.new(Memoizer, :include, :memoize) if defined?(Memoizer))
+  BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise),
+  (BenchmarkGem.new(Memery, "include Memery", :memoize) if defined?(Memery)),
+  (BenchmarkGem.new(Memoist, "extend Memoist", :memoize) if defined?(Memoist)),
+  (BenchmarkGem.new(Memoized, "include Memoized", :memoize) if defined?(Memoized)),
+  (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize) if defined?(Memoizer)),
+  (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize) if defined?(DDMemoize))
 ].compact.shuffle
+# rubocop:enable Layout/LineLength
 
 # Use metaprogramming to ensure that each class is created in exactly the
 # the same way.
@@ -61,7 +64,7 @@ BENCHMARK_GEMS.each do |benchmark_gem|
   # rubocop:disable Style/DocumentDynamicEvalDefinition
   eval <<-CLASS, binding, __FILE__, __LINE__ + 1
     class #{benchmark_gem.klass}Example
-      #{benchmark_gem.inheritance_method} #{benchmark_gem.klass}
+      #{benchmark_gem.activation_code}
 
       def no_args
         100
