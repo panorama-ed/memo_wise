@@ -111,7 +111,7 @@ run in GitHub Actions and updated in every PR that changes code.
 is than the latest commit of `memo_wise`.**
 
 |Method arguments|`memery` (1.4.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|`ddmemoize`\* (1.0.0)|
-|--|--|--|--|--|
+|--|--|--|--|--|--|
 |`()` (none)|13.17x|2.64x|1.46x|3.10x|22.11x|
 |`(a)`|9.76x|15.44x|11.98x|13.12x|17.83x|
 |`(a, b)`|1.98x|2.25x|1.82x|1.98x|2.98x|
