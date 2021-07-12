@@ -357,5 +357,54 @@ RSpec.describe MemoWise do
         end
       end
     end
+
+    context "with module methods" do
+      context "when defined with 'def self.'" do
+        include_context "with context for module methods via 'def self.'"
+
+        # Use the module as the target of "#memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        it_behaves_like "#memo_wise shared examples"
+
+        it "creates a module-level instance variable" do
+          # NOTE: test implementation detail to ensure the inverse test is valid
+          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+
+        context "when an invalid hash key is passed to .memo_wise" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
+
+              def self.module_method; end
+            end
+          end
+
+          it "raises an error when passing a key which is not `self:`" do
+            expect { module_with_memo.send(:memo_wise, bad_key: :module_method) }.
+              to raise_error(
+                ArgumentError,
+                "`:self` is the only key allowed in memo_wise"
+              )
+          end
+        end
+      end
+
+      context "when defined with scope 'module << self'" do
+        include_context "with context for module methods via scope "\
+                        "'class << self'"
+
+        # Use the module as the target of "#memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        it_behaves_like "#memo_wise shared examples"
+
+        it "creates a module-level instance variable" do
+          # NOTE: this test ensure the inverse test above continues to be valid
+          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+      end
+    end
   end
 end
