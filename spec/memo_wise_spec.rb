@@ -406,5 +406,64 @@ RSpec.describe MemoWise do
         end
       end
     end
+
+    context "with module mixed into other classes" do
+      context "extended" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
+
+          let(:class_extending_module_with_memo) do
+            Object.send(:remove_const, :ModuleWithMemo) if defined?(ModuleWithMemo)
+            ModuleWithMemo = module_with_memo
+
+            Class.new do
+              extend ModuleWithMemo
+            end
+          end
+
+          let(:target) { class_extending_module_with_memo }
+
+          it_behaves_like "#memo_wise shared examples"
+        end
+      end
+      context "included" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
+
+          let(:class_extending_module_with_memo) do
+            Object.send(:remove_const, :ModuleWithMemo) if defined?(ModuleWithMemo)
+            ModuleWithMemo = module_with_memo
+
+            Class.new do
+              include ModuleWithMemo
+            end
+          end
+          let(:instance) { class_extending_module_with_memo.new }
+
+          let(:target) { instance }
+
+          it_behaves_like "#memo_wise shared examples"
+        end
+      end
+      context "prepended" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
+
+          let(:class_extending_module_with_memo) do
+            Object.send(:remove_const, :ModuleWithMemo) if defined?(ModuleWithMemo)
+            ModuleWithMemo = module_with_memo
+
+            Class.new do
+              prepend ModuleWithMemo
+            end
+          end
+          let(:instance) { class_extending_module_with_memo.new }
+
+          let(:target) { instance }
+
+          it_behaves_like "#memo_wise shared examples"
+        end
+      end
+    end
   end
 end
