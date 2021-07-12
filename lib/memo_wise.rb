@@ -122,6 +122,14 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
               MemoWise::InternalAPI.original_class_from_singleton(klass)
             )
           end
+
+          # Ensures a module extended by another class/module still work
+          # e.g. rails `ClassMethods` module
+          if klass.is_a?(Module) && !klass.is_a?(Class)
+            def klass.extended(base)
+              MemoWise::InternalAPI.create_memo_wise_state!(base)
+            end
+          end
         when Hash
           unless method_name_or_hash.keys == [:self]
             raise ArgumentError,
