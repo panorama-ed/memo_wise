@@ -112,15 +112,15 @@ is than the latest commit of `memo_wise`.**
 
 |Method arguments|`memery` (1.4.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|`ddmemoize`\* (1.0.0)|
 |--|--|--|--|--|--|
-|`()` (none)|12.56x|2.48x|1.16x|3.40x|23.56x|
-|`(a)`|9.91x|13.24x|9.91x|11.39x|18.72x|
-|`(a, b)`|1.76x|2.35x|1.81x|1.99x|3.15x|
-|`(a:)`|17.99x|20.37x|16.67x|19.42x|25.19x|
-|`(a:, b:)`|4.03x|4.12x|3.66x|3.80x|4.93x|
-|`(a, b:)`|4.08x|3.81x|3.47x|3.54x|4.64x|
-|`(a, *args)`|2.00x|2.41x|1.93x|2.01x|3.09x|
-|`(a:, **kwargs)`|2.54x|2.15x|2.00x|2.04x|2.60x|
-|`(a, *args, b:, **kwargs)`|1.56x|1.73x|1.58x|1.60x|1.98x|
+|`()` (none)|11.51x|2.50x|1.14x|3.30x|23.09x|
+|`(a)`|7.90x|12.83x|8.98x|10.41x|17.57x|
+|`(a, b)`|1.85x|2.22x|1.76x|1.87x|2.94x|
+|`(a:)`|18.24x|20.74x|17.75x|18.81x|26.54x|
+|`(a:, b:)`|4.31x|3.94x|3.63x|3.74x|5.02x|
+|`(a, b:)`|4.21x|3.71x|3.07x|3.49x|4.76x|
+|`(a, *args)`|1.94x|2.38x|1.97x|2.18x|3.05x|
+|`(a:, **kwargs)`|3.04x|2.11x|1.93x|2.04x|2.66x|
+|`(a, *args, b:, **kwargs)`|1.55x|1.65x|1.49x|1.57x|1.93x|
 
 _\*Indicates a benchmark run on Ruby 2.7.x because the gem raises errors in Ruby
 3.0.x due to its incorrect handling of keyword arguments._
