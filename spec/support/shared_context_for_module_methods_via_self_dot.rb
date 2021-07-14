@@ -12,13 +12,13 @@ RSpec.shared_context "with context for module methods via 'def self.'" do
 
       # Counter for calls to instance method '#with_keyword_args', see below.
       def instance_with_keyword_args_counter
-        @instance_with_keyword_args_counter || 0
+        @instance_with_keyword_args_counter || 0 # rubocop:disable RSpec/InstanceVariable
       end
 
       # See: "doesn't memoize instance methods when passed self: keyword"
       #
       # Used by that spec to verify that `memo_wise self: :with_keyword_args`
-      # memoizes only the class method, and not this instance method sharing
+      # memoizes only the module method, and not this instance method sharing
       # the same name.
       def with_keyword_args(a:, b:) # rubocop:disable Naming/MethodParameterName
         @instance_with_keyword_args_counter =

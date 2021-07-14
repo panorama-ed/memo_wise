@@ -382,7 +382,9 @@ RSpec.describe MemoWise do
           end
 
           it "raises an error when passing a key which is not `self:`" do
-            expect { module_with_memo.send(:memo_wise, bad_key: :module_method) }.
+            expect do
+              module_with_memo.send(:memo_wise, bad_key: :module_method)
+            end.
               to raise_error(
                 ArgumentError,
                 "`:self` is the only key allowed in memo_wise"
@@ -408,14 +410,15 @@ RSpec.describe MemoWise do
     end
 
     context "with module mixed into other classes" do
-      context "extended" do
+      context "when extended" do
         context "when defined with 'def'" do
           include_context "with context for module methods via normal scope"
 
-          let(:class_extending_module_with_memo) do
-            Object.send(:remove_const, :ModuleWithMemo) if defined?(ModuleWithMemo)
-            ModuleWithMemo = module_with_memo
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
 
+          let(:class_extending_module_with_memo) do
             Class.new do
               extend ModuleWithMemo
             end
@@ -426,14 +429,16 @@ RSpec.describe MemoWise do
           it_behaves_like "#memo_wise shared examples"
         end
       end
-      context "included" do
+
+      context "when included" do
         context "when defined with 'def'" do
           include_context "with context for module methods via normal scope"
 
-          let(:class_extending_module_with_memo) do
-            Object.send(:remove_const, :ModuleWithMemo) if defined?(ModuleWithMemo)
-            ModuleWithMemo = module_with_memo
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
 
+          let(:class_extending_module_with_memo) do
             Class.new do
               include ModuleWithMemo
             end
@@ -444,15 +449,59 @@ RSpec.describe MemoWise do
 
           it_behaves_like "#memo_wise shared examples"
         end
+
+        context "when defined with 'def self.' and 'def'" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
+
+              def self.test_method
+                Random.rand
+              end
+              memo_wise self: :test_method
+
+              def test_method
+                Random.rand
+              end
+              memo_wise :test_method
+            end
+          end
+          let(:class_extending_module_with_memo) do
+            Class.new do
+              include ModuleWithMemo
+            end
+          end
+          let(:instance) { class_extending_module_with_memo.new }
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          it <<~DESC do
+            does memoize both instance method & module method
+            with same name with separate caches
+          DESC
+            aggregate_failures do
+              expect(instance.test_method).
+                to eq(instance.test_method)
+              expect(module_with_memo.test_method).
+                to eq(module_with_memo.test_method)
+              expect(instance.test_method).
+                to_not eq(module_with_memo.test_method)
+            end
+          end
+        end
       end
-      context "prepended" do
+
+      context "when prepended" do
         context "when defined with 'def'" do
           include_context "with context for module methods via normal scope"
 
-          let(:class_extending_module_with_memo) do
-            Object.send(:remove_const, :ModuleWithMemo) if defined?(ModuleWithMemo)
-            ModuleWithMemo = module_with_memo
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
 
+          let(:class_extending_module_with_memo) do
             Class.new do
               prepend ModuleWithMemo
             end
