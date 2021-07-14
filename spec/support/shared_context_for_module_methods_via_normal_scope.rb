@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.shared_context "with context for module methods via normal scope" do # rubocop:disable Layout/LineLength
+RSpec.shared_context "with context for module methods via normal scope" do
   let(:module_with_memo) do
     Module.new do
       prepend MemoWise
