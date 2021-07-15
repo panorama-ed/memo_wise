@@ -357,5 +357,163 @@ RSpec.describe MemoWise do
         end
       end
     end
+
+    context "with module methods" do
+      context "when defined with 'def self.'" do
+        include_context "with context for module methods via 'def self.'"
+
+        # Use the module as the target of "#memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        it_behaves_like "#memo_wise shared examples"
+
+        it "creates a module-level instance variable" do
+          # NOTE: test implementation detail to ensure the inverse test is valid
+          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+
+        context "when an invalid hash key is passed to .memo_wise" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
+
+              def self.module_method; end
+            end
+          end
+
+          it "raises an error when passing a key which is not `self:`" do
+            expect do
+              module_with_memo.send(:memo_wise, bad_key: :module_method)
+            end.
+              to raise_error(
+                ArgumentError,
+                "`:self` is the only key allowed in memo_wise"
+              )
+          end
+        end
+      end
+
+      context "when defined with scope 'module << self'" do
+        include_context "with context for module methods via scope "\
+                        "'class << self'"
+
+        # Use the module as the target of "#memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        it_behaves_like "#memo_wise shared examples"
+
+        it "creates a module-level instance variable" do
+          # NOTE: this test ensure the inverse test above continues to be valid
+          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+      end
+    end
+
+    context "with module mixed into other classes" do
+      context "when extended" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          let(:class_extending_module_with_memo) do
+            Class.new do
+              extend ModuleWithMemo
+            end
+          end
+
+          let(:target) { class_extending_module_with_memo }
+
+          it_behaves_like "#memo_wise shared examples"
+        end
+      end
+
+      context "when included" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          let(:class_extending_module_with_memo) do
+            Class.new do
+              include ModuleWithMemo
+            end
+          end
+          let(:instance) { class_extending_module_with_memo.new }
+
+          let(:target) { instance }
+
+          it_behaves_like "#memo_wise shared examples"
+        end
+
+        context "when defined with 'def self.' and 'def'" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
+
+              def self.test_method
+                sleep(2)
+
+                Time.now.to_i
+              end
+              memo_wise self: :test_method
+
+              def test_method
+                sleep(2)
+
+                Time.now.to_i
+              end
+              memo_wise :test_method
+            end
+          end
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          let(:class_extending_module_with_memo) do
+            Class.new do
+              include ModuleWithMemo
+            end
+          end
+
+          let(:instance) { class_extending_module_with_memo.new }
+
+          it "does memoize both instance method & module method with same name with separate caches" do
+            aggregate_failures do
+              expect(instance.test_method).to eq(instance.test_method)
+              expect(module_with_memo.test_method).to eq(module_with_memo.test_method)
+              expect(instance.test_method).to_not eq(module_with_memo.test_method)
+            end
+          end
+
+        end
+      end
+
+      context "when prepended" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          let(:class_extending_module_with_memo) do
+            Class.new do
+              prepend ModuleWithMemo
+            end
+          end
+          let(:instance) { class_extending_module_with_memo.new }
+
+          let(:target) { instance }
+
+          it_behaves_like "#memo_wise shared examples"
+        end
+      end
+    end
   end
 end
