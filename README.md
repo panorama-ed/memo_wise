@@ -104,7 +104,7 @@ For more usage details, see our detailed [documentation](#documentation).
 
 Benchmarks measure memoized value retrieval time using
 [`benchmark-ips`](https://github.com/evanphx/benchmark-ips). All benchmarks are
-run on Ruby 3.0.1, except as indicated below for specific gems. Benchmarks are
+run on Ruby 3.0.2, except as indicated below for specific gems. Benchmarks are
 run in GitHub Actions and updated in every PR that changes code.
 
 **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval
@@ -122,8 +122,8 @@ is than the latest commit of `memo_wise`.**
 |`(a:, **kwargs)`|3.06x|2.38x|2.10x|2.20x|2.47x|
 |`(a, *args, b:, **kwargs)`|1.52x|1.79x|1.65x|1.65x|1.95x|
 
-_\*Indicates a benchmark run on Ruby 2.7.3 because the gem raises errors in Ruby
-3.0.1 due to its incorrect handling of keyword arguments._
+_\*Indicates a benchmark run on Ruby 2.7.4 because the gem raises errors in Ruby
+3.0.2 due to its incorrect handling of keyword arguments._
 
 You can run benchmarks yourself with:
 

@@ -1,5 +1,6 @@
 /.bundle/
 /benchmarks/.bundle/
+/benchmarks/Gemfile.lock
 /.yardoc
 /_yardoc/
 /coverage/
