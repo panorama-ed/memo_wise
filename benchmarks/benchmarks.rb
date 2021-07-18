@@ -6,12 +6,15 @@ require "memo_wise"
 
 # Some gems do not yet work in Ruby 3 so we only require them if they're loaded
 # in the Gemfile.
-%w[memery memoist memoized memoizer ddmemoize].
+%w[memery memoist memoized memoizer ddmemoize dry-core].
   each { |gem| require gem if Gem.loaded_specs.key?(gem) }
 
 # The VERSION constant does not get loaded above for these gems.
 %w[memoized memoizer].
   each { |gem| require "#{gem}/version" if Gem.loaded_specs.key?(gem) }
+
+# The Memoizable module from dry-core needs to be required manually
+require "dry/core/memoizable" if Gem.loaded_specs.key?("dry-core")
 
 class BenchmarkSuiteWithoutGC
   def warming(*)
@@ -49,11 +52,12 @@ end
 # rubocop:disable Layout/LineLength
 BENCHMARK_GEMS = [
   BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise),
+  (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize) if defined?(DDMemoize)),
+  (BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize) if defined?(Dry::Core)),
   (BenchmarkGem.new(Memery, "include Memery", :memoize) if defined?(Memery)),
   (BenchmarkGem.new(Memoist, "extend Memoist", :memoize) if defined?(Memoist)),
   (BenchmarkGem.new(Memoized, "include Memoized", :memoize) if defined?(Memoized)),
-  (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize) if defined?(Memoizer)),
-  (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize) if defined?(DDMemoize))
+  (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize) if defined?(Memoizer))
 ].compact.shuffle
 # rubocop:enable Layout/LineLength
 
