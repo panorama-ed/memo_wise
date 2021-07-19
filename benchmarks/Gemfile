@@ -7,6 +7,7 @@ ruby ">= 2.7.2"
 gem "benchmark-ips", "2.9.1"
 
 if RUBY_VERSION > "3"
+  gem "dry-core", "0.7.1"
   gem "memery", "1.4.0"
 else
   gem "ddmemoize", "1.0.0"
