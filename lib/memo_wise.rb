@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "set"
+
 require "memo_wise/internal_api"
 require "memo_wise/version"
 
@@ -154,14 +156,11 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         # hash key is just the method name.
         if method.arity.zero?
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
-            # def foo
-            #   @_memo_wise.fetch(:foo) do
-            #     @_memo_wise[:foo] = _memo_wise_original_foo
-            #   end
-            # end
-
             def #{method_name}
-              @_memo_wise.fetch(:#{method_name}) do
+              output = @_memo_wise[:#{method_name}]
+              if output || @_memo_wise.key?(:#{method_name})
+                output
+              else
                 @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
               end
             end
@@ -176,12 +175,14 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
               type == :req ? name : "#{name}: #{name}"
             end.join(", ")
             call_str = "(#{call_str})"
-            fetch_key = method.parameters.map(&:last)
-            fetch_key = if fetch_key.size > 1
-                          "[#{fetch_key.join(', ')}].freeze"
-                        else
-                          fetch_key.first.to_s
-                        end
+            fetch_key_params = method.parameters.map(&:last)
+            if fetch_key_params.size > 1
+              fetch_key_init =
+                "[:#{method_name}, #{fetch_key_params.join(', ')}].hash"
+              use_hashed_key = true
+            else
+              fetch_key = fetch_key_params.first.to_s
+            end
           else
             # If our method has arguments, we need to separate out our handling
             # of normal args vs. keyword args due to the changes in Ruby 3.
@@ -192,37 +193,46 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
             if has_arg && MemoWise::InternalAPI.has_kwarg?(method)
               args_str = "(*args, **kwargs)"
-              fetch_key = "[args, kwargs].freeze"
+              fetch_key_init = "[:#{method_name}, args, kwargs].hash"
+              use_hashed_key = true
             elsif has_arg
               args_str = "(*args)"
-              fetch_key = "args"
+              fetch_key_init = "args.hash"
             else
               args_str = "(**kwargs)"
-              fetch_key = "kwargs"
+              fetch_key_init = "kwargs.hash"
             end
           end
 
-          # Note that we don't need to freeze args before using it as a hash key
-          # because Ruby always copies argument arrays when splatted.
-          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
-            # def foo(*args, **kwargs)
-            #   hash = @_memo_wise.fetch(:foo) do
-            #     @_memo_wise[:foo] = {}
-            #   end
-            #   hash.fetch([args, kwargs].freeze) do
-            #     hash[[args, kwargs].freeze] = _memo_wise_original_foo(*args, **kwargs)
-            #   end
-            # end
-
-            def #{method_name}#{args_str}
-              hash = @_memo_wise.fetch(:#{method_name}) do
-                @_memo_wise[:#{method_name}] = {}
+          if use_hashed_key
+            klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+              def #{method_name}#{args_str}
+                key = #{fetch_key_init}
+                output = @_memo_wise[key]
+                if output || @_memo_wise.key?(key)
+                  output
+                else
+                  hashes = (@_memo_wise_hashes[:#{method_name}] ||= Set.new)
+                  hashes << key
+                  @_memo_wise[key] = #{original_memo_wised_name}#{call_str || args_str}
+                end
               end
-              hash.fetch(#{fetch_key}) do
-                hash[#{fetch_key}] = #{original_memo_wised_name}#{call_str || args_str}
+            END_OF_METHOD
+          else
+            fetch_key ||= "key"
+            klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+              def #{method_name}#{args_str}
+                hash = (@_memo_wise[:#{method_name}] ||= {})
+                #{"key = #{fetch_key_init}" if fetch_key_init}
+                output = hash[#{fetch_key}]
+                if output || hash.key?(#{fetch_key})
+                  output
+                else
+                  hash[#{fetch_key}] = #{original_memo_wised_name}#{call_str || args_str}
+                end
               end
-            end
-          END_OF_METHOD
+            END_OF_METHOD
+          end
         end
 
         klass.send(visibility, method_name)
@@ -439,10 +449,15 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
     if method(method_name).arity.zero?
       @_memo_wise[method_name] = yield
     else
-      hash = @_memo_wise.fetch(method_name) do
-        @_memo_wise[method_name] = {}
+      key = api.fetch_key(method_name, *args, **kwargs)
+      if api.use_hashed_key?(method_name)
+        hashes = @_memo_wise_hashes[method_name] ||= []
+        hashes << key
+        @_memo_wise[key] = yield
+      else
+        hash = @_memo_wise[method_name] ||= {}
+        hash[key] = yield
       end
-      hash[api.fetch_key(method_name, *args, **kwargs)] = yield
     end
   end
 
@@ -511,7 +526,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #
   #   ex.reset_memo_wise # reset "all methods" mode
   #
-  def reset_memo_wise(method_name = nil, *args, **kwargs)
+  def reset_memo_wise(method_name = nil, *args, **kwargs) # rubocop:disable Metrics/PerceivedComplexity
     if method_name.nil?
       unless args.empty?
         raise ArgumentError, "Provided args when method_name = nil"
@@ -521,7 +536,9 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
         raise ArgumentError, "Provided kwargs when method_name = nil"
       end
 
-      return @_memo_wise.clear
+      @_memo_wise.clear
+      @_memo_wise_hashes.clear
+      return
     end
 
     unless method_name.is_a?(Symbol)
@@ -537,9 +554,18 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
 
     if args.empty? && kwargs.empty?
       @_memo_wise.delete(method_name)
+      @_memo_wise_hashes[method_name]&.each do |hash|
+        @_memo_wise.delete(hash)
+      end
+      @_memo_wise_hashes.delete(method_name)
     else
-      @_memo_wise[method_name]&.
-        delete(api.fetch_key(method_name, *args, **kwargs))
+      key = api.fetch_key(method_name, *args, **kwargs)
+      if api.use_hashed_key?(method_name)
+        @_memo_wise_hashes[method_name]&.delete(key)
+        @_memo_wise.delete(key)
+      else
+        @_memo_wise[method_name]&.delete(key)
+      end
     end
   end
 end

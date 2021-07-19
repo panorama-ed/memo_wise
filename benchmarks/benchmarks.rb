@@ -65,8 +65,11 @@ BENCHMARK_GEMS = [
 # the same way.
 BENCHMARK_GEMS.each do |benchmark_gem|
   # rubocop:disable Security/Eval
-  # rubocop:disable Style/DocumentDynamicEvalDefinition
   eval <<-CLASS, binding, __FILE__, __LINE__ + 1
+    # For these methods, we alternately return truthy and falsey values in
+    # order to benchmark memoization when the result of a method is falsey.
+    #
+    # We do this by checking if the first argument to a method is even.
     class #{benchmark_gem.klass}Example
       #{benchmark_gem.activation_code}
 
@@ -75,48 +78,55 @@ BENCHMARK_GEMS.each do |benchmark_gem|
       end
       #{benchmark_gem.memoization_method} :no_args
 
+      # For the no_args case, we can't depend on arguments to alternate between
+      # returning truthy and falsey values, so instead make two separate
+      # no_args methods
+      def no_args_falsey
+        nil
+      end
+      #{benchmark_gem.memoization_method} :no_args_falsey
+
       def one_positional_arg(a)
-        100
+        100 if a.even?
       end
       #{benchmark_gem.memoization_method} :one_positional_arg
 
       def positional_args(a, b)
-        100
+        100 if a.even?
       end
       #{benchmark_gem.memoization_method} :positional_args
 
       def one_keyword_arg(a:)
-        100
+        100 if a.even?
       end
       #{benchmark_gem.memoization_method} :one_keyword_arg
 
       def keyword_args(a:, b:)
-        100
+        100 if a.even?
       end
       #{benchmark_gem.memoization_method} :keyword_args
 
       def positional_and_keyword_args(a, b:)
-        100
+        100 if a.even?
       end
       #{benchmark_gem.memoization_method} :positional_and_keyword_args
 
       def positional_and_splat_args(a, *args)
-        100
+        100 if a.even?
       end
       #{benchmark_gem.memoization_method} :positional_and_splat_args
 
       def keyword_and_double_splat_args(a:, **kwargs)
-        100
+        100 if a.even?
       end
       #{benchmark_gem.memoization_method} :keyword_and_double_splat_args
 
       def positional_splat_keyword_and_double_splat_args(a, *args, b:, **kwargs)
-        100
+        100 if a.even?
       end
       #{benchmark_gem.memoization_method} :positional_splat_keyword_and_double_splat_args
     end
   CLASS
-  # rubocop:enable Style/DocumentDynamicEvalDefinition
   # rubocop:enable Security/Eval
 end
 
@@ -137,7 +147,26 @@ Benchmark.ips do |x|
     # retrieval time.
     instance.no_args
 
-    x.report("#{benchmark_gem.benchmark_name}: ()") { instance.no_args }
+    x.report("#{benchmark_gem.benchmark_name}: () => truthy") do
+      instance.no_args
+    end
+  end
+
+  x.compare!
+end
+
+Benchmark.ips do |x|
+  x.config(suite: suite)
+  BENCHMARK_GEMS.each do |benchmark_gem|
+    instance = Object.const_get("#{benchmark_gem.klass}Example").new
+
+    # Run once to memoize the result value, so our benchmark only tests memoized
+    # retrieval time.
+    instance.no_args_falsey
+
+    x.report("#{benchmark_gem.benchmark_name}: () => falsey") do
+      instance.no_args_falsey
+    end
   end
 
   x.compare!

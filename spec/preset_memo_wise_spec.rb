@@ -42,6 +42,31 @@ RSpec.describe MemoWise do
         end
       end
 
+      context "with one positional arg that is an array" do
+        let(:expected_counter) { overriding ? 2 : 0 }
+
+        before(:each) do
+          if overriding
+            target.with_one_positional_arg([1])
+            target.with_one_positional_arg([2])
+          end
+        end
+
+        it "presets memoization" do
+          target.preset_memo_wise(:with_one_positional_arg, [1]) { "preset1" }
+          target.preset_memo_wise(:with_one_positional_arg, [2]) { "preset2" }
+
+          expect(Array.new(4) { target.with_one_positional_arg([1]) }).
+            to all eq("preset1")
+
+          expect(Array.new(4) { target.with_one_positional_arg([2]) }).
+            to all eq("preset2")
+
+          expect(target.with_one_positional_arg_counter).
+            to eq(expected_counter)
+        end
+      end
+
       context "with positional args" do
         let(:expected_counter) { overriding ? 2 : 0 }
 

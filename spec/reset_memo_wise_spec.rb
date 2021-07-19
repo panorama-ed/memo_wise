@@ -43,6 +43,23 @@ RSpec.describe MemoWise do
           expect(target.with_one_positional_arg_counter).to eq(3)
         end
 
+        it "resets memoization for methods with one specific positional "\
+           "argument that is an array" do
+          target.with_one_positional_arg([1])
+          target.with_one_positional_arg([2])
+          target.reset_memo_wise(:with_one_positional_arg, [1])
+
+          expect(Array.new(4) { target.with_one_positional_arg([1]) }).
+            to all eq("with_one_positional_arg: a=[1]")
+
+          expect(Array.new(4) { target.with_one_positional_arg([2]) }).
+            to all eq("with_one_positional_arg: a=[2]")
+
+          # This should be executed twice for each set of arguments passed,
+          # and a third time for the argument that was reset.
+          expect(target.with_one_positional_arg_counter).to eq(3)
+        end
+
         it "resets memoization for methods with positional arguments" do
           target.with_positional_args(1, 2)
           target.with_positional_args(2, 3)
@@ -187,8 +204,13 @@ RSpec.describe MemoWise do
 
         context "when args are given" do
           context "when no value is memoized for the method" do
-            it "doesn't raise an error" do
+            it "doesn't raise an error for methods with multiple args" do
               expect { target.reset_memo_wise(:with_positional_args, 1, 2) }.
+                not_to raise_error
+            end
+
+            it "doesn't raise an error for methods with one arg" do
+              expect { target.reset_memo_wise(:with_one_positional_arg, 1) }.
                 not_to raise_error
             end
           end
