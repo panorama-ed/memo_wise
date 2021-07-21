@@ -104,7 +104,7 @@ For more usage details, see our detailed [documentation](#documentation).
 
 Benchmarks measure memoized value retrieval time using
 [`benchmark-ips`](https://github.com/evanphx/benchmark-ips). All benchmarks are
-run on Ruby 3.0.1, except as indicated below for specific gems. Benchmarks are
+run on Ruby 3.0.2, except as indicated below for specific gems. Benchmarks are
 run in GitHub Actions and updated in every PR that changes code.
 
 **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval
@@ -112,18 +112,18 @@ is than the latest commit of `memo_wise`.**
 
 |Method arguments|`memery` (1.4.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|`ddmemoize`\* (1.0.0)|
 |--|--|--|--|--|--|
-|`()` (none)|13.17x|2.64x|1.46x|3.10x|22.11x|
-|`(a)`|9.76x|15.44x|11.98x|13.12x|17.83x|
-|`(a, b)`|1.98x|2.25x|1.82x|1.98x|2.98x|
-|`(a:)`|17.65x|23.64x|20.69x|21.61x|24.78x|
-|`(a:, b:)`|4.16x|3.94x|3.53x|3.67x|4.74x|
-|`(a, b:)`|3.96x|3.72x|3.27x|3.42x|4.47x|
-|`(a, *args)`|1.93x|2.25x|1.93x|1.95x|2.94x|
-|`(a:, **kwargs)`|3.06x|2.38x|2.10x|2.20x|2.47x|
-|`(a, *args, b:, **kwargs)`|1.52x|1.79x|1.65x|1.65x|1.95x|
+|`()` (none)|12.42x|2.61x|1.26x|2.65x|23.26x|
+|`(a)`|10.11x|13.91x|9.62x|10.55x|18.54x|
+|`(a, b)`|1.96x|2.14x|1.65x|1.95x|2.86x|
+|`(a:)`|19.62x|23.08x|18.94x|19.25x|26.30x|
+|`(a:, b:)`|4.17x|4.08x|3.55x|3.69x|4.75x|
+|`(a, b:)`|3.97x|3.73x|3.17x|3.20x|4.56x|
+|`(a, *args)`|1.97x|2.16x|1.85x|1.93x|3.06x|
+|`(a:, **kwargs)`|3.05x|2.40x|2.05x|2.17x|2.74x|
+|`(a, *args, b:, **kwargs)`|1.58x|1.78x|1.60x|1.63x|1.95x|
 
-_\*Indicates a benchmark run on Ruby 2.7.3 because the gem raises errors in Ruby
-3.0.1 due to its incorrect handling of keyword arguments._
+_\*Indicates a benchmark run on Ruby 2.7.4 because the gem raises errors in Ruby
+3.0.2 due to its incorrect handling of keyword arguments._
 
 You can run benchmarks yourself with:
 
