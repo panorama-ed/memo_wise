@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-(nothing yet!)
+- Improve performance across the board by:
+  - removing `Hash#fetch`
+  - using `Array#hash`
+  - avoiding multi-layer hash lookups for multi-argument methods
+  - optimizing for truthy results
+- Add `dry-core` to benchmarks in README
 
 ## [1.0.0] - 2021-06-24
 ### Added

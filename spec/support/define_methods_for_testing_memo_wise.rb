@@ -38,7 +38,6 @@ module DefineMethodsForTestingMemoWise # rubocop:disable Metrics/ModuleLength
     self_kw_arg = via == :self_dot ? "self: " : ""
     self_class_method = via == :self_dot ? "_class_method" : ""
 
-    # rubocop:disable Style/DocumentDynamicEvalDefinition
     target.module_eval <<~END_OF_METHOD, __FILE__, __LINE__ + 1
       def #{self_prefix}no_args_counter
         @no_args_counter || 0
@@ -255,6 +254,5 @@ module DefineMethodsForTestingMemoWise # rubocop:disable Metrics/ModuleLength
       end
       memo_wise #{self_kw_arg}:implicit_block_method
     END_OF_METHOD
-    # rubocop:enable Style/DocumentDynamicEvalDefinition
   end
 end

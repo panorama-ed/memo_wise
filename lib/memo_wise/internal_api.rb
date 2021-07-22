@@ -10,8 +10,32 @@ module MemoWise
     #
     # @return [Object] the passed-in obj
     def self.create_memo_wise_state!(obj)
+      # `@_memo_wise` stores memoized results of method calls. For performance
+      # reasons, the structure differs for different types of methods. It looks
+      # like:
+      #   {
+      #     no_args_method_name: :memoized_result,
+      #     single_arg_method_name: { arg1 => :memoized_result, ... },
+      #     [:multi_arg_method_name, arg1, arg2].hash => :memoized_result
+      #   }
       unless obj.instance_variables.include?(:@_memo_wise)
         obj.instance_variable_set(:@_memo_wise, {})
+      end
+
+      # `@_memo_wise_hashes` stores the `Array#hash` values for each key in
+      # `@_memo_wise` that represents a multi-argument method call. We only use
+      # this data structure when resetting memoization for an entire method. It
+      # looks like:
+      #   {
+      #     multi_arg_method_name: Set[
+      #       [:multi_arg_method_name, arg1, arg2].hash,
+      #       [:multi_arg_method_name, arg1, arg3].hash,
+      #       ...
+      #     ],
+      #     ...
+      #   }
+      unless obj.instance_variables.include?(:@_memo_wise_hashes)
+        obj.instance_variable_set(:@_memo_wise_hashes, {})
       end
 
       obj
@@ -193,18 +217,39 @@ module MemoWise
         key = method.parameters.map.with_index do |(type, name), index|
           type == :req ? args[index] : kwargs[name]
         end
-        key.size == 1 ? key.first : key
+        key.size == 1 ? key.first : [method_name, *key].hash
       else
         has_arg = MemoWise::InternalAPI.has_arg?(method)
 
         if has_arg && MemoWise::InternalAPI.has_kwarg?(method)
-          [args, kwargs].freeze
+          [method_name, args, kwargs].hash
         elsif has_arg
-          args
+          args.hash
         else
-          kwargs
+          kwargs.hash
         end
       end
+    end
+
+    # Returns whether the given method should use an array's hash value as the
+    # cache lookup key. See the comments in `.create_memo_wise_state!` for an
+    # example.
+    #
+    # @param method_name [Symbol]
+    #   Name of memoized method we're checking the implementation of
+    #
+    # @return [Boolean] true iff the method uses a hashed cache key; false
+    #   otherwise
+    def use_hashed_key?(method_name)
+      method = target_class.instance_method(method_name)
+
+      if MemoWise::InternalAPI.has_arg?(method) &&
+         MemoWise::InternalAPI.has_kwarg?(method)
+        return true
+      end
+
+      MemoWise::InternalAPI.has_only_required_args?(method) &&
+        method.parameters.size > 1
     end
 
     # Returns visibility of an instance method defined on class `target`.
@@ -243,6 +288,8 @@ module MemoWise
         raise ArgumentError, "#{method_name} is not a memo_wised method"
       end
     end
+
+    private
 
     # @return [Class] where we look for method definitions
     def target_class
