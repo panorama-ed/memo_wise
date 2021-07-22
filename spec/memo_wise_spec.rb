@@ -428,6 +428,47 @@ RSpec.describe MemoWise do
 
           it_behaves_like "#memo_wise shared examples"
         end
+
+        context "when 1 module extended by 2 classes" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
+
+              def test_method
+                Random.rand
+              end
+              memo_wise :test_method
+            end
+          end
+          let(:class_a_extending_module_with_memo) do
+            Class.new do
+              extend ModuleWithMemo
+            end
+          end
+          let(:class_b_extending_module_with_memo) do
+            Class.new do
+              extend ModuleWithMemo
+            end
+          end
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          it <<~DESC do
+            does memoize class method for both classes
+            with same name with separate caches
+          DESC
+            aggregate_failures do
+              expect(class_a_extending_module_with_memo.test_method).
+                to eq(class_a_extending_module_with_memo.test_method)
+              expect(class_b_extending_module_with_memo.test_method).
+                to eq(class_b_extending_module_with_memo.test_method)
+              expect(class_a_extending_module_with_memo.test_method).
+                to_not eq(class_b_extending_module_with_memo.test_method)
+            end
+          end
+        end
       end
 
       context "when included" do
