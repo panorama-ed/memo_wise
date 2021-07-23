@@ -129,7 +129,7 @@ significant.
 The following benchmarks are run on Ruby 2.7.4 because these gems raise errors
 in Ruby 3.0.2 due to their incorrect handling of keyword arguments:
 
-|Method arguments|`memo_wise` (latest)|`ddmemoize`\* (1.0.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|
+|Method arguments|`memo_wise` (latest)|`ddmemoize` (1.0.0)|`memoist` (0.16.2)|`memoized` (1.0.2)|`memoizer` (1.0.3)|
 |--|--|--|--|--|--|
 |`()` (none)|baseline|18.94-26.13x|1.93-2.68x|0.95-1.31x|2.23-3.08x|
 |`(a)`|baseline|19.25x|13.37x|10.18x|11.34x|
