@@ -113,15 +113,15 @@ Benchmarks using Ruby 3.0.2:
 
 |Method arguments|`memo_wise` (latest)|`dry-core` (0.7.1)|`memery` (1.4.0)|
 |--|--|--|--|
-|`()` (none)|baseline|0.96-1.31x|10.80-14.98x|
-|`(a)`|baseline|1.94x|9.59x|
-|`(a, b)`|baseline|baseline\*|4.80x|
-|`(a:)`|baseline|1.78x|18.81x|
-|`(a:, b:)`|baseline|baseline\*|9.84x|
-|`(a, b:)`|baseline|baseline\*|9.59x|
-|`(a, *args)`|baseline|1.97x|4.53x|
-|`(a:, **kwargs)`|baseline|1.54x|5.79x|
-|`(a, *args, b:, **kwargs)`|baseline|baseline\*|2.70x|
+|`()` (none)|baseline|0.98-1.44x|10.40-14.95x|
+|`(a)`|baseline|2.10x|8.39x|
+|`(a, b)`|baseline|baseline\*|4.45x|
+|`(a:)`|baseline|1.89x|17.37x|
+|`(a:, b:)`|baseline|baseline\*|9.66x|
+|`(a, b:)`|baseline|baseline\*|8.78x|
+|`(a, *args)`|baseline|1.88x|4.07x|
+|`(a:, **kwargs)`|baseline|1.41x|4.98x|
+|`(a, *args, b:, **kwargs)`|baseline|baseline\*|2.50x|
 
 \*Indicates a run that was slower than the baseline but the difference was not
 significant.
@@ -131,15 +131,15 @@ in Ruby 3.0.2 due to their incorrect handling of keyword arguments:
 
 |Method arguments|`memo_wise` (latest)|`ddmemoize`\* (1.0.0)|`memoist`\* (0.16.2)|`memoized`\* (1.0.2)|`memoizer`\* (1.0.3)|
 |--|--|--|--|--|--|
-|`()` (none)|baseline|18.94-26.13x|1.93-2.68x|0.95-1.31x|2.23-3.08x|
-|`(a)`|baseline|19.25x|13.37x|10.18x|11.34x|
-|`(a, b)`|baseline|3.97x|2.93x|2.34x|2.59x|
-|`(a:)`|baseline|28.26x|23.05x|19.45x|20.81x|
-|`(a:, b:)`|baseline|6.48x|5.47x|4.74x|5.01x|
-|`(a, b:)`|baseline|6.15x|5.12x|4.40x|4.66x|
-|`(a, *args)`|baseline|5.35x|3.95x|3.38x|3.43x|
-|`(a:, **kwargs)`|baseline|3.98x|3.36x|2.91x|3.06x|
-|`(a, *args, b:, **kwargs)`|baseline|2.91x|2.50x|2.30x|2.31x|
+|`()` (none)|baseline|20.96-25.44x|2.49-3.31x|1.06-1.48x|2.96-3.83x|
+|`(a)`|baseline|19.37x|13.28x|9.31x|10.78x|
+|`(a, b)`|baseline|3.65x|2.64x|2.00x|2.28x|
+|`(a:)`|baseline|25.88x|21.74x|17.68x|19.17x|
+|`(a:, b:)`|baseline|5.72x|4.57x|3.90x|4.42x|
+|`(a, b:)`|baseline|5.63x|5.06x|4.20x|4.18x|
+|`(a, *args)`|baseline|5.13x|3.89x|3.25x|3.31x|
+|`(a:, **kwargs)`|baseline|3.23x|2.55x|2.33x|2.47x|
+|`(a, *args, b:, **kwargs)`|baseline|2.51x|2.00x|1.84x|1.88x|
 
 You can run benchmarks yourself with:
 
