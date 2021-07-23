@@ -102,44 +102,35 @@ For more usage details, see our detailed [documentation](#documentation).
 
 ## Benchmarks
 
-Benchmarks measure memoized value retrieval time using
-[`benchmark-ips`](https://github.com/evanphx/benchmark-ips). Benchmarks are
-run in GitHub Actions and updated in every PR that changes code.
+Benchmarks are run in GitHub Actions, and the tables below are updated with every code change. **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval is than the latest commit of `MemoWise`**, according to [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (2.9.1).
 
-**Values >1.00x represent how much _slower_ each gem’s memoized value retrieval
-is than the baseline.**
+Results using Ruby 3.0.2:
 
-Benchmarks using Ruby 3.0.2:
+|Method arguments|`Memery` (1.4.0)|`Dry::Core` (0.7.1)|
+|--|--|--|
+|`()` (none)|1.14x|16.81x|
+|`(a)`|2.02x|9.72x|
+|`(a, b)`|1.07x|4.90x|
+|`(a:)`|1.79x|18.74x|
+|`(a:, b:)`|1.03x|9.94x|
+|`(a, b:)`|1.03x|9.88x|
+|`(a, *args)`|1.99x|4.63x|
+|`(a:, **kwargs)`|1.54x|5.97x|
+|`(a, *args, b:, **kwargs)`|0.99x|2.81x|
 
-|Method arguments|`memo_wise` (latest)|`dry-core` (0.7.1)|`memery` (1.4.0)|
-|--|--|--|--|
-|`()` (none)|baseline|0.98-1.44x|10.40-14.95x|
-|`(a)`|baseline|2.10x|8.39x|
-|`(a, b)`|baseline|baseline\*|4.45x|
-|`(a:)`|baseline|1.89x|17.37x|
-|`(a:, b:)`|baseline|baseline\*|9.66x|
-|`(a, b:)`|baseline|baseline\*|8.78x|
-|`(a, *args)`|baseline|1.88x|4.07x|
-|`(a:, **kwargs)`|baseline|1.41x|4.98x|
-|`(a, *args, b:, **kwargs)`|baseline|baseline\*|2.50x|
+Results using Ruby 2.7.4 (because these gems raise errors in Ruby 3.x):
 
-\*Indicates a run that was slower than the baseline but the difference was not
-significant.
-
-The following benchmarks are run on Ruby 2.7.4 because these gems raise errors
-in Ruby 3.0.2 due to their incorrect handling of keyword arguments:
-
-|Method arguments|`memo_wise` (latest)|`ddmemoize` (1.0.0)|`memoist` (0.16.2)|`memoized` (1.0.2)|`memoizer` (1.0.3)|
-|--|--|--|--|--|--|
-|`()` (none)|baseline|20.96-25.44x|2.49-3.31x|1.06-1.48x|2.96-3.83x|
-|`(a)`|baseline|19.37x|13.28x|9.31x|10.78x|
-|`(a, b)`|baseline|3.65x|2.64x|2.00x|2.28x|
-|`(a:)`|baseline|25.88x|21.74x|17.68x|19.17x|
-|`(a:, b:)`|baseline|5.72x|4.57x|3.90x|4.42x|
-|`(a, b:)`|baseline|5.63x|5.06x|4.20x|4.18x|
-|`(a, *args)`|baseline|5.13x|3.89x|3.25x|3.31x|
-|`(a:, **kwargs)`|baseline|3.23x|2.55x|2.33x|2.47x|
-|`(a, *args, b:, **kwargs)`|baseline|2.51x|2.00x|1.84x|1.88x|
+|Method arguments|`DDMemoize` (1.0.0)|`Memoizer` (1.0.3)|`Memoized` (1.0.2)|`Memoist` (0.16.2)|
+|--|--|--|--|--|
+|`()` (none)|26.75x|2.62x|1.20x|3.39x|
+|`(a)`|19.58x|14.27x|10.51x|11.83x|
+|`(a, b)`|4.14x|2.88x|2.36x|2.68x|
+|`(a:)`|27.76x|23.54x|19.87x|21.36x|
+|`(a:, b:)`|6.57x|5.57x|4.66x|5.06x|
+|`(a, b:)`|6.57x|5.01x|4.38x|4.82x|
+|`(a, *args)`|5.38x|4.02x|3.40x|3.48x|
+|`(a:, **kwargs)`|3.95x|3.26x|2.92x|3.11x|
+|`(a, *args, b:, **kwargs)`|2.77x|2.43x|2.23x|2.25x|
 
 You can run benchmarks yourself with:
 
