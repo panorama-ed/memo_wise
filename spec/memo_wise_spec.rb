@@ -480,12 +480,12 @@ RSpec.describe MemoWise do
               stub_const("ModuleWithMemo", module_with_memo)
             end
 
-            let(:class_extending_module_with_memo) do
+            let(:class_including_module_with_memo) do
               Class.new do
                 include ModuleWithMemo
               end
             end
-            let(:instance) { class_extending_module_with_memo.new }
+            let(:instance) { class_including_module_with_memo.new }
 
             let(:target) { instance }
 
