@@ -459,10 +459,7 @@ RSpec.describe MemoWise do
               stub_const("ModuleWithMemo", module_with_memo)
             end
 
-            it <<~DESC do
-            does memoize class method for both classes
-            with same name with separate caches
-            DESC
+            it "memoizes each extended class separately" do
               aggregate_failures do
                 expect(class_a_extending_module_with_memo.test_method).
                   to eq(class_a_extending_module_with_memo.test_method)
@@ -522,10 +519,7 @@ RSpec.describe MemoWise do
               stub_const("ModuleWithMemo", module_with_memo)
             end
 
-            it <<~DESC do
-            does memoize both instance method & module method
-            with same name with separate caches
-            DESC
+            it "memoizes instance and singleton methods separately" do
               aggregate_failures do
                 expect(instance.test_method).
                   to eq(instance.test_method)
