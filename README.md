@@ -201,6 +201,13 @@ memoization between your tests with something like:
 after(:each) { helper.reset_memo_wise }
 ```
 
+## Further Reading
+
+We've written more about MemoWise in a series of blog posts:
+
+- [Introducing: MemoWise](https://medium.com/building-panorama-education/introducing-memowise-51a5f0523489)
+- [Optimizing MemoWise Performance](https://ja.cob.land/optimizing-memowise-performance)
+
 ## Logo
 
 `MemoWise`'s logo was created by [Luci Cooke](https://www.lucicooke.com/). The
