@@ -122,6 +122,23 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
               MemoWise::InternalAPI.original_class_from_singleton(klass)
             )
           end
+
+          # Ensures a module extended by another class/module still works
+          # e.g. rails `ClassMethods` module
+          if klass.is_a?(Module) && !klass.is_a?(Class)
+            # Using `extended` without `included` & `prepended`
+            # As a call to `create_memo_wise_state!` is already included in
+            # `.allocate`/`#initialize`
+            #
+            # But a module/class extending another module with memo_wise
+            # would not call `.allocate`/`#initialize` before calling methods
+            #
+            # On method call `@_memo_wise` would still be `nil`
+            # causing error when fetching cache from `@_memo_wise`
+            def klass.extended(base)
+              MemoWise::InternalAPI.create_memo_wise_state!(base)
+            end
+          end
         when Hash
           unless method_name_or_hash.keys == [:self]
             raise ArgumentError,

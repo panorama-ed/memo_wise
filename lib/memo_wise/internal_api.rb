@@ -167,7 +167,9 @@ module MemoWise
       #   * 1:1 relationship of singleton class to original class is documented
       #   * Performance concern: searches all Class objects
       #     But, only runs at load time
-      ObjectSpace.each_object(Class).find { |cls| cls.singleton_class == klass }
+      ObjectSpace.each_object(Module).find do |cls|
+        cls.singleton_class == klass
+      end
     end
 
     # Convention we use for renaming the original method when we replace with
