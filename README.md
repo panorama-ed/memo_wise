@@ -198,6 +198,7 @@ We've written more about MemoWise in a series of blog posts:
 
 - [Introducing: MemoWise](https://medium.com/building-panorama-education/introducing-memowise-51a5f0523489)
 - [Optimizing MemoWise Performance](https://ja.cob.land/optimizing-memowise-performance)
+- [Esosteric Ruby in MemoWise](https://jemma.dev/blog/esoteric-ruby-in-memowise)
 
 ## Logo
 
