@@ -106,31 +106,31 @@ Benchmarks are run in GitHub Actions, and the tables below are updated with ever
 
 Results using Ruby 3.0.2:
 
-|Method arguments|`Memery` (1.4.0)|`Dry::Core` (0.7.1)|
+|Method arguments|`Dry::Core` (0.7.1)|`Memery` (1.4.0)|
 |--|--|--|
-|`()` (none)|1.14x|16.81x|
-|`(a)`|2.02x|9.72x|
-|`(a, b)`|1.07x|4.90x|
-|`(a:)`|1.79x|18.74x|
-|`(a:, b:)`|1.03x|9.94x|
-|`(a, b:)`|1.03x|9.88x|
-|`(a, *args)`|1.99x|4.63x|
-|`(a:, **kwargs)`|1.54x|5.97x|
-|`(a, *args, b:, **kwargs)`|0.99x|2.81x|
+|`()` (none)|1.14x|16.80x|
+|`(a)`|1.95x|10.02x|
+|`(a, b)`|1.02x|4.89x|
+|`(a:)`|1.79x|18.85x|
+|`(a:, b:)`|1.03x|9.87x|
+|`(a, b:)`|1.03x|9.57x|
+|`(a, *args)`|2.07x|4.68x|
+|`(a:, **kwargs)`|1.54x|6.11x|
+|`(a, *args, b:, **kwargs)`|1.03x|2.77x|
 
 Results using Ruby 2.7.4 (because these gems raise errors in Ruby 3.x):
 
-|Method arguments|`DDMemoize` (1.0.0)|`Memoizer` (1.0.3)|`Memoized` (1.0.2)|`Memoist` (0.16.2)|
+|Method arguments|`DDMemoize` (1.0.0)|`Memoist` (0.16.2)|`Memoized` (1.0.2)|`Memoizer` (1.0.3)|
 |--|--|--|--|--|
-|`()` (none)|26.75x|2.62x|1.20x|3.39x|
-|`(a)`|19.58x|14.27x|10.51x|11.83x|
-|`(a, b)`|4.14x|2.88x|2.36x|2.68x|
-|`(a:)`|27.76x|23.54x|19.87x|21.36x|
-|`(a:, b:)`|6.57x|5.57x|4.66x|5.06x|
-|`(a, b:)`|6.57x|5.01x|4.38x|4.82x|
-|`(a, *args)`|5.38x|4.02x|3.40x|3.48x|
-|`(a:, **kwargs)`|3.95x|3.26x|2.92x|3.11x|
-|`(a, *args, b:, **kwargs)`|2.77x|2.43x|2.23x|2.25x|
+|`()` (none)|27.04x|2.61x|1.23x|3.37x|
+|`(a)`|19.49x|13.74x|10.26x|11.64x|
+|`(a, b)`|4.03x|2.99x|2.34x|2.61x|
+|`(a:)`|27.92x|22.91x|19.47x|20.88x|
+|`(a:, b:)`|6.52x|5.49x|4.81x|5.04x|
+|`(a, b:)`|6.16x|5.13x|4.44x|4.71x|
+|`(a, *args)`|5.27x|3.93x|3.30x|3.41x|
+|`(a:, **kwargs)`|3.94x|3.30x|2.90x|3.06x|
+|`(a, *args, b:, **kwargs)`|2.91x|2.52x|2.33x|2.35x|
 
 You can run benchmarks yourself with:
 

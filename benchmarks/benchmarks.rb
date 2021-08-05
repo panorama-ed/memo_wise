@@ -243,6 +243,9 @@ end.each_with_index do |benchmark_json, i|
   memo_wise = benchmark_json.find { _1["name"].include?("MemoWise") }
   benchmark_json.delete(memo_wise)
 
+  # Sort benchmarks by gem name to alphabetize our final output table.
+  benchmark_json.sort_by! { _1["name"] }
+
   # Print headers based on the first benchmark_json
   if i.zero?
     benchmark_headers = benchmark_json.map do |benchmark_gem|
@@ -257,9 +260,7 @@ end.each_with_index do |benchmark_json, i|
     puts "#{'|--' * (benchmark_json.size + 1)}|"
   end
 
-  output_str = benchmark_json.
-               sort_by { _1["name"] }.
-               map do |bgem|
+  output_str = benchmark_json.map do |bgem|
     "%.2fx" % (memo_wise["central_tendency"] / bgem["central_tendency"])
   end.join("|")
 
