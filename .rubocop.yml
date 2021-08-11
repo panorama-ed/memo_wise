@@ -1,5 +1,11 @@
 inherit_gem:
   panolint: rubocop.yml
 
+Metrics/PerceivedComplexity:
+  Enabled: false
+
 Style/DocumentDynamicEvalDefinition:
+  Enabled: false
+
+Style/MultipleComparison:
   Enabled: false

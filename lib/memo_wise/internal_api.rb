@@ -10,16 +10,33 @@ module MemoWise
     #
     # @return [Object] the passed-in obj
     def self.create_memo_wise_state!(obj)
-      # `@_memo_wise` stores memoized results of method calls. For performance
-      # reasons, the structure differs for different types of methods. It looks
-      # like:
+      # `@_memo_wise` and `@_memo_wise_single_argument` store memoized results
+      # of method calls. For performance reasons, the structure differs for
+      # different types of methods.
+      #
+      # `@_memo_wise` looks like:
       #   {
       #     no_args_method_name: :memoized_result,
-      #     single_arg_method_name: { arg1 => :memoized_result, ... },
       #     [:multi_arg_method_name, arg1, arg2].hash => :memoized_result
       #   }
+      #
+      # `@_memo_wise_single_argument` looks like:
+      #   [
+      #     { arg1 => :memoized_result, ... }, # For method 1
+      #     { arg1 => :memoized_result, ... }, # For method 2
+      #   ]
+      # This is essentially a faster alternative to:
+      #   {
+      #     single_arg_method_name: { arg1 => :memoized_result, ... }
+      #   }
+      # because we can give each single-argument method its own array index at
+      # load time and perform that array lookup more quickly than a hash lookup
+      # by method name.
       unless obj.instance_variables.include?(:@_memo_wise)
         obj.instance_variable_set(:@_memo_wise, {})
+      end
+      unless obj.instance_variables.include?(:@_memo_wise_single_argument)
+        obj.instance_variable_set(:@_memo_wise_single_argument, [])
       end
 
       # `@_memo_wise_hashes` stores the `Array#hash` values for each key in
@@ -39,6 +56,60 @@ module MemoWise
       end
 
       obj
+    end
+
+    def self.method_arguments(method)
+      return :none if method.arity.zero?
+
+      parameters = method.parameters.map(&:first)
+
+      if parameters == [:req]
+        :one_required_positional
+      elsif parameters == [:keyreq]
+        :one_required_keyword
+      elsif parameters.all? { |type| type == :req || type == :keyreq }
+        :multiple_required
+      elsif parameters & %i[req opt rest] == parameters.uniq
+        :splat
+      elsif parameters & %i[keyreq key keyrest] == parameters.uniq
+        :double_splat
+      elsif parameters & %i[req opt rest keyreq key keyrest] == parameters.uniq
+        :splat_and_double_splat
+      else
+        :unknown
+      end
+    end
+
+    def self.args_str(method)
+      case method_arguments(method)
+      when :splat then "*args"
+      when :double_splat then "**kwargs"
+      when :splat_and_double_splat then "*args, **kwargs"
+      when :one_required_positional, :one_required_keyword, :multiple_required
+        method.parameters.map do |type, name|
+          "#{name}#{':' if type == :keyreq}"
+        end.join(", ")
+      end
+    end
+
+    def self.call_str(method)
+      case method_arguments(method)
+      when :splat_and_double_splat then "*args, **kwargs"
+      when :one_required_positional, :one_required_keyword, :multiple_required
+        method.parameters.map do |type, name|
+          type == :req ? name : "#{name}: #{name}"
+        end.join(", ")
+      end
+    end
+
+    def self.key_str(method)
+      case method_arguments(method)
+      when :splat then "args.hash"
+      when :double_splat then "kwargs.hash"
+      when :splat_and_double_splat then "[:#{method.name}, args, kwargs].hash"
+      when :multiple_required
+        "[:#{method.name}, #{method.parameters.map(&:last).join(', ')}].hash"
+      end
     end
 
     # Determine whether `method` takes any *positional* args.
@@ -72,7 +143,7 @@ module MemoWise
     #
     def self.has_arg?(method) # rubocop:disable Naming/PredicateName
       method.parameters.any? do |param, _|
-        param == :req || param == :opt || param == :rest # rubocop:disable Style/MultipleComparison
+        param == :req || param == :opt || param == :rest
       end
     end
 
@@ -107,7 +178,7 @@ module MemoWise
     #
     def self.has_kwarg?(method) # rubocop:disable Naming/PredicateName
       method.parameters.any? do |param, _|
-        param == :keyreq || param == :key || param == :keyrest # rubocop:disable Style/MultipleComparison
+        param == :keyreq || param == :key || param == :keyrest
       end
     end
 
@@ -141,7 +212,7 @@ module MemoWise
     #     has_only_required_args?(Ex.instance_method(:required_args))
     #     #=> true
     def self.has_only_required_args?(method) # rubocop:disable Naming/PredicateName
-      method.parameters.all? { |type, _| type == :req || type == :keyreq } # rubocop:disable Style/MultipleComparison
+      method.parameters.all? { |type, _| type == :req || type == :keyreq }
     end
 
     # Find the original class for which the given class is the corresponding
@@ -195,63 +266,11 @@ module MemoWise
     # @return [Class, Module]
     attr_reader :target
 
-    # Returns the "fetch key" for the given `method_name` and parameters, to be
-    # used to lookup the memoized results specifically for this method and these
-    # parameters.
-    #
-    # @param method_name [Symbol]
-    #   Name of method to derive the "fetch key" for, with given parameters.
-    # @param args [Array]
-    #   Zero or more positional parameters
-    # @param kwargs [Hash]
-    #   Zero or more keyword parameters
-    #
-    # @return [Array, Hash, Object]
-    #   Returns one of:
-    #     - An `Array` if only positional parameters.
-    #     - A nested `Array<Array, Hash>` if *both* positional and keyword.
-    #     - A `Hash` if only keyword parameters.
-    #     - A single object if there is only a single parameter.
-    def fetch_key(method_name, *args, **kwargs)
-      method = target_class.instance_method(method_name)
-
-      if MemoWise::InternalAPI.has_only_required_args?(method)
-        key = method.parameters.map.with_index do |(type, name), index|
-          type == :req ? args[index] : kwargs[name]
-        end
-        key.size == 1 ? key.first : [method_name, *key].hash
-      else
-        has_arg = MemoWise::InternalAPI.has_arg?(method)
-
-        if has_arg && MemoWise::InternalAPI.has_kwarg?(method)
-          [method_name, args, kwargs].hash
-        elsif has_arg
-          args.hash
-        else
-          kwargs.hash
-        end
-      end
-    end
-
-    # Returns whether the given method should use an array's hash value as the
-    # cache lookup key. See the comments in `.create_memo_wise_state!` for an
-    # example.
-    #
-    # @param method_name [Symbol]
-    #   Name of memoized method we're checking the implementation of
-    #
-    # @return [Boolean] true iff the method uses a hashed cache key; false
-    #   otherwise
-    def use_hashed_key?(method_name)
-      method = target_class.instance_method(method_name)
-
-      if MemoWise::InternalAPI.has_arg?(method) &&
-         MemoWise::InternalAPI.has_kwarg?(method)
-        return true
-      end
-
-      MemoWise::InternalAPI.has_only_required_args?(method) &&
-        method.parameters.size > 1
+    def index(method_name)
+      indices = target.class.instance_variable_get(:@_memo_wise_indices) ||
+                target.singleton_class.instance_variable_get(:@_memo_wise_indices) || # rubocop:disable Layout/LineLength
+                target.instance_variable_get(:@_memo_wise_indices)
+      indices[method_name]
     end
 
     # Returns visibility of an instance method defined on class `target`.
