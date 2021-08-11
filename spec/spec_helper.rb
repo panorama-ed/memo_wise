@@ -36,6 +36,8 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  config.order = :rand
 end
 
 require "bundler/setup"
