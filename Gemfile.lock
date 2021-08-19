@@ -27,7 +27,7 @@ GEM
     ansi (1.5.0)
     ast (2.4.2)
     brakeman (5.1.1)
-    codecov (0.5.2)
+    codecov (0.6.0)
       simplecov (>= 0.15, < 0.22)
     concurrent-ruby (1.1.9)
     diff-lcs (1.4.4)
