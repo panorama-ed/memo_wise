@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.shared_context "with context for module methods via scope 'class << self'" do # rubocop:disable Layout/LineLength
-  let(:module_with_memo) do
-    Module.new do
+  # NOTE: This use of `before(:all)` is a performance optimization that shaves
+  # minutes off of our test suite, especially in older versions of Ruby.
+  before(:all) do
+    @_module_with_memo = Module.new do
       class << self
         prepend MemoWise
 
@@ -13,4 +15,6 @@ RSpec.shared_context "with context for module methods via scope 'class << self'"
       end
     end
   end
+
+  let(:module_with_memo) { @_module_with_memo } # rubocop:disable RSpec/InstanceVariable
 end
