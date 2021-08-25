@@ -38,7 +38,7 @@ RSpec.describe MemoWise do
           expect(Array.new(4) { target.with_one_positional_arg(2) }).
             to all eq("with_one_positional_arg: a=2")
 
-          # This should be executed twice for each set of arguments passed,
+          # This should be executed once for each set of arguments passed,
           # and a third time for the argument that was reset.
           expect(target.with_one_positional_arg_counter).to eq(3)
         end
@@ -55,7 +55,7 @@ RSpec.describe MemoWise do
           expect(Array.new(4) { target.with_one_positional_arg([2]) }).
             to all eq("with_one_positional_arg: a=[2]")
 
-          # This should be executed twice for each set of arguments passed,
+          # This should be executed once for each set of arguments passed,
           # and a third time for the argument that was reset.
           expect(target.with_one_positional_arg_counter).to eq(3)
         end
@@ -86,7 +86,7 @@ RSpec.describe MemoWise do
           expect(Array.new(4) { target.with_positional_args(2, 3) }).
             to all eq("with_positional_args: a=2, b=3")
 
-          # This should be executed twice for each set of arguments passed,
+          # This should be executed once for each set of arguments passed,
           # and a third time for the set of arguments that was reset.
           expect(target.with_positional_args_counter).to eq(3)
         end
@@ -117,7 +117,7 @@ RSpec.describe MemoWise do
           expect(Array.new(4) { target.with_one_keyword_arg(a: 2) }).
             to all eq("with_one_keyword_arg: a=2")
 
-          # This should be executed twice for each set of arguments passed,
+          # This should be executed once for each set of arguments passed,
           # and a third time for the argument that was reset.
           expect(target.with_one_keyword_arg_counter).to eq(3)
         end
@@ -148,9 +148,77 @@ RSpec.describe MemoWise do
           expect(Array.new(4) { target.with_keyword_args(a: 2, b: 3) }).
             to all eq("with_keyword_args: a=2, b=3")
 
-          # This should be executed twice for each set of arguments passed,
+          # This should be executed once for each set of arguments passed,
           # and a third time for the set of arguments that was reset.
           expect(target.with_keyword_args_counter).to eq(3)
+        end
+
+        it "resets memoization for methods with optional positional args" do
+          target.with_optional_positional_args(2, 3)
+          target.with_optional_positional_args(2, 4)
+          target.reset_memo_wise(:with_optional_positional_args)
+
+          expect(Array.new(4) { target.with_optional_positional_args(2, 3) }).
+            to all eq("with_optional_positional_args: a=2, b=3")
+
+          expect(Array.new(4) { target.with_optional_positional_args(2, 4) }).
+            to all eq("with_optional_positional_args: a=2, b=4")
+
+          # This should be executed twice for each set of arguments passed
+          expect(target.with_optional_positional_args_counter).to eq(4)
+        end
+
+        it "resets memoization for methods with specific optional positional "\
+           "args" do
+          target.with_optional_positional_args(2, 3)
+          target.with_optional_positional_args(2, 4)
+          target.reset_memo_wise(:with_optional_positional_args, 2, 3)
+
+          expect(Array.new(4) { target.with_optional_positional_args(2, 3) }).
+            to all eq("with_optional_positional_args: a=2, b=3")
+
+          expect(Array.new(4) { target.with_optional_positional_args(2, 4) }).
+            to all eq("with_optional_positional_args: a=2, b=4")
+
+          # This should be executed once for each set of arguments passed,
+          # and a third time for the set of arguments that was reset.
+          expect(target.with_optional_positional_args_counter).to eq(3)
+        end
+
+        it "resets memoization for methods with optional keyword args" do
+          target.with_optional_keyword_args(a: 2, b: 3)
+          target.with_optional_keyword_args(a: 2, b: 4)
+          target.reset_memo_wise(:with_optional_keyword_args)
+
+          expect(
+            Array.new(4) { target.with_optional_keyword_args(a: 2, b: 3) }
+          ).to all eq("with_optional_keyword_args: a=2, b=3")
+
+          expect(
+            Array.new(4) { target.with_optional_keyword_args(a: 2, b: 4) }
+          ).to all eq("with_optional_keyword_args: a=2, b=4")
+
+          # This should be executed twice for each set of arguments passed
+          expect(target.with_optional_keyword_args_counter).to eq(4)
+        end
+
+        it "resets memoization for methods with specific optional keyword "\
+           "args" do
+          target.with_optional_keyword_args(a: 2, b: 3)
+          target.with_optional_keyword_args(a: 2, b: 4)
+          target.reset_memo_wise(:with_optional_keyword_args, a: 2, b: 3)
+
+          expect(
+            Array.new(4) { target.with_optional_keyword_args(a: 2, b: 3) }
+          ).to all eq("with_optional_keyword_args: a=2, b=3")
+
+          expect(
+            Array.new(4) { target.with_optional_keyword_args(a: 2, b: 4) }
+          ).to all eq("with_optional_keyword_args: a=2, b=4")
+
+          # This should be executed once for each set of arguments passed,
+          # and a third time for the set of arguments that was reset.
+          expect(target.with_optional_keyword_args_counter).to eq(3)
         end
 
         it "resets memoization for methods with positional and keyword args" do
@@ -202,17 +270,69 @@ RSpec.describe MemoWise do
           expect(target.private_memowise_method_counter).to eq(2)
         end
 
-        context "when args are given" do
-          context "when no value is memoized for the method" do
-            it "doesn't raise an error for methods with multiple args" do
-              expect { target.reset_memo_wise(:with_positional_args, 1, 2) }.
-                not_to raise_error
-            end
+        context "when no value is memoized for the method" do
+          it "doesn't raise an error for methods with one positional arg" do
+            expect { target.reset_memo_wise(:with_one_positional_arg) }.
+              not_to raise_error
+          end
 
-            it "doesn't raise an error for methods with one arg" do
-              expect { target.reset_memo_wise(:with_one_positional_arg, 1) }.
-                not_to raise_error
-            end
+          it "doesn't raise an error for methods with one specific positional "\
+             "arg" do
+            expect { target.reset_memo_wise(:with_one_positional_arg, 1) }.
+              not_to raise_error
+          end
+
+          it "doesn't raise an error for methods with one keyword arg" do
+            expect { target.reset_memo_wise(:with_one_keyword_arg) }.
+              not_to raise_error
+          end
+
+          it "doesn't raise an error for methods with one specific keyword "\
+             "arg" do
+            expect { target.reset_memo_wise(:with_one_keyword_arg, a: 1) }.
+              not_to raise_error
+          end
+
+          it "doesn't raise an error for methods with optional positional "\
+             "args" do
+            expect { target.reset_memo_wise(:with_optional_positional_args) }.
+              not_to raise_error
+          end
+
+          it "doesn't raise an error for methods with optional positional "\
+             "args provided" do
+            expect do
+              target.reset_memo_wise(:with_optional_positional_args, 1)
+            end.not_to raise_error
+          end
+
+          it "doesn't raise an error for methods with optional keyword args" do
+            expect { target.reset_memo_wise(:with_optional_keyword_args) }.
+              not_to raise_error
+          end
+
+          it "doesn't raise an error for methods with optional keyword args "\
+             "provided" do
+            expect do
+              target.reset_memo_wise(:with_optional_keyword_args, a: 1)
+            end.not_to raise_error
+          end
+
+          it "doesn't raise an error for methods with optional positional and "\
+             "keyword args" do
+            expect do
+              target.reset_memo_wise(:with_optional_positional_and_keyword_args)
+            end.not_to raise_error
+          end
+
+          it "doesn't raise an error for methods with optional positional and "\
+             "keyword args provided" do
+            expect do
+              target.reset_memo_wise(
+                :with_optional_positional_and_keyword_args,
+                a: 1
+              )
+            end.not_to raise_error
           end
         end
 
