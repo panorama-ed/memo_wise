@@ -44,8 +44,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
       end
     end
 
-    context "when the method takes positional arguments, keyword arguments, "\
-              "and a block" do
+    context "when the method takes positional arguments, keyword arguments, and a block" do
       let(:class_with_memo) do
         Class.new do
           prepend MemoWise
@@ -57,8 +56,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
       end
 
       it "does not raise an error when initializing the class" do
-        expect { class_with_memo.new(:pos, kwarg: :kw) { true } }.
-          to_not raise_error
+        expect { class_with_memo.new(:pos, kwarg: :kw) { true } }.to_not raise_error
       end
     end
   end

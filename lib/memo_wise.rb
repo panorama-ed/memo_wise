@@ -25,7 +25,7 @@ require "memo_wise/version"
 #   - {.memo_wise} for API and usage examples.
 #   - {file:README.md} for general project information.
 #
-module MemoWise # rubocop:disable Metrics/ModuleLength
+module MemoWise
   # Constructor to set up memoization state before
   # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
   # constructor.
@@ -91,7 +91,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #     prepend MemoWise
   #   end
   #
-  def self.prepended(target) # rubocop:disable Metrics/PerceivedComplexity
+  def self.prepended(target)
     class << target
       # Allocator to set up memoization state before
       # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
@@ -111,7 +111,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       end
 
       # NOTE: See YARD docs for {.memo_wise} directly below this method!
-      def memo_wise(method_name_or_hash) # rubocop:disable Metrics/PerceivedComplexity
+      def memo_wise(method_name_or_hash)
         klass = self
         case method_name_or_hash
         when Symbol
@@ -156,14 +156,11 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
           klass = klass.singleton_class
         end
 
-        unless method_name.is_a?(Symbol)
-          raise ArgumentError, "#{method_name.inspect} must be a Symbol"
-        end
+        raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
 
         api = MemoWise::InternalAPI.new(klass)
         visibility = api.method_visibility(method_name)
-        original_memo_wised_name =
-          MemoWise::InternalAPI.original_memo_wised_name(method_name)
+        original_memo_wised_name = MemoWise::InternalAPI.original_memo_wised_name(method_name)
         method = klass.instance_method(method_name)
 
         klass.send(:alias_method, original_memo_wised_name, method_name)
@@ -194,8 +191,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
             call_str = "(#{call_str})"
             fetch_key_params = method.parameters.map(&:last)
             if fetch_key_params.size > 1
-              fetch_key_init =
-                "[:#{method_name}, #{fetch_key_params.join(', ')}].hash"
+              fetch_key_init = "[:#{method_name}, #{fetch_key_params.join(', ')}].hash"
               use_hashed_key = true
             else
               fetch_key = fetch_key_params.first.to_s
@@ -275,8 +271,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
       # (`...` or `*args, **kwargs`), making reflection on method parameters
       # useless without this.
       def target.instance_method(symbol)
-        original_memo_wised_name =
-          MemoWise::InternalAPI.original_memo_wised_name(symbol)
+        original_memo_wised_name = MemoWise::InternalAPI.original_memo_wised_name(symbol)
 
         super.tap do |curr_method|
           # Start with calling the original `instance_method` on `symbol`,
@@ -368,7 +363,6 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #     Example.method_called_times #=> nil
   ##
 
-  # rubocop:disable Layout/LineLength
   ##
   # @!method self.reset_memo_wise(method_name = nil, *args, **kwargs)
   #   Implementation of {#reset_memo_wise} for class methods.
@@ -402,7 +396,6 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #
   #     Example.reset_memo_wise # reset "all methods" mode
   ##
-  # rubocop:enable Layout/LineLength
 
   # Presets the memoized result for the given method to the result of the given
   # block.
@@ -455,10 +448,7 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #   ex.method_called_times #=> nil
   #
   def preset_memo_wise(method_name, *args, **kwargs)
-    unless block_given?
-      raise ArgumentError,
-            "Pass a block as the value to preset for #{method_name}, #{args}"
-    end
+    raise ArgumentError, "Pass a block as the value to preset for #{method_name}, #{args}" unless block_given?
 
     api = MemoWise::InternalAPI.new(self)
     api.validate_memo_wised!(method_name)
@@ -543,28 +533,18 @@ module MemoWise # rubocop:disable Metrics/ModuleLength
   #
   #   ex.reset_memo_wise # reset "all methods" mode
   #
-  def reset_memo_wise(method_name = nil, *args, **kwargs) # rubocop:disable Metrics/PerceivedComplexity
+  def reset_memo_wise(method_name = nil, *args, **kwargs)
     if method_name.nil?
-      unless args.empty?
-        raise ArgumentError, "Provided args when method_name = nil"
-      end
-
-      unless kwargs.empty?
-        raise ArgumentError, "Provided kwargs when method_name = nil"
-      end
+      raise ArgumentError, "Provided args when method_name = nil" unless args.empty?
+      raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
 
       @_memo_wise.clear
       @_memo_wise_hashes.clear
       return
     end
 
-    unless method_name.is_a?(Symbol)
-      raise ArgumentError, "#{method_name.inspect} must be a Symbol"
-    end
-
-    unless respond_to?(method_name, true)
-      raise ArgumentError, "#{method_name} is not a defined method"
-    end
+    raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
+    raise ArgumentError, "#{method_name} is not a defined method" unless respond_to?(method_name, true)
 
     api = MemoWise::InternalAPI.new(self)
     api.validate_memo_wised!(method_name)

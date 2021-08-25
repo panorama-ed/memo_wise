@@ -21,8 +21,7 @@ RSpec.shared_context "with context for instance methods" do
 
       # A memoized protected method - only makes sense as an instance method
       def protected_memowise_method
-        @protected_memowise_method_counter =
-          protected_memowise_method_counter + 1
+        @protected_memowise_method_counter = protected_memowise_method_counter + 1
         "protected_memowise_method"
       end
       protected :protected_memowise_method

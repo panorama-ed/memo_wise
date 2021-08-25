@@ -1,5 +1,17 @@
 inherit_gem:
   panolint: rubocop.yml
 
+Layout/LineLength:
+  Max: 120
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
 Style/DocumentDynamicEvalDefinition:
+  Enabled: false
+
+Style/MultipleComparison:
   Enabled: false
