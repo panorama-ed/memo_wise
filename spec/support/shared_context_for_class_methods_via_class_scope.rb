@@ -22,6 +22,7 @@ RSpec.shared_context "with context for class methods via scope 'class << self'" 
     # rubocop:disable RSpec/InstanceVariable
     @_class_with_memo.reset_memo_wise
     @_class_with_memo.instance_variables.each do |var|
+      # reset test method counters from DefineMethodsForTestingMemoWise
       if @_class_with_memo.instance_variable_get(var).is_a?(Integer)
         @_class_with_memo.instance_variable_set(var, 0)
       end
