@@ -21,8 +21,7 @@ RSpec.shared_context "with context for module methods via 'def self.'" do
       # memoizes only the module method, and not this instance method sharing
       # the same name.
       def with_keyword_args(a:, b:) # rubocop:disable Naming/MethodParameterName
-        @instance_with_keyword_args_counter =
-          instance_with_keyword_args_counter + 1
+        @instance_with_keyword_args_counter = instance_with_keyword_args_counter + 1
         "instance_with_keyword_args_counter: a=#{a}, b=#{b}"
       end
     end

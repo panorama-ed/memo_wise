@@ -50,7 +50,6 @@ end
 # using it to minimize the chance that our benchmarks are affected by ordering.
 # NOTE: Some gems do not yet work in Ruby 3 so we only test with them if they've
 # been `require`d.
-# rubocop:disable Layout/LineLength
 BENCHMARK_GEMS = [
   BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise),
   (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize) if defined?(DDMemoize)),
@@ -60,7 +59,6 @@ BENCHMARK_GEMS = [
   (BenchmarkGem.new(Memoized, "include Memoized", :memoize) if defined?(Memoized)),
   (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize) if defined?(Memoizer))
 ].compact.shuffle
-# rubocop:enable Layout/LineLength
 
 # Use metaprogramming to ensure that each class is created in exactly the
 # the same way.

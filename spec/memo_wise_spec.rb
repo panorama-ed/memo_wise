@@ -15,141 +15,83 @@ RSpec.describe MemoWise do
       end
 
       it "memoizes methods with one positional argument" do
-        expect(Array.new(4) { target.with_one_positional_arg(1) }).
-          to all eq("with_one_positional_arg: a=1")
-
-        expect(Array.new(4) { target.with_one_positional_arg(2) }).
-          to all eq("with_one_positional_arg: a=2")
+        expect(Array.new(4) { target.with_one_positional_arg(1) }).to all eq("with_one_positional_arg: a=1")
+        expect(Array.new(4) { target.with_one_positional_arg(2) }).to all eq("with_one_positional_arg: a=2")
 
         # This should be executed once for each set of arguments passed
         expect(target.with_one_positional_arg_counter).to eq(2)
       end
 
       it "memoizes methods with positional arguments" do
-        expect(Array.new(4) { target.with_positional_args(1, 2) }).
-          to all eq("with_positional_args: a=1, b=2")
-
-        expect(Array.new(4) { target.with_positional_args(1, 3) }).
-          to all eq("with_positional_args: a=1, b=3")
+        expect(Array.new(4) { target.with_positional_args(1, 2) }).to all eq("with_positional_args: a=1, b=2")
+        expect(Array.new(4) { target.with_positional_args(1, 3) }).to all eq("with_positional_args: a=1, b=3")
 
         # This should be executed once for each set of arguments passed
         expect(target.with_positional_args_counter).to eq(2)
       end
 
       it "memoizes methods with positional and splat arguments" do
-        expect(
-          Array.new(4) do
-            target.with_positional_and_splat_args(1, 2, 3)
-          end
-        ).to all eq("with_positional_and_splat_args: a=1, args=[2, 3]")
+        expect(Array.new(4) { target.with_positional_and_splat_args(1, 2, 3) }).
+          to all eq("with_positional_and_splat_args: a=1, args=[2, 3]")
 
-        expect(
-          Array.new(4) do
-            target.with_positional_and_splat_args(1, 3, 4)
-          end
-        ).to all eq("with_positional_and_splat_args: a=1, args=[3, 4]")
+        expect(Array.new(4) { target.with_positional_and_splat_args(1, 3, 4) }).
+          to all eq("with_positional_and_splat_args: a=1, args=[3, 4]")
 
         # This should be executed once for each set of arguments passed
         expect(target.with_positional_and_splat_args_counter).to eq(2)
       end
 
       it "memoizes methods with one keyword argument" do
-        expect(Array.new(4) { target.with_one_keyword_arg(a: 1) }).
-          to all eq("with_one_keyword_arg: a=1")
-
-        expect(Array.new(4) { target.with_one_keyword_arg(a: 2) }).
-          to all eq("with_one_keyword_arg: a=2")
+        expect(Array.new(4) { target.with_one_keyword_arg(a: 1) }).to all eq("with_one_keyword_arg: a=1")
+        expect(Array.new(4) { target.with_one_keyword_arg(a: 2) }).to all eq("with_one_keyword_arg: a=2")
 
         # This should be executed once for each set of arguments passed
         expect(target.with_one_keyword_arg_counter).to eq(2)
       end
 
       it "memoizes methods with keyword arguments" do
-        expect(Array.new(4) { target.with_keyword_args(a: 1, b: 2) }).
-          to all eq("with_keyword_args: a=1, b=2")
-
-        expect(Array.new(4) { target.with_keyword_args(a: 2, b: 3) }).
-          to all eq("with_keyword_args: a=2, b=3")
+        expect(Array.new(4) { target.with_keyword_args(a: 1, b: 2) }).to all eq("with_keyword_args: a=1, b=2")
+        expect(Array.new(4) { target.with_keyword_args(a: 2, b: 3) }).to all eq("with_keyword_args: a=2, b=3")
 
         # This should be executed once for each set of arguments passed
         expect(target.with_keyword_args_counter).to eq(2)
       end
 
       it "memoizes methods with keyword and double-splat arguments" do
-        expect(
-          Array.new(4) do
-            target.with_keyword_and_double_splat_args(a: 1, b: 2, c: 3)
-          end
-        ).to all eq(
-          "with_keyword_and_double_splat_args: a=1, kwargs={:b=>2, :c=>3}"
-        )
+        expect(Array.new(4) { target.with_keyword_and_double_splat_args(a: 1, b: 2, c: 3) }).
+          to all eq("with_keyword_and_double_splat_args: a=1, kwargs={:b=>2, :c=>3}")
 
-        expect(
-          Array.new(4) do
-            target.with_keyword_and_double_splat_args(a: 1, b: 2, c: 4)
-          end
-        ).to all eq(
-          "with_keyword_and_double_splat_args: a=1, kwargs={:b=>2, :c=>4}"
-        )
+        expect(Array.new(4) { target.with_keyword_and_double_splat_args(a: 1, b: 2, c: 4) }).
+          to all eq("with_keyword_and_double_splat_args: a=1, kwargs={:b=>2, :c=>4}")
 
         # This should be executed once for each set of arguments passed
         expect(target.with_keyword_and_double_splat_args_counter).to eq(2)
       end
 
       it "memoizes methods with positional and keyword arguments" do
-        expect(
-          Array.new(4) { target.with_positional_and_keyword_args(1, b: 2) }
-        ).to all eq("with_positional_and_keyword_args: a=1, b=2")
+        expect(Array.new(4) { target.with_positional_and_keyword_args(1, b: 2) }).
+          to all eq("with_positional_and_keyword_args: a=1, b=2")
 
-        expect(
-          Array.new(4) { target.with_positional_and_keyword_args(2, b: 3) }
-        ).to all eq("with_positional_and_keyword_args: a=2, b=3")
+        expect(Array.new(4) { target.with_positional_and_keyword_args(2, b: 3) }).
+          to all eq("with_positional_and_keyword_args: a=2, b=3")
 
         # This should be executed once for each set of arguments passed
         expect(target.with_positional_and_keyword_args_counter).to eq(2)
       end
 
-      it "memoizes methods with positional, splat, keyword, and double-splat "\
-         "arguments" do
-        expect(
-          Array.new(4) do
-            target.with_positional_splat_keyword_and_double_splat_args(
-              1,
-              2,
-              3,
-              b: 4,
-              c: 5,
-              d: 6
-            )
-          end
-        ).to all eq(
-          "with_positional_splat_keyword_and_double_splat_args: "\
-          "a=1, args=[2, 3] b=4 kwargs={:c=>5, :d=>6}"
-        )
+      it "memoizes methods with positional, splat, keyword, and double-splat arguments" do
+        expect(Array.new(4) { target.with_positional_splat_keyword_and_double_splat_args(1, 2, 3, b: 4, c: 5, d: 6) }).
+          to all eq("with_positional_splat_keyword_and_double_splat_args: a=1, args=[2, 3] b=4 kwargs={:c=>5, :d=>6}")
 
-        expect(
-          Array.new(4) do
-            target.with_positional_splat_keyword_and_double_splat_args(
-              1,
-              2,
-              b: 4,
-              c: 5
-            )
-          end
-        ).to all eq(
-          "with_positional_splat_keyword_and_double_splat_args: "\
-          "a=1, args=[2] b=4 kwargs={:c=>5}"
-        )
+        expect(Array.new(4) { target.with_positional_splat_keyword_and_double_splat_args(1, 2, b: 4, c: 5) }).
+          to all eq("with_positional_splat_keyword_and_double_splat_args: a=1, args=[2] b=4 kwargs={:c=>5}")
 
         # This should be executed once for each set of arguments passed
-        expect(
-          target.with_positional_splat_keyword_and_double_splat_args_counter
-        ).to eq(2)
+        expect(target.with_positional_splat_keyword_and_double_splat_args_counter).to eq(2)
       end
 
       it "memoizes methods with special characters in the name" do
-        expect(Array.new(4) { target.special_chars? }).
-          to all eq("special_chars?")
+        expect(Array.new(4) { target.special_chars? }).to all eq("special_chars?")
         expect(target.special_chars_counter).to eq(1)
       end
 
@@ -169,9 +111,7 @@ RSpec.describe MemoWise do
         end
 
         it "memoizes private methods" do
-          expect(Array.new(4) do
-            target.send(:private_memowise_method)
-          end).to all eq("private_memowise_method")
+          expect(Array.new(4) { target.send(:private_memowise_method) }).to all eq("private_memowise_method")
           expect(target.private_memowise_method_counter).to eq(1)
         end
       end
@@ -182,28 +122,24 @@ RSpec.describe MemoWise do
         end
 
         it "memoizes public methods" do
-          expect(Array.new(4) { target.public_memowise_method }).
-            to all eq("public_memowise_method")
+          expect(Array.new(4) { target.public_memowise_method }).to all eq("public_memowise_method")
           expect(target.public_memowise_method_counter).to eq(1)
         end
       end
 
       it "memoizes methods with proc arguments" do
         proc_param = proc { true }
-        expect(Array.new(4) { target.proc_method(proc_param) }).
-          to all eq(true)
+        expect(Array.new(4) { target.proc_method(proc_param) }).to all eq(true)
 
         expect(target.proc_method_counter).to eq(1)
       end
 
       it "will not memoize methods with implicit block arguments" do
-        expect { target.implicit_block_method }.
-          to raise_error(LocalJumpError)
+        expect { target.implicit_block_method }.to raise_error(LocalJumpError)
       end
 
       it "will not memoize methods with explicit block arguments" do
-        expect { target.explicit_block_method { nil } }.
-          to raise_error(LocalJumpError)
+        expect { target.explicit_block_method { nil } }.to raise_error(LocalJumpError)
       end
     end
 
@@ -226,23 +162,18 @@ RSpec.describe MemoWise do
 
       context "with protected methods" do
         it "keeps protected methods protected" do
-          expect(target.protected_methods).
-            to include(:protected_memowise_method)
+          expect(target.protected_methods).to include(:protected_memowise_method)
         end
 
         it "memoizes protected methods" do
-          expect(Array.new(4) do
-            target.send(:protected_memowise_method)
-          end).to all eq("protected_memowise_method")
+          expect(Array.new(4) { target.send(:protected_memowise_method) }).to all eq("protected_memowise_method")
           expect(target.protected_memowise_method_counter).to eq(1)
         end
       end
 
       context "when memo_wise has *not* been called on a *class* method" do
         it "does *not* create class-level instance variable" do
-          expect(
-            class_with_memo.instance_variables
-          ).not_to include(:@_memo_wise)
+          expect(class_with_memo.instance_variables).not_to include(:@_memo_wise)
         end
       end
 
@@ -334,17 +265,13 @@ RSpec.describe MemoWise do
 
           it "raises an error when passing a key which is not `self:`" do
             expect { class_with_memo.send(:memo_wise, bad_key: :class_method) }.
-              to raise_error(
-                ArgumentError,
-                "`:self` is the only key allowed in memo_wise"
-              )
+              to raise_error(ArgumentError, "`:self` is the only key allowed in memo_wise")
           end
         end
       end
 
       context "when defined with scope 'class << self'" do
-        include_context "with context for class methods via scope "\
-                        "'class << self'"
+        include_context "with context for class methods via scope 'class << self'"
 
         # Use the class as the target of "#memo_wise shared examples"
         let(:target) { class_with_memo }
@@ -382,20 +309,14 @@ RSpec.describe MemoWise do
           end
 
           it "raises an error when passing a key which is not `self:`" do
-            expect do
-              module_with_memo.send(:memo_wise, bad_key: :module_method)
-            end.
-              to raise_error(
-                ArgumentError,
-                "`:self` is the only key allowed in memo_wise"
-              )
+            expect { module_with_memo.send(:memo_wise, bad_key: :module_method) }.
+              to raise_error(ArgumentError, "`:self` is the only key allowed in memo_wise")
           end
         end
       end
 
       context "when defined with scope 'module << self'" do
-        include_context "with context for module methods via scope "\
-                        "'class << self'"
+        include_context "with context for module methods via scope 'class << self'"
 
         # Use the module as the target of "#memo_wise shared examples"
         let(:target) { module_with_memo }
@@ -418,9 +339,7 @@ RSpec.describe MemoWise do
           context "when defined with 'def'" do
             include_context "with context for module methods via normal scope"
 
-            before(:each) do
-              stub_const("ModuleWithMemo", module_with_memo)
-            end
+            before(:each) { stub_const("ModuleWithMemo", module_with_memo) }
 
             let(:class_extending_module_with_memo) do
               Class.new do
@@ -521,12 +440,9 @@ RSpec.describe MemoWise do
 
             it "memoizes instance and singleton methods separately" do
               aggregate_failures do
-                expect(instance.test_method).
-                  to eq(instance.test_method)
-                expect(module_with_memo.test_method).
-                  to eq(module_with_memo.test_method)
-                expect(instance.test_method).
-                  to_not eq(module_with_memo.test_method)
+                expect(instance.test_method).to eq(instance.test_method)
+                expect(module_with_memo.test_method).to eq(module_with_memo.test_method)
+                expect(instance.test_method).to_not eq(module_with_memo.test_method)
               end
             end
           end

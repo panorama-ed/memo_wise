@@ -18,9 +18,7 @@ module MemoWise
       #     single_arg_method_name: { arg1 => :memoized_result, ... },
       #     [:multi_arg_method_name, arg1, arg2].hash => :memoized_result
       #   }
-      unless obj.instance_variables.include?(:@_memo_wise)
-        obj.instance_variable_set(:@_memo_wise, {})
-      end
+      obj.instance_variable_set(:@_memo_wise, {}) unless obj.instance_variables.include?(:@_memo_wise)
 
       # `@_memo_wise_hashes` stores the `Array#hash` values for each key in
       # `@_memo_wise` that represents a multi-argument method call. We only use
@@ -34,9 +32,7 @@ module MemoWise
       #     ],
       #     ...
       #   }
-      unless obj.instance_variables.include?(:@_memo_wise_hashes)
-        obj.instance_variable_set(:@_memo_wise_hashes, {})
-      end
+      obj.instance_variable_set(:@_memo_wise_hashes, {}) unless obj.instance_variables.include?(:@_memo_wise_hashes)
 
       obj
     end
@@ -72,7 +68,7 @@ module MemoWise
     #
     def self.has_arg?(method) # rubocop:disable Naming/PredicateName
       method.parameters.any? do |param, _|
-        param == :req || param == :opt || param == :rest # rubocop:disable Style/MultipleComparison
+        param == :req || param == :opt || param == :rest
       end
     end
 
@@ -107,7 +103,7 @@ module MemoWise
     #
     def self.has_kwarg?(method) # rubocop:disable Naming/PredicateName
       method.parameters.any? do |param, _|
-        param == :keyreq || param == :key || param == :keyrest # rubocop:disable Style/MultipleComparison
+        param == :keyreq || param == :key || param == :keyrest
       end
     end
 
@@ -141,7 +137,7 @@ module MemoWise
     #     has_only_required_args?(Ex.instance_method(:required_args))
     #     #=> true
     def self.has_only_required_args?(method) # rubocop:disable Naming/PredicateName
-      method.parameters.all? { |type, _| type == :req || type == :keyreq } # rubocop:disable Style/MultipleComparison
+      method.parameters.all? { |type, _| type == :req || type == :keyreq }
     end
 
     # Find the original class for which the given class is the corresponding
@@ -159,9 +155,7 @@ module MemoWise
     #   Raises if `klass` is not a singleton class.
     #
     def self.original_class_from_singleton(klass)
-      unless klass.singleton_class?
-        raise ArgumentError, "Must be a singleton class: #{klass.inspect}"
-      end
+      raise ArgumentError, "Must be a singleton class: #{klass.inspect}" unless klass.singleton_class?
 
       # Search ObjectSpace
       #   * 1:1 relationship of singleton class to original class is documented

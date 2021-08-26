@@ -369,8 +369,7 @@ RSpec.describe MemoWise do
       end
 
       context "when defined with scope 'class << self'" do
-        include_context "with context for class methods via scope "\
-                        "'class << self'"
+        include_context "with context for class methods via scope 'class << self'"
 
         # Use the class as the target of "#preset_memo_wise shared examples"
         let(:target) { class_with_memo }

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.shared_context "with context for class methods via scope 'class << self'" do # rubocop:disable Layout/LineLength
+RSpec.shared_context "with context for class methods via scope 'class << self'" do
   # NOTE: This use of `before(:all)` is a performance optimization that shaves
   # minutes off of our test suite, especially in older versions of Ruby.
   before(:all) do
@@ -23,9 +23,7 @@ RSpec.shared_context "with context for class methods via scope 'class << self'" 
     @_class_with_memo.reset_memo_wise
     @_class_with_memo.instance_variables.each do |var|
       # reset test method counters from DefineMethodsForTestingMemoWise
-      if @_class_with_memo.instance_variable_get(var).is_a?(Integer)
-        @_class_with_memo.instance_variable_set(var, 0)
-      end
+      @_class_with_memo.instance_variable_set(var, 0) if @_class_with_memo.instance_variable_get(var).is_a?(Integer)
     end
     @_class_with_memo
     # rubocop:enable RSpec/InstanceVariable
