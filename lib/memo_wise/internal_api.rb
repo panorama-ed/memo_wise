@@ -10,15 +10,32 @@ module MemoWise
     #
     # @return [Object] the passed-in obj
     def self.create_memo_wise_state!(obj)
-      # `@_memo_wise` stores memoized results of method calls. For performance
-      # reasons, the structure differs for different types of methods. It looks
-      # like:
+      # `@_memo_wise` and `@_memo_wise_single_argument` store memoized results
+      # of method calls. For performance reasons, the structure differs for
+      # different types of methods.
+      #
+      # `@_memo_wise` looks like:
       #   {
       #     no_args_method_name: :memoized_result,
-      #     single_arg_method_name: { arg1 => :memoized_result, ... },
       #     [:multi_arg_method_name, arg1, arg2].hash => :memoized_result
       #   }
+      #
+      # `@_memo_wise_single_argument` looks like:
+      #   [
+      #     { arg1 => :memoized_result, ... }, # For method 0
+      #     { arg1 => :memoized_result, ... }, # For method 1
+      #   ]
+      # This is a faster alternative to:
+      #   {
+      #     single_arg_method_name: { arg1 => :memoized_result, ... }
+      #   }
+      # because we can give each single-argument method its own array index at
+      # load time and perform that array lookup more quickly than a hash lookup
+      # by method name.
       obj.instance_variable_set(:@_memo_wise, {}) unless obj.instance_variables.include?(:@_memo_wise)
+      unless obj.instance_variables.include?(:@_memo_wise_single_argument)
+        obj.instance_variable_set(:@_memo_wise_single_argument, [])
+      end
 
       # `@_memo_wise_hashes` stores the `Array#hash` values for each key in
       # `@_memo_wise` that represents a multi-argument method call. We only use
@@ -37,107 +54,89 @@ module MemoWise
       obj
     end
 
-    # Determine whether `method` takes any *positional* args.
-    #
-    # These are the types of positional args:
-    #
-    #   * *Required* -- ex: `def foo(a)`
-    #   * *Optional* -- ex: `def foo(b=1)`
-    #   * *Splatted* -- ex: `def foo(*c)`
-    #
-    # @param method [Method, UnboundMethod]
-    #   Arguments of this method will be checked
-    #
-    # @return [Boolean]
-    #   Return `true` if `method` accepts one or more positional arguments
-    #
-    # @example
-    #   class Example
-    #     def no_args
-    #     end
-    #
-    #     def position_arg(a)
-    #     end
-    #   end
-    #
-    #   MemoWise::InternalAPI.
-    #     has_arg?(Example.instance_method(:no_args)) #=> false
-    #
-    #   MemoWise::InternalAPI.
-    #     has_arg?(Example.instance_method(:position_arg)) #=> true
-    #
-    def self.has_arg?(method) # rubocop:disable Naming/PredicateName
-      method.parameters.any? do |param, _|
-        param == :req || param == :opt || param == :rest
+    NONE = :none
+    ONE_REQUIRED_POSITIONAL = :one_required_positional
+    ONE_REQUIRED_KEYWORD = :one_required_keyword
+    MULTIPLE_REQUIRED = :multiple_required
+    SPLAT = :splat
+    DOUBLE_SPLAT = :double_splat
+    SPLAT_AND_DOUBLE_SPLAT = :splat_and_double_splat
+
+    # @param method [UnboundMethod] a method to categorize based on the types of
+    #   arguments it has
+    # @return [Symbol] one of:
+    #   - :none (example: `def foo`)
+    #   - :one_required_positional (example: `def foo(a)`)
+    #   - :one_required_keyword (example: `def foo(a:)`)
+    #   - :multiple_required (examples: `def foo(a, b)`, `def foo(a:, b:)`, `def foo(a, b:)`)
+    #   - :splat (examples: `def foo(a=1)`, `def foo(a, *b)`)
+    #   - :double_splat (examples: `def foo(a: 1)`, `def foo(a:, **b)`)
+    #   - :splat_and_double_splat (examples: `def foo(a=1, b: 2)`, `def foo(a=1, **b)`, `def foo(*a, **b)`)
+    def self.method_arguments(method)
+      return NONE if method.arity.zero?
+
+      parameters = method.parameters.map(&:first)
+
+      if parameters == [:req]
+        ONE_REQUIRED_POSITIONAL
+      elsif parameters == [:keyreq]
+        ONE_REQUIRED_KEYWORD
+      elsif parameters.all? { |type| type == :req || type == :keyreq }
+        MULTIPLE_REQUIRED
+      elsif parameters & %i[req opt rest] == parameters.uniq
+        SPLAT
+      elsif parameters & %i[keyreq key keyrest] == parameters.uniq
+        DOUBLE_SPLAT
+      else
+        SPLAT_AND_DOUBLE_SPLAT
       end
     end
 
-    # Determine whether `method` takes any *keyword* args.
-    #
-    # These are the types of keyword args:
-    #
-    #   * *Keyword Required* -- ex: `def foo(a:)`
-    #   * *Keyword Optional* -- ex: `def foo(b: 1)`
-    #   * *Keyword Splatted* -- ex: `def foo(**c)`
-    #
-    # @param method [Method, UnboundMethod]
-    #   Arguments of this method will be checked
-    #
-    # @return [Boolean]
-    #   Return `true` if `method` accepts one or more keyword arguments
-    #
-    # @example
-    #   class Example
-    #     def position_args(a, b=1)
-    #     end
-    #
-    #     def keyword_args(a:, b: 1)
-    #     end
-    #   end
-    #
-    #   MemoWise::InternalAPI.
-    #     has_kwarg?(Example.instance_method(:position_args)) #=> false
-    #
-    #   MemoWise::InternalAPI.
-    #     has_kwarg?(Example.instance_method(:keyword_args)) #=> true
-    #
-    def self.has_kwarg?(method) # rubocop:disable Naming/PredicateName
-      method.parameters.any? do |param, _|
-        param == :keyreq || param == :key || param == :keyrest
+    # @param method [UnboundMethod] a method being memoized
+    # @return [String] the arguments string to use when defining our new
+    #   memoized version of the method
+    def self.args_str(method)
+      case method_arguments(method)
+      when SPLAT then "*args"
+      when DOUBLE_SPLAT then "**kwargs"
+      when SPLAT_AND_DOUBLE_SPLAT then "*args, **kwargs"
+      when ONE_REQUIRED_POSITIONAL, ONE_REQUIRED_KEYWORD, MULTIPLE_REQUIRED
+        method.parameters.map do |type, name|
+          "#{name}#{':' if type == :keyreq}"
+        end.join(", ")
+      else
+        raise ArgumentError, "Unexpected arguments for #{method.name}"
       end
     end
 
-    # Determine whether `method` takes only *required* args.
-    #
-    # These are the types of required args:
-    #
-    #   * *Required* -- ex: `def foo(a)`
-    #   * *Keyword Required* -- ex: `def foo(a:)`
-    #
-    # @param method [Method, UnboundMethod]
-    #   Arguments of this method will be checked
-    #
-    # @return [Boolean]
-    #   Return `true` if `method` accepts only required arguments
-    #
-    # @example
-    #   class Ex
-    #     def optional_args(a=1, b: 1)
-    #     end
-    #
-    #     def required_args(a, b:)
-    #     end
-    #   end
-    #
-    #   MemoWise::InternalAPI.
-    #     has_only_required_args?(Ex.instance_method(:optional_args))
-    #     #=> false
-    #
-    #   MemoWise::InternalAPI.
-    #     has_only_required_args?(Ex.instance_method(:required_args))
-    #     #=> true
-    def self.has_only_required_args?(method) # rubocop:disable Naming/PredicateName
-      method.parameters.all? { |type, _| type == :req || type == :keyreq }
+    # @param method [UnboundMethod] a method being memoized
+    # @return [String] the arguments string to use when calling the original
+    #   method in our new memoized version of the method, i.e. when setting a
+    #   memoized value
+    def self.call_str(method)
+      case method_arguments(method)
+      when SPLAT_AND_DOUBLE_SPLAT then "*args, **kwargs"
+      when ONE_REQUIRED_POSITIONAL, ONE_REQUIRED_KEYWORD, MULTIPLE_REQUIRED
+        method.parameters.map do |type, name|
+          type == :req ? name : "#{name}: #{name}"
+        end.join(", ")
+      else
+        raise ArgumentError, "Unexpected arguments for #{method.name}"
+      end
+    end
+
+    # @param method [UnboundMethod] a method being memoized
+    # @return [String] the string to use as a hash key when looking up a
+    #   memoized value, based on the method's arguments
+    def self.key_str(method)
+      case method_arguments(method)
+      when SPLAT then "args.hash"
+      when DOUBLE_SPLAT then "kwargs.hash"
+      when SPLAT_AND_DOUBLE_SPLAT then "[:#{method.name}, args, kwargs].hash"
+      when MULTIPLE_REQUIRED then "[:#{method.name}, #{method.parameters.map(&:last).join(', ')}].hash"
+      else
+        raise ArgumentError, "Unexpected arguments for #{method.name}"
+      end
     end
 
     # Find the original class for which the given class is the corresponding
@@ -189,63 +188,11 @@ module MemoWise
     # @return [Class, Module]
     attr_reader :target
 
-    # Returns the "fetch key" for the given `method_name` and parameters, to be
-    # used to lookup the memoized results specifically for this method and these
-    # parameters.
-    #
-    # @param method_name [Symbol]
-    #   Name of method to derive the "fetch key" for, with given parameters.
-    # @param args [Array]
-    #   Zero or more positional parameters
-    # @param kwargs [Hash]
-    #   Zero or more keyword parameters
-    #
-    # @return [Array, Hash, Object]
-    #   Returns one of:
-    #     - An `Array` if only positional parameters.
-    #     - A nested `Array<Array, Hash>` if *both* positional and keyword.
-    #     - A `Hash` if only keyword parameters.
-    #     - A single object if there is only a single parameter.
-    def fetch_key(method_name, *args, **kwargs)
-      method = target_class.instance_method(method_name)
-
-      if MemoWise::InternalAPI.has_only_required_args?(method)
-        key = method.parameters.map.with_index do |(type, name), index|
-          type == :req ? args[index] : kwargs[name]
-        end
-        key.size == 1 ? key.first : [method_name, *key].hash
-      else
-        has_arg = MemoWise::InternalAPI.has_arg?(method)
-
-        if has_arg && MemoWise::InternalAPI.has_kwarg?(method)
-          [method_name, args, kwargs].hash
-        elsif has_arg
-          args.hash
-        else
-          kwargs.hash
-        end
-      end
-    end
-
-    # Returns whether the given method should use an array's hash value as the
-    # cache lookup key. See the comments in `.create_memo_wise_state!` for an
-    # example.
-    #
-    # @param method_name [Symbol]
-    #   Name of memoized method we're checking the implementation of
-    #
-    # @return [Boolean] true iff the method uses a hashed cache key; false
-    #   otherwise
-    def use_hashed_key?(method_name)
-      method = target_class.instance_method(method_name)
-
-      if MemoWise::InternalAPI.has_arg?(method) &&
-         MemoWise::InternalAPI.has_kwarg?(method)
-        return true
-      end
-
-      MemoWise::InternalAPI.has_only_required_args?(method) &&
-        method.parameters.size > 1
+    # @param method_name [Symbol] the name of the memoized method
+    # @return [Integer] the array index in `@_memo_wise_single_argument` to use
+    #   to find the memoization data for the given method
+    def index(method_name)
+      target_class.instance_variable_get(:@_memo_wise_indices)[method_name]
     end
 
     # Returns visibility of an instance method defined on class `target`.
@@ -268,8 +215,7 @@ module MemoWise
       elsif target.public_method_defined?(method_name)
         :public
       else
-        raise ArgumentError,
-              "#{method_name.inspect} must be a method on #{target}"
+        raise ArgumentError, "#{method_name.inspect} must be a method on #{target}"
       end
     end
 

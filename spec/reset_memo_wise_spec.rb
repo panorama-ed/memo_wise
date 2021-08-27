@@ -388,6 +388,56 @@ RSpec.describe MemoWise do
           expect(instance2.no_args_counter).to eq(1)
         end
       end
+
+      context "when method name is the same as a memoized class method" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            def instance_one_arg_counter
+              @instance_one_arg_counter || 0
+            end
+
+            def one_arg(a) # rubocop:disable Naming/MethodParameterName
+              @instance_one_arg_counter = instance_one_arg_counter + 1
+              "instance_one_arg: a=#{a}"
+            end
+            memo_wise :one_arg
+
+            def self.class_one_arg_counter
+              @class_one_arg_counter || 0
+            end
+
+            def self.one_arg(a) # rubocop:disable Naming/MethodParameterName
+              @class_one_arg_counter = class_one_arg_counter + 1
+              "class_one_arg: a=#{a}"
+            end
+            memo_wise self: :one_arg
+          end
+        end
+
+        it "resets memoization independently" do
+          instance = class_with_memo.new
+          expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+          expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+          class_with_memo.reset_memo_wise(:one_arg)
+
+          expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+          expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+          expect(instance.instance_one_arg_counter).to eq 1 # Never reset, so only incremented once.
+          expect(class_with_memo.class_one_arg_counter).to eq 2 # Once initially and once after resetting.
+
+          instance.reset_memo_wise(:one_arg)
+
+          expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+          expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+          expect(instance.instance_one_arg_counter).to eq 2 # Once initially and once after resetting.
+          expect(class_with_memo.class_one_arg_counter).to eq 2 # Once initially and once after resetting.
+        end
+      end
     end
 
     context "with class methods" do
@@ -398,6 +448,56 @@ RSpec.describe MemoWise do
         let(:target) { class_with_memo }
 
         it_behaves_like "#reset_memo_wise shared examples"
+
+        context "when method name is the same as a memoized instance method" do
+          let(:class_with_memo) do
+            Class.new do
+              prepend MemoWise
+
+              def instance_one_arg_counter
+                @instance_one_arg_counter || 0
+              end
+
+              def one_arg(a) # rubocop:disable Naming/MethodParameterName
+                @instance_one_arg_counter = instance_one_arg_counter + 1
+                "instance_one_arg: a=#{a}"
+              end
+              memo_wise :one_arg
+
+              def self.class_one_arg_counter
+                @class_one_arg_counter || 0
+              end
+
+              def self.one_arg(a) # rubocop:disable Naming/MethodParameterName
+                @class_one_arg_counter = class_one_arg_counter + 1
+                "class_one_arg: a=#{a}"
+              end
+              memo_wise self: :one_arg
+            end
+          end
+
+          it "resets memoization independently" do
+            instance = class_with_memo.new
+            expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+            expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+            class_with_memo.reset_memo_wise(:one_arg)
+
+            expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+            expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+            expect(instance.instance_one_arg_counter).to eq 1 # Never reset, so only incremented once.
+            expect(class_with_memo.class_one_arg_counter).to eq 2 # Once initially and once after resetting.
+
+            instance.reset_memo_wise(:one_arg)
+
+            expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+            expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+            expect(instance.instance_one_arg_counter).to eq 2 # Once initially and once after resetting.
+            expect(class_with_memo.class_one_arg_counter).to eq 2 # Once initially and once after resetting.
+          end
+        end
       end
 
       context "when defined with scope 'class << self'" do
@@ -407,6 +507,60 @@ RSpec.describe MemoWise do
         let(:target) { class_with_memo }
 
         it_behaves_like "#reset_memo_wise shared examples"
+
+        context "when method name is the same as a memoized instance method" do
+          let(:class_with_memo) do
+            Class.new do
+              prepend MemoWise
+
+              def instance_one_arg_counter
+                @instance_one_arg_counter || 0
+              end
+
+              def one_arg(a) # rubocop:disable Naming/MethodParameterName
+                @instance_one_arg_counter = instance_one_arg_counter + 1
+                "instance_one_arg: a=#{a}"
+              end
+              memo_wise :one_arg
+
+              class << self
+                prepend MemoWise
+
+                def class_one_arg_counter
+                  @class_one_arg_counter || 0
+                end
+
+                def one_arg(a) # rubocop:disable Naming/MethodParameterName
+                  @class_one_arg_counter = class_one_arg_counter + 1
+                  "class_one_arg: a=#{a}"
+                end
+                memo_wise :one_arg
+              end
+            end
+          end
+
+          it "resets memoization independently" do
+            instance = class_with_memo.new
+            expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+            expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+            class_with_memo.reset_memo_wise(:one_arg)
+
+            expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+            expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+            expect(instance.instance_one_arg_counter).to eq 1 # Never reset, so only incremented once.
+            expect(class_with_memo.class_one_arg_counter).to eq 2 # Once initially and once after resetting.
+
+            instance.reset_memo_wise(:one_arg)
+
+            expect(Array.new(4) { instance.one_arg(1) }).to all eq("instance_one_arg: a=1")
+            expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+            expect(instance.instance_one_arg_counter).to eq 2 # Once initially and once after resetting.
+            expect(class_with_memo.class_one_arg_counter).to eq 2 # Once initially and once after resetting.
+          end
+        end
       end
     end
   end

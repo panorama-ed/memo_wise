@@ -143,6 +143,51 @@ RSpec.describe MemoWise do
       end
     end
 
+    shared_examples "handles memoized/non-memoized methods with the same name at different "\
+                    "scopes" do
+      context "with non-memoized method with same name as memoized method" do
+        context "when methods have no arguments" do
+          it "does not memoize the non-memoized method" do
+            # Confirm the memoized method works correctly first.
+            expect(Array.new(4) { memoized.no_args }).to all eq("no_args")
+            expect(memoized.no_args_counter).to eq(1)
+
+            # Now confirm our non-memoized method is not memoized.
+            expect(Array.new(4) { non_memoized.no_args }).to all eq("#{non_memoized_name}_no_args")
+            expect(non_memoized.send("#{non_memoized_name}_no_args_counter")).to eq(4)
+          end
+        end
+
+        context "when methods have one positional argument" do
+          it "does not memoize the non-memoized method" do
+            # Confirm the memoized method works correctly first.
+            expect(Array.new(4) { memoized.with_one_positional_arg(1) }).to all eq("with_one_positional_arg: a=1")
+            expect(memoized.with_one_positional_arg_counter).to eq(1)
+
+            # Now confirm our non-memoized method is not memoized.
+            expect(Array.new(4) { non_memoized.with_one_positional_arg(1) }).
+              to all eq("#{non_memoized_name}_with_one_positional_arg: a=1")
+
+            expect(non_memoized.send("#{non_memoized_name}_one_positional_arg_counter")).to eq(4)
+          end
+        end
+
+        context "when methods have multiple positional arguments" do
+          it "does not memoize the non-memoized method" do
+            # Confirm the memoized method works correctly first.
+            expect(Array.new(4) { memoized.with_positional_args(1, 2) }).to all eq("with_positional_args: a=1, b=2")
+            expect(memoized.with_positional_args_counter).to eq(1)
+
+            # Now confirm our non-memoized method is not memoized.
+            expect(Array.new(4) { non_memoized.with_positional_args(1, 2) }).
+              to all eq("#{non_memoized_name}_with_positional_args: a=1, b=2")
+
+            expect(non_memoized.send("#{non_memoized_name}_positional_args_counter")).to eq(4)
+          end
+        end
+      end
+    end
+
     context "with instance methods" do
       include_context "with context for instance methods"
 
@@ -194,13 +239,10 @@ RSpec.describe MemoWise do
         it { expect { instance }.to raise_error(ArgumentError) }
       end
 
-      context "with class method with same name as memoized instance method" do
-        it "does not memoize the class methods" do
-          expect(Array.new(4) { class_with_memo.with_positional_args(1, 2) }).
-            to all eq("class_with_positional_args: a=1, b=2")
-
-          expect(class_with_memo.class_positional_args_counter).to eq(4)
-        end
+      it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+        let(:memoized) { instance }
+        let(:non_memoized) { class_with_memo }
+        let(:non_memoized_name) { :class }
       end
 
       context "when the class is a Value class using the 'values' gem" do
@@ -243,15 +285,10 @@ RSpec.describe MemoWise do
           expect(class_with_memo.instance_variables).to include(:@_memo_wise)
         end
 
-        context "with instance methods with the same name as class methods" do
-          let(:instance) { class_with_memo.new }
-
-          it "doesn't memoize instance methods when passed self: keyword" do
-            expect(Array.new(4) { instance.with_keyword_args(a: 1, b: 2) }).
-              to all eq("instance_with_keyword_args_counter: a=1, b=2")
-
-            expect(instance.instance_with_keyword_args_counter).to eq(4)
-          end
+        it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+          let(:memoized) { class_with_memo }
+          let(:non_memoized) { class_with_memo.new }
+          let(:non_memoized_name) { :instance }
         end
 
         context "when an invalid hash key is passed to .memo_wise" do
@@ -281,6 +318,12 @@ RSpec.describe MemoWise do
         it "creates a class-level instance variable" do
           # NOTE: this test ensure the inverse test above continues to be valid
           expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+
+        it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+          let(:memoized) { class_with_memo }
+          let(:non_memoized) { class_with_memo.new }
+          let(:non_memoized_name) { :instance }
         end
       end
     end
@@ -409,6 +452,12 @@ RSpec.describe MemoWise do
             let(:target) { instance }
 
             it_behaves_like "#memo_wise shared examples"
+
+            it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+              let(:memoized) { instance }
+              let(:non_memoized) { module_with_memo }
+              let(:non_memoized_name) { :module }
+            end
           end
 
           context "when defined with 'def self.' and 'def'" do
@@ -466,6 +515,12 @@ RSpec.describe MemoWise do
             let(:target) { instance }
 
             it_behaves_like "#memo_wise shared examples"
+
+            it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+              let(:memoized) { instance }
+              let(:non_memoized) { module_with_memo }
+              let(:non_memoized_name) { :module }
+            end
           end
         end
       end
