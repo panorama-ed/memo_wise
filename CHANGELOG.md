@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Updated
+- Improve performance of zero-argument methods by using an outer Array instead
+  of a Hash
 - Improve performance of single-argument methods by using an outer Array instead
   of a Hash
 ### Fixed
