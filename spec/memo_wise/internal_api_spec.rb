@@ -34,6 +34,75 @@ RSpec.describe MemoWise::InternalAPI do
     end
   end
 
+  describe ".method_arguments" do
+    subject { described_class.method_arguments(method) }
+
+    include_context "with context for instance methods"
+
+    {
+      no_args: described_class::NONE,
+      with_one_positional_arg: described_class::ONE_REQUIRED_POSITIONAL,
+      with_one_keyword_arg: described_class::ONE_REQUIRED_KEYWORD,
+      with_positional_args: described_class::MULTIPLE_REQUIRED,
+      with_keyword_args: described_class::MULTIPLE_REQUIRED,
+      with_positional_and_keyword_args: described_class::MULTIPLE_REQUIRED,
+      with_optional_positional_args: described_class::SPLAT,
+      with_positional_and_splat_args: described_class::SPLAT,
+      with_optional_keyword_args: described_class::DOUBLE_SPLAT,
+      with_keyword_and_double_splat_args: described_class::DOUBLE_SPLAT,
+      with_optional_positional_and_keyword_args: described_class::SPLAT_AND_DOUBLE_SPLAT,
+      with_positional_splat_keyword_and_double_splat_args: described_class::SPLAT_AND_DOUBLE_SPLAT
+    }.each do |method_name, expected_result|
+      context "when given #{method_name} method" do
+        let(:method) { class_with_memo.instance_method(method_name) }
+
+        it { is_expected.to eq expected_result }
+      end
+    end
+  end
+
+  describe ".args_str" do
+    subject { described_class.args_str(method) }
+
+    include_context "with context for instance methods"
+
+    context "when called on an unexpected method type" do
+      let(:method) { class_with_memo.instance_method(:no_args) }
+
+      it "raises an ArgumentError" do
+        expect { subject }.to raise_error(ArgumentError)
+      end
+    end
+  end
+
+  describe ".call_str" do
+    subject { described_class.call_str(method) }
+
+    include_context "with context for instance methods"
+
+    context "when called on an unexpected method type" do
+      let(:method) { class_with_memo.instance_method(:no_args) }
+
+      it "raises an ArgumentError" do
+        expect { subject }.to raise_error(ArgumentError)
+      end
+    end
+  end
+
+  describe ".key_str" do
+    subject { described_class.key_str(method) }
+
+    include_context "with context for instance methods"
+
+    context "when called on an unexpected method type" do
+      let(:method) { class_with_memo.instance_method(:no_args) }
+
+      it "raises an ArgumentError" do
+        expect { subject }.to raise_error(ArgumentError)
+      end
+    end
+  end
+
   describe "#method_visibility" do
     subject { described_class.new(String).method_visibility(method_name) }
 

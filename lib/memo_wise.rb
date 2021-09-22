@@ -166,9 +166,10 @@ module MemoWise
         klass.send(:alias_method, original_memo_wised_name, method_name)
         klass.send(:private, original_memo_wised_name)
 
-        # Zero-arg methods can use simpler/more performant logic because the
-        # hash key is just the method name.
-        if method.arity.zero?
+        case MemoWise::InternalAPI.method_arguments(method)
+        when MemoWise::InternalAPI::NONE
+          # Zero-arg methods can use simpler/more performant logic because the
+          # hash key is just the method name.
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}
               output = @_memo_wise[:#{method_name}]
@@ -179,73 +180,64 @@ module MemoWise
               end
             end
           END_OF_METHOD
-        else
-          if MemoWise::InternalAPI.has_only_required_args?(method)
-            args_str = method.parameters.map do |type, name|
-              "#{name}#{':' if type == :keyreq}"
-            end.join(", ")
-            args_str = "(#{args_str})"
-            call_str = method.parameters.map do |type, name|
-              type == :req ? name : "#{name}: #{name}"
-            end.join(", ")
-            call_str = "(#{call_str})"
-            fetch_key_params = method.parameters.map(&:last)
-            if fetch_key_params.size > 1
-              fetch_key_init = "[:#{method_name}, #{fetch_key_params.join(', ')}].hash"
-              use_hashed_key = true
-            else
-              fetch_key = fetch_key_params.first.to_s
-            end
-          else
-            # If our method has arguments, we need to separate out our handling
-            # of normal args vs. keyword args due to the changes in Ruby 3.
-            # See: <link>
-            # By only including logic for *args, **kwargs when they are used in
-            # the method, we can avoid allocating unnecessary arrays and hashes.
-            has_arg = MemoWise::InternalAPI.has_arg?(method)
+        when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
+          # `@_memo_wise_indices` stores the `@_memo_wise_single_argument`
+          # indices of different method names. We only use this data structure
+          # when resetting or presetting memoization. It looks like:
+          #   {
+          #     single_arg_method_name: 0,
+          #     other_single_arg_method_name: 1
+          #   }
+          memo_wise_indices = klass.instance_variable_get(:@_memo_wise_indices)
+          memo_wise_indices ||= klass.instance_variable_set(:@_memo_wise_indices, {})
+          memo_wise_index_counter = klass.instance_variable_get(:@_memo_wise_index_counter) || 0
 
-            if has_arg && MemoWise::InternalAPI.has_kwarg?(method)
-              args_str = "(*args, **kwargs)"
-              fetch_key_init = "[:#{method_name}, args, kwargs].hash"
-              use_hashed_key = true
-            elsif has_arg
-              args_str = "(*args)"
-              fetch_key_init = "args.hash"
-            else
-              args_str = "(**kwargs)"
-              fetch_key_init = "kwargs.hash"
-            end
-          end
+          index = memo_wise_index_counter
+          memo_wise_indices[method_name] = memo_wise_index_counter
+          klass.instance_variable_set(:@_memo_wise_index_counter, memo_wise_index_counter + 1)
 
-          if use_hashed_key
-            klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
-              def #{method_name}#{args_str}
-                key = #{fetch_key_init}
-                output = @_memo_wise[key]
-                if output || @_memo_wise.key?(key)
-                  output
-                else
-                  hashes = (@_memo_wise_hashes[:#{method_name}] ||= Set.new)
-                  hashes << key
-                  @_memo_wise[key] = #{original_memo_wised_name}#{call_str || args_str}
-                end
+          key = method.parameters.first.last
+
+          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+            def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+              hash = (@_memo_wise_single_argument[#{index}] ||= {})
+              output = hash[#{key}]
+              if output || hash.key?(#{key})
+                output
+              else
+                hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
-            END_OF_METHOD
-          else
-            fetch_key ||= "key"
-            klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
-              def #{method_name}#{args_str}
-                hash = (@_memo_wise[:#{method_name}] ||= {})
-                #{"key = #{fetch_key_init}" if fetch_key_init}
-                output = hash[#{fetch_key}]
-                if output || hash.key?(#{fetch_key})
-                  output
-                else
-                  hash[#{fetch_key}] = #{original_memo_wised_name}#{call_str || args_str}
-                end
+            end
+          END_OF_METHOD
+        when MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+            def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+              key = #{MemoWise::InternalAPI.key_str(method)}
+              output = @_memo_wise[key]
+              if output || @_memo_wise.key?(key)
+                output
+              else
+                hashes = (@_memo_wise_hashes[:#{method_name}] ||= Set.new)
+                hashes << key
+                @_memo_wise[key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
-            END_OF_METHOD
-          end
+            end
+          END_OF_METHOD
+        else # MemoWise::InternalAPI::SPLAT, MemoWise::InternalAPI::DOUBLE_SPLAT
+          args_str = MemoWise::InternalAPI.args_str(method)
+
+          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+            def #{method_name}(#{args_str})
+              hash = (@_memo_wise[:#{method_name}] ||= {})
+              key = #{MemoWise::InternalAPI.key_str(method)}
+              output = hash[key]
+              if output || hash.key?(key)
+                output
+              else
+                hash[key] = #{original_memo_wised_name}(#{args_str})
+              end
+            end
+          END_OF_METHOD
         end
 
         klass.send(visibility, method_name)
@@ -453,18 +445,36 @@ module MemoWise
     api = MemoWise::InternalAPI.new(self)
     api.validate_memo_wised!(method_name)
 
-    if method(method_name).arity.zero?
-      @_memo_wise[method_name] = yield
-    else
-      key = api.fetch_key(method_name, *args, **kwargs)
-      if api.use_hashed_key?(method_name)
-        hashes = @_memo_wise_hashes[method_name] ||= []
-        hashes << key
-        @_memo_wise[key] = yield
-      else
-        hash = @_memo_wise[method_name] ||= {}
-        hash[key] = yield
+    method = method(method_name)
+    method_arguments = MemoWise::InternalAPI.method_arguments(method)
+
+    case method_arguments
+    when MemoWise::InternalAPI::NONE then @_memo_wise[method_name] = yield
+    when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL
+      hash = (@_memo_wise_single_argument[api.index(method_name)] ||= {})
+      hash[args.first] = yield
+    when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
+      hash = (@_memo_wise_single_argument[api.index(method_name)] ||= {})
+      hash[kwargs.first.last] = yield
+    when MemoWise::InternalAPI::SPLAT
+      hash = (@_memo_wise[method_name] ||= {})
+      hash[args.hash] = yield
+    when MemoWise::InternalAPI::DOUBLE_SPLAT
+      hash = (@_memo_wise[method_name] ||= {})
+      hash[kwargs.hash] = yield
+    when MemoWise::InternalAPI::MULTIPLE_REQUIRED
+      key_args = method.parameters.map.with_index do |(type, name), index|
+        type == :req ? args[index] : kwargs[name]
       end
+      key = [method_name, *key_args].hash
+      hashes = (@_memo_wise_hashes[method_name] ||= Set.new)
+      hashes << key
+      @_memo_wise[key] = yield
+    else # MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+      key = [method_name, args, kwargs].hash
+      hashes = (@_memo_wise_hashes[method_name] ||= Set.new)
+      hashes << key
+      @_memo_wise[key] = yield
     end
   end
 
@@ -539,6 +549,7 @@ module MemoWise
       raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
 
       @_memo_wise.clear
+      @_memo_wise_single_argument.clear
       @_memo_wise_hashes.clear
       return
     end
@@ -549,19 +560,57 @@ module MemoWise
     api = MemoWise::InternalAPI.new(self)
     api.validate_memo_wised!(method_name)
 
-    if args.empty? && kwargs.empty?
-      @_memo_wise.delete(method_name)
-      @_memo_wise_hashes[method_name]&.each do |hash|
-        @_memo_wise.delete(hash)
+    method = method(method_name)
+    method_arguments = MemoWise::InternalAPI.method_arguments(method)
+
+    case method_arguments
+    when MemoWise::InternalAPI::NONE then @_memo_wise.delete(method_name)
+    when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL
+      index = api.index(method_name)
+
+      if args.empty?
+        @_memo_wise_single_argument[index]&.clear
+      else
+        @_memo_wise_single_argument[index]&.delete(args.first)
       end
-      @_memo_wise_hashes.delete(method_name)
-    else
-      key = api.fetch_key(method_name, *args, **kwargs)
-      if api.use_hashed_key?(method_name)
+    when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
+      index = api.index(method_name)
+
+      if kwargs.empty?
+        @_memo_wise_single_argument[index]&.clear
+      else
+        @_memo_wise_single_argument[index]&.delete(kwargs.first.last)
+      end
+    when MemoWise::InternalAPI::SPLAT
+      if args.empty?
+        @_memo_wise.delete(method_name)
+      else
+        @_memo_wise[method_name]&.delete(args.hash)
+      end
+    when MemoWise::InternalAPI::DOUBLE_SPLAT
+      if kwargs.empty?
+        @_memo_wise.delete(method_name)
+      else
+        @_memo_wise[method_name]&.delete(kwargs.hash)
+      end
+    else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+      if args.empty? && kwargs.empty?
+        @_memo_wise.delete(method_name)
+        @_memo_wise_hashes[method_name]&.each do |hash|
+          @_memo_wise.delete(hash)
+        end
+        @_memo_wise_hashes.delete(method_name)
+      else
+        if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+          key = [method_name, args, kwargs].hash
+        else
+          key_args = method.parameters.map.with_index do |(type, name), i|
+            type == :req ? args[i] : kwargs[name] # rubocop:disable Metrics/BlockNesting
+          end
+          key = [method_name, *key_args].hash
+        end
         @_memo_wise_hashes[method_name]&.delete(key)
         @_memo_wise.delete(key)
-      else
-        @_memo_wise[method_name]&.delete(key)
       end
     end
   end

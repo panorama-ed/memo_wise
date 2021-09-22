@@ -27,12 +27,41 @@ RSpec.shared_context "with context for instance methods" do
       protected :protected_memowise_method
       memo_wise :protected_memowise_method
 
-      # Counter for calls to class method '.positional_args', see below.
+      # Counter for calls to class method '.no_args', see below.
+      def self.class_no_args_counter
+        @class_no_args_counter || 0
+      end
+
+      # See: "with non-memoized method with same name as memoized method"
+      #
+      # Used by that spec to verify that `memo_wise :no_args` memoizes only the
+      # instance method, and not this class method sharing the same name.
+      def self.no_args
+        @class_no_args_counter = class_no_args_counter + 1
+        "class_no_args"
+      end
+
+      # Counter for calls to class method '.with_one_positional_arg', see below.
+      def self.class_one_positional_arg_counter
+        @class_one_positional_arg_counter || 0
+      end
+
+      # See: "with non-memoized method with same name as memoized method"
+      #
+      # Used by that spec to verify that `memo_wise :with_one_positional_arg`
+      # memoizes only the instance method, and not this class method sharing
+      # the same name.
+      def self.with_one_positional_arg(a) # rubocop:disable Naming/MethodParameterName
+        @class_one_positional_arg_counter = class_one_positional_arg_counter + 1
+        "class_with_one_positional_arg: a=#{a}"
+      end
+
+      # Counter for calls to class method '.with_positional_args', see below.
       def self.class_positional_args_counter
         @class_positional_args_counter || 0
       end
 
-      # See: "with class method with same name as memoized instance method"
+      # See: "with non-memoized method with same name as memoized method"
       #
       # Used by that spec to verify that `memo_wise :with_positional_args`
       # memoizes only the instance method, and not this class method sharing
