@@ -166,21 +166,10 @@ module MemoWise
         klass.send(:alias_method, original_memo_wised_name, method_name)
         klass.send(:private, original_memo_wised_name)
 
-        case MemoWise::InternalAPI.method_arguments(method)
-        when MemoWise::InternalAPI::NONE
-          # Zero-arg methods can use simpler/more performant logic because the
-          # hash key is just the method name.
-          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
-            def #{method_name}
-              output = @_memo_wise[:#{method_name}]
-              if output || @_memo_wise.key?(:#{method_name})
-                output
-              else
-                @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
-              end
-            end
-          END_OF_METHOD
-        when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
+        method_arguments = MemoWise::InternalAPI.method_arguments(method)
+        if method_arguments == MemoWise::InternalAPI::NONE ||
+           method_arguments == MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL ||
+           method_arguments == MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
           # `@_memo_wise_indices` stores the `@_memo_wise_single_argument`
           # indices of different method names. We only use this data structure
           # when resetting or presetting memoization. It looks like:
@@ -195,12 +184,29 @@ module MemoWise
           index = memo_wise_index_counter
           memo_wise_indices[method_name] = memo_wise_index_counter
           klass.instance_variable_set(:@_memo_wise_index_counter, memo_wise_index_counter + 1)
+        end
 
+        case method_arguments
+        when MemoWise::InternalAPI::NONE
+          # Zero-arg methods can use simpler/more performant logic because the
+          # hash key is just the method name.
+          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+            def #{method_name}
+              output = @_memo_wise[#{index}]
+              if output || @_memo_wise_sentinels[#{index}]
+                output
+              else
+                @_memo_wise_sentinels[#{index}] = true
+                @_memo_wise[#{index}] = #{original_memo_wised_name}
+              end
+            end
+          END_OF_METHOD
+        when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
           key = method.parameters.first.last
 
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-              hash = (@_memo_wise_single_argument[#{index}] ||= {})
+              hash = (@_memo_wise[#{index}] ||= {})
               output = hash[#{key}]
               if output || hash.key?(#{key})
                 output
@@ -213,13 +219,13 @@ module MemoWise
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
               key = #{MemoWise::InternalAPI.key_str(method)}
-              output = @_memo_wise[key]
-              if output || @_memo_wise.key?(key)
+              output = @_memo_wise_multi_argument[key]
+              if output || @_memo_wise_multi_argument.key?(key)
                 output
               else
                 hashes = (@_memo_wise_hashes[:#{method_name}] ||= Set.new)
                 hashes << key
-                @_memo_wise[key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+                @_memo_wise_multi_argument[key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
             end
           END_OF_METHOD
@@ -228,7 +234,7 @@ module MemoWise
 
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}(#{args_str})
-              hash = (@_memo_wise[:#{method_name}] ||= {})
+              hash = (@_memo_wise_multi_argument[:#{method_name}] ||= {})
               key = #{MemoWise::InternalAPI.key_str(method)}
               output = hash[key]
               if output || hash.key?(key)
@@ -449,32 +455,36 @@ module MemoWise
     method_arguments = MemoWise::InternalAPI.method_arguments(method)
 
     case method_arguments
-    when MemoWise::InternalAPI::NONE then @_memo_wise[method_name] = yield
+    when MemoWise::InternalAPI::NONE
+      index = api.index(method_name)
+
+      @_memo_wise_sentinels[index] = true
+      @_memo_wise[index] = yield
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL
-      hash = (@_memo_wise_single_argument[api.index(method_name)] ||= {})
+      hash = (@_memo_wise[api.index(method_name)] ||= {})
       hash[args.first] = yield
     when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
-      hash = (@_memo_wise_single_argument[api.index(method_name)] ||= {})
+      hash = (@_memo_wise[api.index(method_name)] ||= {})
       hash[kwargs.first.last] = yield
     when MemoWise::InternalAPI::SPLAT
-      hash = (@_memo_wise[method_name] ||= {})
+      hash = (@_memo_wise_multi_argument[method_name] ||= {})
       hash[args.hash] = yield
     when MemoWise::InternalAPI::DOUBLE_SPLAT
-      hash = (@_memo_wise[method_name] ||= {})
+      hash = (@_memo_wise_multi_argument[method_name] ||= {})
       hash[kwargs.hash] = yield
     when MemoWise::InternalAPI::MULTIPLE_REQUIRED
-      key_args = method.parameters.map.with_index do |(type, name), index|
-        type == :req ? args[index] : kwargs[name]
+      key_args = method.parameters.map.with_index do |(type, name), idx|
+        type == :req ? args[idx] : kwargs[name]
       end
       key = [method_name, *key_args].hash
       hashes = (@_memo_wise_hashes[method_name] ||= Set.new)
       hashes << key
-      @_memo_wise[key] = yield
+      @_memo_wise_multi_argument[key] = yield
     else # MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
       key = [method_name, args, kwargs].hash
       hashes = (@_memo_wise_hashes[method_name] ||= Set.new)
       hashes << key
-      @_memo_wise[key] = yield
+      @_memo_wise_multi_argument[key] = yield
     end
   end
 
@@ -549,7 +559,8 @@ module MemoWise
       raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
 
       @_memo_wise.clear
-      @_memo_wise_single_argument.clear
+      @_memo_wise_sentinels.clear
+      @_memo_wise_multi_argument.clear
       @_memo_wise_hashes.clear
       return
     end
@@ -564,40 +575,44 @@ module MemoWise
     method_arguments = MemoWise::InternalAPI.method_arguments(method)
 
     case method_arguments
-    when MemoWise::InternalAPI::NONE then @_memo_wise.delete(method_name)
+    when MemoWise::InternalAPI::NONE
+      index = api.index(method_name)
+
+      @_memo_wise_sentinels[index] = nil
+      @_memo_wise[index] = nil
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL
       index = api.index(method_name)
 
       if args.empty?
-        @_memo_wise_single_argument[index]&.clear
+        @_memo_wise[index]&.clear
       else
-        @_memo_wise_single_argument[index]&.delete(args.first)
+        @_memo_wise[index]&.delete(args.first)
       end
     when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
       index = api.index(method_name)
 
       if kwargs.empty?
-        @_memo_wise_single_argument[index]&.clear
+        @_memo_wise[index]&.clear
       else
-        @_memo_wise_single_argument[index]&.delete(kwargs.first.last)
+        @_memo_wise[index]&.delete(kwargs.first.last)
       end
     when MemoWise::InternalAPI::SPLAT
       if args.empty?
-        @_memo_wise.delete(method_name)
+        @_memo_wise_multi_argument.delete(method_name)
       else
-        @_memo_wise[method_name]&.delete(args.hash)
+        @_memo_wise_multi_argument[method_name]&.delete(args.hash)
       end
     when MemoWise::InternalAPI::DOUBLE_SPLAT
       if kwargs.empty?
-        @_memo_wise.delete(method_name)
+        @_memo_wise_multi_argument.delete(method_name)
       else
-        @_memo_wise[method_name]&.delete(kwargs.hash)
+        @_memo_wise_multi_argument[method_name]&.delete(kwargs.hash)
       end
     else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
       if args.empty? && kwargs.empty?
-        @_memo_wise.delete(method_name)
+        @_memo_wise_multi_argument.delete(method_name)
         @_memo_wise_hashes[method_name]&.each do |hash|
-          @_memo_wise.delete(hash)
+          @_memo_wise_multi_argument.delete(hash)
         end
         @_memo_wise_hashes.delete(method_name)
       else
@@ -610,7 +625,7 @@ module MemoWise
           key = [method_name, *key_args].hash
         end
         @_memo_wise_hashes[method_name]&.delete(key)
-        @_memo_wise.delete(key)
+        @_memo_wise_multi_argument.delete(key)
       end
     end
   end

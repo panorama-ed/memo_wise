@@ -10,37 +10,62 @@ module MemoWise
     #
     # @return [Object] the passed-in obj
     def self.create_memo_wise_state!(obj)
-      # `@_memo_wise` and `@_memo_wise_single_argument` store memoized results
+      # `@_memo_wise` and `@_memo_wise_multi_argument` store memoized results
       # of method calls. For performance reasons, the structure differs for
       # different types of methods.
       #
-      # `@_memo_wise` looks like:
+      # `@_memo_wise_multi_argument` looks like:
       #   {
       #     no_args_method_name: :memoized_result,
       #     [:multi_arg_method_name, arg1, arg2].hash => :memoized_result
       #   }
       #
-      # `@_memo_wise_single_argument` looks like:
+      # `@_memo_wise` looks like:
       #   [
-      #     { arg1 => :memoized_result, ... }, # For method 0
-      #     { arg1 => :memoized_result, ... }, # For method 1
+      #     :memoized_result, # For method 0 (which takes no arguments)
+      #     { arg1 => :memoized_result, ... }, # For method 1 (which takes an argument)
+      #     { arg1 => :memoized_result, ... }, # For method 2 (which takes an argument)
       #   ]
       # This is a faster alternative to:
       #   {
+      #     zero_arg_method_name: :memoized_result,
       #     single_arg_method_name: { arg1 => :memoized_result, ... }
       #   }
-      # because we can give each single-argument method its own array index at
-      # load time and perform that array lookup more quickly than a hash lookup
-      # by method name.
-      obj.instance_variable_set(:@_memo_wise, {}) unless obj.instance_variables.include?(:@_memo_wise)
-      unless obj.instance_variables.include?(:@_memo_wise_single_argument)
-        obj.instance_variable_set(:@_memo_wise_single_argument, [])
+      # because we can give each method its own array index at load time and
+      # perform that array lookup more quickly than a hash lookup by method
+      # name.
+      obj.instance_variable_set(:@_memo_wise, []) unless obj.instance_variable_defined?(:@_memo_wise)
+      unless obj.instance_variable_defined?(:@_memo_wise_multi_argument)
+        obj.instance_variable_set(:@_memo_wise_multi_argument, {})
+      end
+
+      # For zero-arity methods, memoized values are stored in the `@_memo_wise`
+      # array. Arrays do not differentiate between "unset" and "set to nil" and
+      # so to handle this case we need another array to store sentinels and
+      # store `true` at indexes for which a zero-arity method has been memoized.
+      # `@_memo_wise_sentinels` looks like:
+      #   [
+      #     true, # A zero-arity method's result has been memoized
+      #     nil, # A zero-arity method's result has not been memoized
+      #     nil, # A one-arity method will always correspond to `nil` here
+      #     ...
+      #   ]
+      # NOTE: Because `@_memo_wise` stores memoized values for more than just
+      # zero-arity methods, the `@_memo_wise_sentinels` array can end up being
+      # sparse (see above), even when all methods' memoized values have been
+      # stored. If this becomes an issue we could store a separate index for
+      # zero-arity methods to make every element in `@_memo_wise_sentinels`
+      # correspond to a zero-arity method.
+      # NOTE: Surprisingly, lookups on an array of `true` and `nil` values
+      # appear to outperform even bitwise operators on integers (as of Ruby
+      # 3.0.2), allowing us to avoid more complex sentinel structures.
+      unless obj.instance_variable_defined?(:@_memo_wise_sentinels)
+        obj.instance_variable_set(:@_memo_wise_sentinels, [])
       end
 
       # `@_memo_wise_hashes` stores the `Array#hash` values for each key in
-      # `@_memo_wise` that represents a multi-argument method call. We only use
-      # this data structure when resetting memoization for an entire method. It
-      # looks like:
+      # `@_memo_wise_multi_argument`. We only use this data structure when
+      # resetting memoization for an entire method. It looks like:
       #   {
       #     multi_arg_method_name: Set[
       #       [:multi_arg_method_name, arg1, arg2].hash,
@@ -49,7 +74,7 @@ module MemoWise
       #     ],
       #     ...
       #   }
-      obj.instance_variable_set(:@_memo_wise_hashes, {}) unless obj.instance_variables.include?(:@_memo_wise_hashes)
+      obj.instance_variable_set(:@_memo_wise_hashes, {}) unless obj.instance_variable_defined?(:@_memo_wise_hashes)
 
       obj
     end
