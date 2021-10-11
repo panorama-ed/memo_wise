@@ -222,12 +222,12 @@ module MemoWise
       if method.arity.zero?
         define_zero_param_method(method_name)
       else
-        args_str, call_str, fetch_key, fetch_key_init = setup_multi_param_method_args(method)
+        args_str, fetch_key, fetch_key_init = setup_multi_param_method_args(method)
 
         if use_hashed_key?(method)
-          define_multi_param_hashed_key_method(method_name, args_str, call_str, fetch_key_init)
+          define_multi_param_hashed_key_method(method_name, args_str, fetch_key_init)
         else
-          define_multi_param_method(method_name, args_str, call_str, fetch_key, fetch_key_init)
+          define_multi_param_method(method_name, args_str, fetch_key, fetch_key_init)
         end
       end
 
@@ -255,10 +255,6 @@ module MemoWise
           "#{name}#{':' if type == :keyreq}"
         end.join(", ")
         args_str = "(#{args_str})"
-        call_str = method.parameters.map do |type, name|
-          type == :req ? name : "#{name}: #{name}"
-        end.join(", ")
-        call_str = "(#{call_str})"
         fetch_key_params = method.parameters.map(&:last)
         if fetch_key_params.size > 1
           fetch_key_init = "[:#{method.name}, #{fetch_key_params.join(', ')}].hash"
@@ -285,10 +281,10 @@ module MemoWise
         end
       end
 
-      [args_str, call_str || args_str, fetch_key || "key", fetch_key_init]
+      [args_str, fetch_key || "key", fetch_key_init]
     end
 
-    def define_multi_param_hashed_key_method(method_name, args_str, call_str, fetch_key_init)
+    def define_multi_param_hashed_key_method(method_name, args_str, fetch_key_init)
       target.memo_wise_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{method_name}#{args_str}
           key = #{fetch_key_init}
@@ -298,13 +294,13 @@ module MemoWise
           else
             hashes = (_memo_wise_hashes[:#{method_name}] ||= Set.new)
             hashes << key
-            _memo_wise[key] = super#{call_str}
+            _memo_wise[key] = super
           end
         end
       RUBY
     end
 
-    def define_multi_param_method(method_name, args_str, call_str, fetch_key, fetch_key_init)
+    def define_multi_param_method(method_name, args_str, fetch_key, fetch_key_init)
       fetch_key_init_line = "key = #{fetch_key_init}" if fetch_key_init
       target.memo_wise_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{method_name}#{args_str}
@@ -314,7 +310,7 @@ module MemoWise
           if output || hash.key?(#{fetch_key})
             output
           else
-            hash[#{fetch_key}] = super#{call_str}
+            hash[#{fetch_key}] = super
           end
         end
       RUBY
