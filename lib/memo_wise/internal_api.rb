@@ -1,40 +1,12 @@
 # frozen_string_literal: true
+require "memo_wise/memo_wise_methods_module_builder"
 
 module MemoWise
   class InternalAPI
-    # Create initial mutable state to store memoized values if it doesn't
-    # already exist
-    #
-    # @param [Object] obj
-    #   Object in which to create mutable state to store future memoized values
-    #
-    # @return [Object] the passed-in obj
-    def self.create_memo_wise_state!(obj)
-      # `@_memo_wise` stores memoized results of method calls. For performance
-      # reasons, the structure differs for different types of methods. It looks
-      # like:
-      #   {
-      #     no_args_method_name: :memoized_result,
-      #     single_arg_method_name: { arg1 => :memoized_result, ... },
-      #     [:multi_arg_method_name, arg1, arg2].hash => :memoized_result
-      #   }
-      obj.instance_variable_set(:@_memo_wise, {}) unless obj.instance_variables.include?(:@_memo_wise)
-
-      # `@_memo_wise_hashes` stores the `Array#hash` values for each key in
-      # `@_memo_wise` that represents a multi-argument method call. We only use
-      # this data structure when resetting memoization for an entire method. It
-      # looks like:
-      #   {
-      #     multi_arg_method_name: Set[
-      #       [:multi_arg_method_name, arg1, arg2].hash,
-      #       [:multi_arg_method_name, arg1, arg3].hash,
-      #       ...
-      #     ],
-      #     ...
-      #   }
-      obj.instance_variable_set(:@_memo_wise_hashes, {}) unless obj.instance_variables.include?(:@_memo_wise_hashes)
-
-      obj
+    def self.create_internal_module(target)
+      MemoWiseMethodsModuleBuilder.build.tap do |mod|
+        target.prepend(target.const_set(:MemoWiseMethodsModule, mod))
+      end
     end
 
     # Determine whether `method` takes any *positional* args.
@@ -140,45 +112,6 @@ module MemoWise
       method.parameters.all? { |type, _| type == :req || type == :keyreq }
     end
 
-    # Find the original class for which the given class is the corresponding
-    # "singleton class".
-    #
-    # See https://stackoverflow.com/questions/54531270/retrieve-a-ruby-object-from-its-singleton-class
-    #
-    # @param klass [Class]
-    #   Singleton class to find the original class of
-    #
-    # @return Class
-    #   Original class for which `klass` is the singleton class.
-    #
-    # @raise ArgumentError
-    #   Raises if `klass` is not a singleton class.
-    #
-    def self.original_class_from_singleton(klass)
-      raise ArgumentError, "Must be a singleton class: #{klass.inspect}" unless klass.singleton_class?
-
-      # Search ObjectSpace
-      #   * 1:1 relationship of singleton class to original class is documented
-      #   * Performance concern: searches all Class objects
-      #     But, only runs at load time
-      ObjectSpace.each_object(Module).find do |cls|
-        cls.singleton_class == klass
-      end
-    end
-
-    # Convention we use for renaming the original method when we replace with
-    # the memoized version in {MemoWise.memo_wise}.
-    #
-    # @param method_name [Symbol]
-    #   Name for which to return the renaming for the original method
-    #
-    # @return [Symbol]
-    #   Renamed method to use for the original method with name `method_name`
-    #
-    def self.original_memo_wised_name(method_name)
-      :"_memo_wise_original_#{method_name}"
-    end
-
     # @param target [Class, Module]
     #   The class to which we are prepending MemoWise to provide memoization;
     #   the `InternalAPI` *instance* methods will refer to this `target` class.
@@ -206,19 +139,17 @@ module MemoWise
     #     - A nested `Array<Array, Hash>` if *both* positional and keyword.
     #     - A `Hash` if only keyword parameters.
     #     - A single object if there is only a single parameter.
-    def fetch_key(method_name, *args, **kwargs)
-      method = target_class.instance_method(method_name)
-
+    def fetch_key(method, *args, **kwargs)
       if MemoWise::InternalAPI.has_only_required_args?(method)
         key = method.parameters.map.with_index do |(type, name), index|
           type == :req ? args[index] : kwargs[name]
         end
-        key.size == 1 ? key.first : [method_name, *key].hash
+        key.size == 1 ? key.first : [method.name, *key].hash
       else
         has_arg = MemoWise::InternalAPI.has_arg?(method)
 
         if has_arg && MemoWise::InternalAPI.has_kwarg?(method)
-          [method_name, args, kwargs].hash
+          [method.name, args, kwargs].hash
         elsif has_arg
           args.hash
         else
@@ -236,9 +167,7 @@ module MemoWise
     #
     # @return [Boolean] true iff the method uses a hashed cache key; false
     #   otherwise
-    def use_hashed_key?(method_name)
-      method = target_class.instance_method(method_name)
-
+    def use_hashed_key?(method)
       if MemoWise::InternalAPI.has_arg?(method) &&
          MemoWise::InternalAPI.has_kwarg?(method)
         return true
@@ -278,14 +207,118 @@ module MemoWise
     # @param method_name [Symbol]
     #   Name of method to validate has already been setup with {.memo_wise}
     def validate_memo_wised!(method_name)
-      original_name = self.class.original_memo_wised_name(method_name)
+      mod = target_class.memo_wise_module
 
-      unless target_class.private_method_defined?(original_name)
+      unless mod.method_defined?(method_name) || mod.private_method_defined?(method_name)
         raise ArgumentError, "#{method_name} is not a memo_wised method"
       end
     end
 
+    def define_memo_wise_method(method, visibility)
+      method_name = method.name
+
+      # Zero-arg methods can use simpler/more performant logic because the
+      # hash key is just the method name.
+      if method.arity.zero?
+        define_zero_param_method(method_name)
+      else
+        args_str, call_str, fetch_key, fetch_key_init = setup_multi_param_method_args(method)
+
+        if use_hashed_key?(method)
+          define_multi_param_hashed_key_method(method_name, args_str, call_str, fetch_key_init)
+        else
+          define_multi_param_method(method_name, args_str, call_str, fetch_key, fetch_key_init)
+        end
+      end
+
+      target.memo_wise_module.send(visibility, method_name)
+    end
+
     private
+
+    def define_zero_param_method(method_name)
+      target.memo_wise_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+        def #{method_name}
+          output = _memo_wise[:#{method_name}]
+          if output || _memo_wise.key?(:#{method_name})
+            output
+          else
+            _memo_wise[:#{method_name}] = super(&nil)
+          end
+        end
+      RUBY
+    end
+
+    def setup_multi_param_method_args(method)
+      if self.class.has_only_required_args?(method)
+        args_str = method.parameters.map do |type, name|
+          "#{name}#{':' if type == :keyreq}"
+        end.join(", ")
+        args_str = "(#{args_str})"
+        call_str = method.parameters.map do |type, name|
+          type == :req ? name : "#{name}: #{name}"
+        end.join(", ")
+        call_str = "(#{call_str})"
+        fetch_key_params = method.parameters.map(&:last)
+        if fetch_key_params.size > 1
+          fetch_key_init = "[:#{method.name}, #{fetch_key_params.join(', ')}].hash"
+        else
+          fetch_key = fetch_key_params.first.to_s
+        end
+      else
+        # If our method has arguments, we need to separate out our handling
+        # of normal args vs. keyword args due to the changes in Ruby 3.
+        # See: <link>
+        # By only including logic for *args, **kwargs when they are used in
+        # the method, we can avoid allocating unnecessary arrays and hashes.
+        has_arg = self.class.has_arg?(method)
+
+        if has_arg && self.class.has_kwarg?(method)
+          args_str = "(*args, **kwargs)"
+          fetch_key_init = "[:#{method.name}, args, kwargs].hash"
+        elsif has_arg
+          args_str = "(*args)"
+          fetch_key_init = "args.hash"
+        else
+          args_str = "(**kwargs)"
+          fetch_key_init = "kwargs.hash"
+        end
+      end
+
+      [args_str, call_str || args_str, fetch_key || "key", fetch_key_init]
+    end
+
+    def define_multi_param_hashed_key_method(method_name, args_str, call_str, fetch_key_init)
+      target.memo_wise_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+        def #{method_name}#{args_str}
+          key = #{fetch_key_init}
+          output = _memo_wise[key]
+          if output || _memo_wise.key?(key)
+            output
+          else
+            hashes = (_memo_wise_hashes[:#{method_name}] ||= Set.new)
+            hashes << key
+            _memo_wise[key] = super#{call_str}
+          end
+        end
+      RUBY
+    end
+
+    def define_multi_param_method(method_name, args_str, call_str, fetch_key, fetch_key_init)
+      fetch_key_init_line = "key = #{fetch_key_init}" if fetch_key_init
+      target.memo_wise_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+        def #{method_name}#{args_str}
+          hash = (_memo_wise[:#{method_name}] ||= {})
+          #{fetch_key_init_line}
+          output = hash[#{fetch_key}]
+          if output || hash.key?(#{fetch_key})
+            output
+          else
+            hash[#{fetch_key}] = super#{call_str}
+          end
+        end
+      RUBY
+    end
 
     # @return [Class] where we look for method definitions
     def target_class
