@@ -8,18 +8,14 @@ RSpec.describe "adding methods" do # rubocop:disable RSpec/DescribeClass
 
     let(:expected_public_instance_methods) do
       %i[
-        preset_memo_wise
-        reset_memo_wise
       ].to_set
     end
 
     let(:expected_public_class_methods) do
       %i[
-        allocate
-        instance_method
         memo_wise
-        preset_memo_wise
-        reset_memo_wise
+        memo_wise_module
+        instance_method
       ].to_set
     end
 

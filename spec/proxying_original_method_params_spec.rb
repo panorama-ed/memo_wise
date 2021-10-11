@@ -31,8 +31,8 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
         is_expected.to eq(expected_parameters)
       end
 
-      it "proxies UnboundMethod#parameters via singleton method" do
-        expect(unbound_method.singleton_methods).to eq [:parameters]
+      it "does not proxy UnboundMethod#parameters via singleton method" do
+        expect(unbound_method.singleton_methods).to eq []
       end
     end
 

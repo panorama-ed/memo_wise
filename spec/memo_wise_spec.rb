@@ -238,9 +238,9 @@ RSpec.describe MemoWise do
 
         it_behaves_like "#memo_wise shared examples"
 
-        it "creates a class-level instance variable" do
+        it "creates no class-level instance variables" do
           # NOTE: test implementation detail to ensure the inverse test is valid
-          expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+          expect(class_with_memo.instance_variables).to be_empty
         end
 
         context "with instance methods with the same name as class methods" do
@@ -294,9 +294,9 @@ RSpec.describe MemoWise do
 
         it_behaves_like "#memo_wise shared examples"
 
-        it "creates a module-level instance variable" do
+        it "creates no module-level instance variables" do
           # NOTE: test implementation detail to ensure the inverse test is valid
-          expect(module_with_memo.instance_variables).to include(:@singleton_class_memo_wise_module)
+          expect(module_with_memo.instance_variables).to be_empty
         end
 
         context "when an invalid hash key is passed to .memo_wise" do
@@ -323,9 +323,9 @@ RSpec.describe MemoWise do
 
         it_behaves_like "#memo_wise shared examples"
 
-        it "creates a module-level instance variable" do
+        it "creates no module-level instance variables" do
           # NOTE: this test ensure the inverse test above continues to be valid
-          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+          expect(module_with_memo.instance_variables).to be_empty
         end
       end
     end
