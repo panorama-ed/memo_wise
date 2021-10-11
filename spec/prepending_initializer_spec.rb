@@ -5,7 +5,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
     context "when it only takes positional arguments" do
       let(:class_with_memo) do
         Class.new do
-          prepend MemoWise
+          extend MemoWise
 
           def initialize(arg); end
         end
@@ -19,7 +19,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
     context "when it only takes keyword arguments" do
       let(:class_with_memo) do
         Class.new do
-          prepend MemoWise
+          extend MemoWise
 
           def initialize(kwarg:); end
         end
@@ -33,7 +33,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
     context "when it takes both positional and keyword arguments" do
       let(:class_with_memo) do
         Class.new do
-          prepend MemoWise
+          extend MemoWise
 
           def initialize(arg, kwarg:); end
         end
@@ -47,7 +47,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
     context "when the method takes positional arguments, keyword arguments, and a block" do
       let(:class_with_memo) do
         Class.new do
-          prepend MemoWise
+          extend MemoWise
 
           def initialize(arg, kwarg:, &blk)
             blk.call(arg, kwarg) # rubocop:disable Performance/RedundantBlockCall

@@ -4,7 +4,7 @@ RSpec.describe "serializing MemoWise" do # rubocop:disable RSpec/DescribeClass
   context "when serializing using Marshal" do
     let(:class_with_memo) do
       Class.new do
-        prepend MemoWise
+        extend MemoWise
 
         attr_reader :name, :name_upper_counter
 

@@ -6,7 +6,7 @@ RSpec.shared_context "with context for module methods via scope 'class << self'"
   before(:all) do
     @_module_with_memo = Module.new do
       class << self
-        prepend MemoWise
+        extend MemoWise
 
         DefineMethodsForTestingMemoWise.define_methods_for_testing_memo_wise(
           target: self,

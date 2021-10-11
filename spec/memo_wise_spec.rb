@@ -210,7 +210,7 @@ RSpec.describe MemoWise do
 
         let(:value_class) do
           Value.new(:increment_proc) do
-            prepend MemoWise # rubocop:disable RSpec/DescribedClass
+            extend MemoWise # rubocop:disable RSpec/DescribedClass
 
             def no_args
               increment_proc.call
@@ -257,7 +257,7 @@ RSpec.describe MemoWise do
         context "when an invalid hash key is passed to .memo_wise" do
           let(:class_with_memo) do
             Class.new do
-              prepend MemoWise
+              extend MemoWise
 
               def self.class_method; end
             end
@@ -296,13 +296,13 @@ RSpec.describe MemoWise do
 
         it "creates a module-level instance variable" do
           # NOTE: test implementation detail to ensure the inverse test is valid
-          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+          expect(module_with_memo.instance_variables).to include(:@singleton_class_memo_wise_module)
         end
 
         context "when an invalid hash key is passed to .memo_wise" do
           let(:module_with_memo) do
             Module.new do
-              prepend MemoWise
+              extend MemoWise
 
               def self.module_method; end
             end
@@ -355,7 +355,7 @@ RSpec.describe MemoWise do
           context "when 1 module extended by 2 classes" do
             let(:module_with_memo) do
               Module.new do
-                prepend MemoWise
+                extend MemoWise
 
                 def test_method
                   Random.rand
@@ -414,7 +414,7 @@ RSpec.describe MemoWise do
           context "when defined with 'def self.' and 'def'" do
             let(:module_with_memo) do
               Module.new do
-                prepend MemoWise
+                extend MemoWise
 
                 def self.test_method
                   Random.rand

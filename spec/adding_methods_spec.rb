@@ -3,8 +3,8 @@
 RSpec.describe "adding methods" do # rubocop:disable RSpec/DescribeClass
   let(:klass) { Class.new }
 
-  context "when class prepends MemoWise" do
-    subject { klass.send(:prepend, MemoWise) }
+  context "when class extends MemoWise" do
+    subject { klass.send(:extend, MemoWise) }
 
     let(:expected_public_instance_methods) do
       %i[

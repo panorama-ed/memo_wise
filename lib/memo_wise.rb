@@ -17,7 +17,7 @@ require "memo_wise/version"
 #
 # To start using MemoWise in a class or module:
 #
-#   1. Add `prepend MemoWise` to the top of the class or module
+#   1. Add `extend MemoWise` to the top of the class or module
 #   2. Call {.memo_wise} to implement memoization for a given method
 #
 # **See Also:**

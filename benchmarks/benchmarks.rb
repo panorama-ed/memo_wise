@@ -51,7 +51,7 @@ end
 # NOTE: Some gems do not yet work in Ruby 3 so we only test with them if they've
 # been `require`d.
 BENCHMARK_GEMS = [
-  BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise),
+  BenchmarkGem.new(MemoWise, "extend MemoWise", :memo_wise),
   (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize) if defined?(DDMemoize)),
   (BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize) if defined?(Dry::Core)),
   (BenchmarkGem.new(Memery, "include Memery", :memoize) if defined?(Memery)),
