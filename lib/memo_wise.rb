@@ -216,6 +216,18 @@ module MemoWise
             end
           END_OF_METHOD
         when MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+          # NOTE: When benchmarking this implementation against something like:
+          #
+          #   @_memo_wise_multi_argument.fetch(key) do
+          #     ...
+          #   end
+          #
+          # this implementation may sometimes perform worse than the above. This
+          # is because this case uses a more complex hash key (see
+          # `MemoWise::InternalAPI.key_str`), and hashing that key has less
+          # consistent performance. In general, this should still be faster for
+          # truthy results because `Hash#[]` generally performs hash lookups
+          # faster than `Hash#fetch`.
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
               key = #{MemoWise::InternalAPI.key_str(method)}

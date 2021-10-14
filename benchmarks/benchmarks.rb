@@ -86,42 +86,42 @@ BENCHMARK_GEMS.each do |benchmark_gem|
       #{benchmark_gem.memoization_method} :no_args_falsey
 
       def one_positional_arg(a)
-        100 if a.even?
+        100 if a.positive?
       end
       #{benchmark_gem.memoization_method} :one_positional_arg
 
       def positional_args(a, b)
-        100 if a.even?
+        100 if a.positive?
       end
       #{benchmark_gem.memoization_method} :positional_args
 
       def one_keyword_arg(a:)
-        100 if a.even?
+        100 if a.positive?
       end
       #{benchmark_gem.memoization_method} :one_keyword_arg
 
       def keyword_args(a:, b:)
-        100 if a.even?
+        100 if a.positive?
       end
       #{benchmark_gem.memoization_method} :keyword_args
 
       def positional_and_keyword_args(a, b:)
-        100 if a.even?
+        100 if a.positive?
       end
       #{benchmark_gem.memoization_method} :positional_and_keyword_args
 
       def positional_and_splat_args(a, *args)
-        100 if a.even?
+        100 if a.positive?
       end
       #{benchmark_gem.memoization_method} :positional_and_splat_args
 
       def keyword_and_double_splat_args(a:, **kwargs)
-        100 if a.even?
+        100 if a.positive?
       end
       #{benchmark_gem.memoization_method} :keyword_and_double_splat_args
 
       def positional_splat_keyword_and_double_splat_args(a, *args, b:, **kwargs)
-        100 if a.even?
+        100 if a.positive?
       end
       #{benchmark_gem.memoization_method} :positional_splat_keyword_and_double_splat_args
     end
@@ -131,18 +131,47 @@ end
 
 # We pre-create argument lists for our memoized methods with arguments, so that
 # our benchmarks are running the exact same inputs for each case.
-N_UNIQUE_ARGUMENTS = 100
+#
+# NOTE: The proportion of falsey results is 1/N_UNIQUE_ARGUMENTS (because for
+# the methods with arguments we are truthy for all but the first unique argument
+# set, and for zero-arity methods we manually execute `no_args` N_TRUTHY_RESULTS
+# times per each execution of `no_args_falsey`). This number was selected as the
+# lowest number such that this logic:
+#
+#   output = hash[key]
+#   if output || hash.key?(key)
+#     output
+#   else
+#     hash[key] = _original_method(...)
+#   end
+#
+# is consistently faster for cached lookups than:
+#
+#   hash.fetch(key) do
+#     hash[key] = _original_method(...)
+#   end
+#
+# as a result of `Hash#[]` having less overhead than `Hash#fetch`.
+#
+# We believe this is a reasonable choice because we believe most memoized method
+# results will be truthy, and so that is the case we should most optimize for.
+# However, we do not want to completely remove falsey method results from these
+# benchmarks because we do want to catch performance regressions for that case,
+# since it has its own "hot path."
+N_UNIQUE_ARGUMENTS = 30
 ARGUMENTS = Array.new(N_UNIQUE_ARGUMENTS) { |i| [i, i + 1] }
+N_TRUTHY_RESULTS = N_UNIQUE_ARGUMENTS - 1
 
 # Each method within these benchmarks is initially run once to memoize the
 # result value, so our benchmark only tests memoized retrieval time.
 benchmark_lambdas = [
   lambda do |x, instance, benchmark_gem|
+    instance.no_args_falsey
     instance.no_args
 
     x.report("#{benchmark_gem.benchmark_name}: ()") do
-      instance.no_args
       instance.no_args_falsey
+      N_TRUTHY_RESULTS.times { instance.no_args }
     end
   end,
   lambda do |x, instance, benchmark_gem|
