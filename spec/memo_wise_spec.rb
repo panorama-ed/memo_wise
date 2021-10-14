@@ -307,23 +307,28 @@ RSpec.describe MemoWise do
         end
       end
 
-      context "when defined with scope 'class << self'" do
-        include_context "with context for class methods via scope 'class << self'"
+      # These test cases would fail due to a JRuby bug
+      # Skipping to make build pass until the bug is fixed
+      # https://github.com/jruby/jruby/issues/6896
+      unless RUBY_PLATFORM == "java"
+        context "when defined with scope 'class << self'" do
+          include_context "with context for class methods via scope 'class << self'"
 
-        # Use the class as the target of "#memo_wise shared examples"
-        let(:target) { class_with_memo }
+          # Use the class as the target of "#memo_wise shared examples"
+          let(:target) { class_with_memo }
 
-        it_behaves_like "#memo_wise shared examples"
+          it_behaves_like "#memo_wise shared examples"
 
-        it "creates a class-level instance variable" do
-          # NOTE: this test ensure the inverse test above continues to be valid
-          expect(class_with_memo.instance_variables).to include(:@_memo_wise)
-        end
+          it "creates a class-level instance variable" do
+            # NOTE: this test ensure the inverse test above continues to be valid
+            expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+          end
 
-        it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
-          let(:memoized) { class_with_memo }
-          let(:non_memoized) { class_with_memo.new }
-          let(:non_memoized_name) { :instance }
+          it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+            let(:memoized) { class_with_memo }
+            let(:non_memoized) { class_with_memo.new }
+            let(:non_memoized_name) { :instance }
+          end
         end
       end
     end
@@ -358,169 +363,169 @@ RSpec.describe MemoWise do
         end
       end
 
-      context "when defined with scope 'module << self'" do
-        include_context "with context for module methods via scope 'class << self'"
+      # These test cases would fail due to a JRuby bug
+      # Skipping to make build pass until the bug is fixed
+      # https://github.com/jruby/jruby/issues/6896
+      unless RUBY_PLATFORM == "java"
+        context "when defined with scope 'module << self'" do
+          include_context "with context for module methods via scope 'class << self'"
 
-        # Use the module as the target of "#memo_wise shared examples"
-        let(:target) { module_with_memo }
+          # Use the module as the target of "#memo_wise shared examples"
+          let(:target) { module_with_memo }
 
-        it_behaves_like "#memo_wise shared examples"
+          it_behaves_like "#memo_wise shared examples"
 
-        it "creates a module-level instance variable" do
-          # NOTE: this test ensure the inverse test above continues to be valid
-          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+          it "creates a module-level instance variable" do
+            # NOTE: this test ensure the inverse test above continues to be valid
+            expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+          end
         end
       end
     end
 
-    # These test cases would fail due to a JRuby bug
-    # Skipping to make build pass until the bug is fixed
-    # https://github.com/jruby/jruby/issues/6758
-    unless RUBY_PLATFORM == "java"
-      context "with module mixed into other classes" do
-        context "when extended" do
-          context "when defined with 'def'" do
-            include_context "with context for module methods via normal scope"
+    context "with module mixed into other classes" do
+      context "when extended" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
 
-            before(:each) { stub_const("ModuleWithMemo", module_with_memo) }
+          before(:each) { stub_const("ModuleWithMemo", module_with_memo) }
 
-            let(:class_extending_module_with_memo) do
-              Class.new do
-                extend ModuleWithMemo
-              end
+          let(:class_extending_module_with_memo) do
+            Class.new do
+              extend ModuleWithMemo
             end
-
-            let(:target) { class_extending_module_with_memo }
-
-            it_behaves_like "#memo_wise shared examples"
           end
 
-          context "when 1 module extended by 2 classes" do
-            let(:module_with_memo) do
-              Module.new do
-                prepend MemoWise
+          let(:target) { class_extending_module_with_memo }
 
-                def test_method
-                  Random.rand
-                end
-                memo_wise :test_method
-              end
-            end
-            let(:class_a_extending_module_with_memo) do
-              Class.new do
-                extend ModuleWithMemo
-              end
-            end
-            let(:class_b_extending_module_with_memo) do
-              Class.new do
-                extend ModuleWithMemo
-              end
-            end
+          it_behaves_like "#memo_wise shared examples"
+        end
 
-            before(:each) do
-              stub_const("ModuleWithMemo", module_with_memo)
-            end
+        context "when 1 module extended by 2 classes" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
 
-            it "memoizes each extended class separately" do
-              aggregate_failures do
-                expect(class_a_extending_module_with_memo.test_method).
-                  to eq(class_a_extending_module_with_memo.test_method)
-                expect(class_b_extending_module_with_memo.test_method).
-                  to eq(class_b_extending_module_with_memo.test_method)
-                expect(class_a_extending_module_with_memo.test_method).
-                  to_not eq(class_b_extending_module_with_memo.test_method)
+              def test_method
+                Random.rand
               end
+              memo_wise :test_method
+            end
+          end
+          let(:class_a_extending_module_with_memo) do
+            Class.new do
+              extend ModuleWithMemo
+            end
+          end
+          let(:class_b_extending_module_with_memo) do
+            Class.new do
+              extend ModuleWithMemo
+            end
+          end
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          it "memoizes each extended class separately" do
+            aggregate_failures do
+              expect(class_a_extending_module_with_memo.test_method).
+                to eq(class_a_extending_module_with_memo.test_method)
+              expect(class_b_extending_module_with_memo.test_method).
+                to eq(class_b_extending_module_with_memo.test_method)
+              expect(class_a_extending_module_with_memo.test_method).
+                to_not eq(class_b_extending_module_with_memo.test_method)
             end
           end
         end
+      end
 
-        context "when included" do
-          context "when defined with 'def'" do
-            include_context "with context for module methods via normal scope"
+      context "when included" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
 
-            before(:each) do
-              stub_const("ModuleWithMemo", module_with_memo)
-            end
-
-            let(:class_including_module_with_memo) do
-              Class.new do
-                include ModuleWithMemo
-              end
-            end
-            let(:instance) { class_including_module_with_memo.new }
-
-            let(:target) { instance }
-
-            it_behaves_like "#memo_wise shared examples"
-
-            it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
-              let(:memoized) { instance }
-              let(:non_memoized) { module_with_memo }
-              let(:non_memoized_name) { :module }
-            end
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
           end
 
-          context "when defined with 'def self.' and 'def'" do
-            let(:module_with_memo) do
-              Module.new do
-                prepend MemoWise
-
-                def self.test_method
-                  Random.rand
-                end
-                memo_wise self: :test_method
-
-                def test_method
-                  Random.rand
-                end
-                memo_wise :test_method
-              end
+          let(:class_including_module_with_memo) do
+            Class.new do
+              include ModuleWithMemo
             end
-            let(:class_including_module_with_memo) do
-              Class.new do
-                include ModuleWithMemo
-              end
-            end
-            let(:instance) { class_including_module_with_memo.new }
+          end
+          let(:instance) { class_including_module_with_memo.new }
 
-            before(:each) do
-              stub_const("ModuleWithMemo", module_with_memo)
-            end
+          let(:target) { instance }
 
-            it "memoizes instance and singleton methods separately" do
-              aggregate_failures do
-                expect(instance.test_method).to eq(instance.test_method)
-                expect(module_with_memo.test_method).to eq(module_with_memo.test_method)
-                expect(instance.test_method).to_not eq(module_with_memo.test_method)
-              end
-            end
+          it_behaves_like "#memo_wise shared examples"
+
+          it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+            let(:memoized) { instance }
+            let(:non_memoized) { module_with_memo }
+            let(:non_memoized_name) { :module }
           end
         end
 
-        context "when prepended" do
-          context "when defined with 'def'" do
-            include_context "with context for module methods via normal scope"
+        context "when defined with 'def self.' and 'def'" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
 
-            before(:each) do
-              stub_const("ModuleWithMemo", module_with_memo)
-            end
-
-            let(:class_prepending_module_with_memo) do
-              Class.new do
-                prepend ModuleWithMemo
+              def self.test_method
+                Random.rand
               end
+              memo_wise self: :test_method
+
+              def test_method
+                Random.rand
+              end
+              memo_wise :test_method
             end
-            let(:instance) { class_prepending_module_with_memo.new }
-
-            let(:target) { instance }
-
-            it_behaves_like "#memo_wise shared examples"
-
-            it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
-              let(:memoized) { instance }
-              let(:non_memoized) { module_with_memo }
-              let(:non_memoized_name) { :module }
+          end
+          let(:class_including_module_with_memo) do
+            Class.new do
+              include ModuleWithMemo
             end
+          end
+          let(:instance) { class_including_module_with_memo.new }
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          it "memoizes instance and singleton methods separately" do
+            aggregate_failures do
+              expect(instance.test_method).to eq(instance.test_method)
+              expect(module_with_memo.test_method).to eq(module_with_memo.test_method)
+              expect(instance.test_method).to_not eq(module_with_memo.test_method)
+            end
+          end
+        end
+      end
+
+      context "when prepended" do
+        context "when defined with 'def'" do
+          include_context "with context for module methods via normal scope"
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          let(:class_prepending_module_with_memo) do
+            Class.new do
+              prepend ModuleWithMemo
+            end
+          end
+          let(:instance) { class_prepending_module_with_memo.new }
+
+          let(:target) { instance }
+
+          it_behaves_like "#memo_wise shared examples"
+
+          it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+            let(:memoized) { instance }
+            let(:non_memoized) { module_with_memo }
+            let(:non_memoized_name) { :module }
           end
         end
       end
