@@ -17,7 +17,7 @@ module MemoWise
       # `@_memo_wise_multi_argument` looks like:
       #   {
       #     no_args_method_name: :memoized_result,
-      #     [:multi_arg_method_name, arg1, arg2].hash => :memoized_result
+      #     [:multi_arg_method_name, arg1, arg2] => :memoized_result
       #   }
       #
       # `@_memo_wise` looks like:
@@ -68,8 +68,8 @@ module MemoWise
       # resetting memoization for an entire method. It looks like:
       #   {
       #     multi_arg_method_name: Set[
-      #       [:multi_arg_method_name, arg1, arg2].hash,
-      #       [:multi_arg_method_name, arg1, arg3].hash,
+      #       [:multi_arg_method_name, arg1, arg2],
+      #       [:multi_arg_method_name, arg1, arg3],
       #       ...
       #     ],
       #     ...
@@ -155,10 +155,10 @@ module MemoWise
     #   memoized value, based on the method's arguments
     def self.key_str(method)
       case method_arguments(method)
-      when SPLAT then "args.hash"
-      when DOUBLE_SPLAT then "kwargs.hash"
-      when SPLAT_AND_DOUBLE_SPLAT then "[:#{method.name}, args, kwargs].hash"
-      when MULTIPLE_REQUIRED then "[:#{method.name}, #{method.parameters.map(&:last).join(', ')}].hash"
+      when SPLAT then "args"
+      when DOUBLE_SPLAT then "kwargs"
+      when SPLAT_AND_DOUBLE_SPLAT then "[:#{method.name}, args, kwargs]"
+      when MULTIPLE_REQUIRED then "[:#{method.name}, #{method.parameters.map(&:last).join(', ')}]"
       else
         raise ArgumentError, "Unexpected arguments for #{method.name}"
       end

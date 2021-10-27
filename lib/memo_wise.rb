@@ -480,20 +480,20 @@ module MemoWise
       hash[kwargs.first.last] = yield
     when MemoWise::InternalAPI::SPLAT
       hash = (@_memo_wise_multi_argument[method_name] ||= {})
-      hash[args.hash] = yield
+      hash[args] = yield
     when MemoWise::InternalAPI::DOUBLE_SPLAT
       hash = (@_memo_wise_multi_argument[method_name] ||= {})
-      hash[kwargs.hash] = yield
+      hash[kwargs] = yield
     when MemoWise::InternalAPI::MULTIPLE_REQUIRED
       key_args = method.parameters.map.with_index do |(type, name), idx|
         type == :req ? args[idx] : kwargs[name]
       end
-      key = [method_name, *key_args].hash
+      key = [method_name, *key_args]
       hashes = (@_memo_wise_hashes[method_name] ||= Set.new)
       hashes << key
       @_memo_wise_multi_argument[key] = yield
     else # MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-      key = [method_name, args, kwargs].hash
+      key = [method_name, args, kwargs]
       hashes = (@_memo_wise_hashes[method_name] ||= Set.new)
       hashes << key
       @_memo_wise_multi_argument[key] = yield
@@ -612,13 +612,13 @@ module MemoWise
       if args.empty?
         @_memo_wise_multi_argument.delete(method_name)
       else
-        @_memo_wise_multi_argument[method_name]&.delete(args.hash)
+        @_memo_wise_multi_argument[method_name]&.delete(args)
       end
     when MemoWise::InternalAPI::DOUBLE_SPLAT
       if kwargs.empty?
         @_memo_wise_multi_argument.delete(method_name)
       else
-        @_memo_wise_multi_argument[method_name]&.delete(kwargs.hash)
+        @_memo_wise_multi_argument[method_name]&.delete(kwargs)
       end
     else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
       if args.empty? && kwargs.empty?
@@ -629,12 +629,12 @@ module MemoWise
         @_memo_wise_hashes.delete(method_name)
       else
         if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-          key = [method_name, args, kwargs].hash
+          key = [method_name, args, kwargs]
         else
           key_args = method.parameters.map.with_index do |(type, name), i|
             type == :req ? args[i] : kwargs[name] # rubocop:disable Metrics/BlockNesting
           end
-          key = [method_name, *key_args].hash
+          key = [method_name, *key_args]
         end
         @_memo_wise_hashes[method_name]&.delete(key)
         @_memo_wise_multi_argument.delete(key)
