@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve performance of single-argument methods by using an outer Array instead
   of a Hash
 ### Fixed
-- (Nothing, yet)
+- Removed use of #hash due to potential of hash collisions
 ### Breaking Changes
 - None
 
