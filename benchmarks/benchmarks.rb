@@ -161,6 +161,7 @@ end
 N_UNIQUE_ARGUMENTS = 30
 ARGUMENTS = Array.new(N_UNIQUE_ARGUMENTS) { |i| [i, i + 1] }
 N_TRUTHY_RESULTS = N_UNIQUE_ARGUMENTS - 1
+N_RESULT_DECIMAL_DIGITS = 2
 
 # Each method within these benchmarks is initially run once to memoize the
 # result value, so our benchmark only tests memoized retrieval time.
@@ -288,7 +289,13 @@ end.each_with_index do |benchmark_json, i|
   end
 
   output_str = benchmark_json.map do |bgem|
-    "%.2fx" % (memo_wise["central_tendency"] / bgem["central_tendency"])
+    # "%.2f" % 12.345 => "12.34" (instead of "12.35")
+    #   See: https://bugs.ruby-lang.org/issues/12548
+    # 1.00.round(2).to_s => "1.0" (instead of "1.00")
+    #
+    # So to round and format correctly, we first use Float#round and then %
+    "%.#{N_RESULT_DECIMAL_DIGITS}fx" %
+      (memo_wise["central_tendency"] / bgem["central_tendency"]).round(N_RESULT_DECIMAL_DIGITS)
   end.join("|")
 
   name = memo_wise["name"].partition(": ").last
