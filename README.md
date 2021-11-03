@@ -56,6 +56,15 @@ class Example
     x
   end
   memo_wise :slow_value
+  
+  private
+  
+  # maintains privacy of the memoized method
+  def private_slow_method(x)
+    sleep x
+    x
+  end
+  memo_wise :private_slow_method
 end
 
 ex = Example.new
