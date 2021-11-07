@@ -10,34 +10,25 @@ module MemoWise
     #
     # @return [Object] the passed-in obj
     def self.create_memo_wise_state!(obj)
-      # `@_memo_wise` and `@_memo_wise_multi_argument` store memoized results
-      # of method calls. For performance reasons, the structure differs for
-      # different types of methods.
-      #
-      # `@_memo_wise_multi_argument` looks like:
-      #   {
-      #     no_args_method_name: :memoized_result,
-      #     [:multi_arg_method_name, arg1, arg2] => :memoized_result
-      #   }
-      #
-      # `@_memo_wise` looks like:
+      # `@_memo_wise` stores memoized results of method calls. The structure is
+      # slightly different for different types of methods. It looks like:
       #   [
       #     :memoized_result, # For method 0 (which takes no arguments)
       #     { arg1 => :memoized_result, ... }, # For method 1 (which takes an argument)
-      #     { arg1 => :memoized_result, ... }, # For method 2 (which takes an argument)
+      #     { [arg1, arg2] => :memoized_result, ... } # For method 2 (which takes multiple arguments)
       #   ]
       # This is a faster alternative to:
       #   {
       #     zero_arg_method_name: :memoized_result,
-      #     single_arg_method_name: { arg1 => :memoized_result, ... }
+      #     single_arg_method_name: { arg1 => :memoized_result, ... },
+      #
+      #     # Surprisingly, this is faster than a single top-level hash key of: [:multi_arg_method_name, arg1, arg2]
+      #     multi_arg_method_name: { [arg1, arg2] => :memoized_result, ... }
       #   }
       # because we can give each method its own array index at load time and
       # perform that array lookup more quickly than a hash lookup by method
       # name.
       obj.instance_variable_set(:@_memo_wise, []) unless obj.instance_variable_defined?(:@_memo_wise)
-      unless obj.instance_variable_defined?(:@_memo_wise_multi_argument)
-        obj.instance_variable_set(:@_memo_wise_multi_argument, {})
-      end
 
       # For zero-arity methods, memoized values are stored in the `@_memo_wise`
       # array. Arrays do not differentiate between "unset" and "set to nil" and
@@ -62,19 +53,6 @@ module MemoWise
       unless obj.instance_variable_defined?(:@_memo_wise_sentinels)
         obj.instance_variable_set(:@_memo_wise_sentinels, [])
       end
-
-      # `@_memo_wise_hashes` stores the `Array#hash` values for each key in
-      # `@_memo_wise_multi_argument`. We only use this data structure when
-      # resetting memoization for an entire method. It looks like:
-      #   {
-      #     multi_arg_method_name: Set[
-      #       [:multi_arg_method_name, arg1, arg2],
-      #       [:multi_arg_method_name, arg1, arg3],
-      #       ...
-      #     ],
-      #     ...
-      #   }
-      obj.instance_variable_set(:@_memo_wise_hashes, {}) unless obj.instance_variable_defined?(:@_memo_wise_hashes)
 
       obj
     end
@@ -140,6 +118,8 @@ module MemoWise
     #   memoized value
     def self.call_str(method)
       case method_arguments(method)
+      when SPLAT then "*args"
+      when DOUBLE_SPLAT then "**kwargs"
       when SPLAT_AND_DOUBLE_SPLAT then "*args, **kwargs"
       when ONE_REQUIRED_POSITIONAL, ONE_REQUIRED_KEYWORD, MULTIPLE_REQUIRED
         method.parameters.map do |type, name|
@@ -157,8 +137,8 @@ module MemoWise
       case method_arguments(method)
       when SPLAT then "args"
       when DOUBLE_SPLAT then "kwargs"
-      when SPLAT_AND_DOUBLE_SPLAT then "[:#{method.name}, args, kwargs]"
-      when MULTIPLE_REQUIRED then "[:#{method.name}, #{method.parameters.map(&:last).join(', ')}]"
+      when SPLAT_AND_DOUBLE_SPLAT then "[args, kwargs]"
+      when MULTIPLE_REQUIRED then "[#{method.parameters.map(&:last).join(', ')}]"
       else
         raise ArgumentError, "Unexpected arguments for #{method.name}"
       end
@@ -214,8 +194,8 @@ module MemoWise
     attr_reader :target
 
     # @param method_name [Symbol] the name of the memoized method
-    # @return [Integer] the array index in `@_memo_wise_single_argument` to use
-    #   to find the memoization data for the given method
+    # @return [Integer] the array index in `@_memo_wise_indices` to use to find
+    #   the memoization data for the given method
     def index(method_name)
       target_class.instance_variable_get(:@_memo_wise_indices)[method_name]
     end
