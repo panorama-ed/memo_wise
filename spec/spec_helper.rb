@@ -46,6 +46,7 @@ require "bundler/setup"
 require "memo_wise"
 
 # Support code for tests
+require "support/check_repeatedly"
 require "support/define_methods_for_testing_memo_wise"
 require "support/shared_context_for_instance_methods"
 require "support/shared_context_for_class_methods_via_self_dot"
