@@ -56,9 +56,9 @@ class Example
     x
   end
   memo_wise :slow_value
-  
+
   private
-  
+
   # maintains privacy of the memoized method
   def private_slow_method(x)
     sleep x
@@ -206,7 +206,13 @@ after(:each) { helper.reset_memo_wise }
 
 ## Further Reading
 
-We've written more about MemoWise in a series of blog posts:
+We presented at RubyConf 2021:
+
+- Achieving Fast Method Metaprogramming: Lessons from `MemoWise`
+  ([slides](https://docs.google.com/presentation/d/1XgERQ0YHplwJKM3wNQwZn584d_9szYZp2WsDEXoY_7Y/edit?usp=sharing) /
+  [benchmarks](https://gist.github.com/JacobEvelyn/17b7b000e50151c30eaea928f1fcdc11))
+
+And we've written more about `MemoWise` in a series of blog posts:
 
 - [Introducing: MemoWise](https://medium.com/building-panorama-education/introducing-memowise-51a5f0523489)
 - [Optimizing MemoWise Performance](https://ja.cob.land/optimizing-memowise-performance)
