@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe MemoWise do
+RSpec.describe "hash collisions" do # rubocop:disable RSpec/DescribeClass
   context "when #hash of arguments collisions" do
     let(:instance) { class_with_memo.new }
 
@@ -8,7 +8,7 @@ RSpec.describe MemoWise do
       Class.new do
         prepend MemoWise
 
-        def return_given_args(a, b)
+        def return_given_args(a, b) # rubocop:disable Naming/MethodParameterName
           [a, b]
         end
         memo_wise :return_given_args
@@ -17,17 +17,15 @@ RSpec.describe MemoWise do
 
     context "when override #hash to force collision but not equal" do
       let(:klass) do
-        Struct.new(:str, :hash)
+        Struct.new(:str, :hash) # rubocop:disable Lint/StructNewOverride
       end
 
-      let(:args_1) { [klass.new("one", 42), klass.new("one", 42)] }
-      let(:args_2) { [klass.new("two", 42), klass.new("two", 42)] }
+      let(:args1) { [klass.new("one", 42), klass.new("one", 42)] }
+      let(:args2) { [klass.new("two", 42), klass.new("two", 42)] }
 
       it "returns separately memoized results for each call" do
-        pending "fixing hash collision issue"
-
-        expect(instance.return_given_args(*args_1)).to eq(args_1)
-        expect(instance.return_given_args(*args_2)).to eq(args_2)
+        expect(instance.return_given_args(*args1)).to eq(args1)
+        expect(instance.return_given_args(*args2)).to eq(args2)
       end
     end
   end
