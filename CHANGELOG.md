@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Removed use of #hash due to potential of hash collisions
+- Updated internal local variable names to avoid name collisions with method
+  arguments
 
 ### Breaking Changes
 - None
