@@ -8,26 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Updated
-- Improve performance of zero-argument methods by using an outer Array instead
-  of a Hash
-- Improve performance of single-argument methods by using an outer Array instead
-  of a Hash
+- Improved performance of all methods by using an outer Array instead of a Hash
+- Improved performance for multi-argument methods and simplify internal data
+  structures
+
 ### Fixed
-- (Nothing, yet)
+- Removed use of #hash due to potential of hash collisions
+
 ### Breaking Changes
 - None
 
 ## [1.1.0] - 2021-07-29
 ### Updated
-- Improve performance across the board by:
+- Improved performance across the board by:
   - removing `Hash#fetch`
   - using `Array#hash`
   - avoiding multi-layer hash lookups for multi-argument methods
   - optimizing for truthy results
 - Add `dry-core` to benchmarks in README
+
 ### Fixed
-- Fix usage on module singleton classes
-- Fix usage on module which would be extended by other classes
+- Fixed usage on module singleton classes
+- Fixed usage on module which would be extended by other classes
+
 ### Breaking Changes
 - None
 
@@ -35,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for `.preset_memo_wise` on class methods
 - Support for `.reset_memo_wise` on class methods
+
 ### Updated
 - Improved performance for common cases by reducing array allocations
 
