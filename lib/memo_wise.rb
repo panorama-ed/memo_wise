@@ -187,12 +187,11 @@ module MemoWise
           # hash key is just the method name.
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}
-              _memo_wise_output = @_memo_wise[#{index}]
-              if _memo_wise_output || @_memo_wise_sentinels[#{index}]
-                _memo_wise_output
+              if @_memo_wise_sentinels[#{index}]
+                @_memo_wise[#{index}]
               else
-                @_memo_wise_sentinels[#{index}] = true
                 @_memo_wise[#{index}] = #{original_memo_wised_name}
+                @_memo_wise_sentinels[#{index}] = true
               end
             end
           END_OF_METHOD
