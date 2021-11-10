@@ -187,9 +187,9 @@ module MemoWise
           # hash key is just the method name.
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}
-              output = @_memo_wise[#{index}]
-              if output || @_memo_wise_sentinels[#{index}]
-                output
+              _memo_wise_output = @_memo_wise[#{index}]
+              if _memo_wise_output || @_memo_wise_sentinels[#{index}]
+                _memo_wise_output
               else
                 @_memo_wise_sentinels[#{index}] = true
                 @_memo_wise[#{index}] = #{original_memo_wised_name}
@@ -201,12 +201,12 @@ module MemoWise
 
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-              hash = (@_memo_wise[#{index}] ||= {})
-              output = hash[#{key}]
-              if output || hash.key?(#{key})
-                output
+              _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
+              _memo_wise_output = _memo_wise_hash[#{key}]
+              if _memo_wise_output || _memo_wise_hash.key?(#{key})
+                _memo_wise_output
               else
-                hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+                _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
             end
           END_OF_METHOD
@@ -227,13 +227,13 @@ module MemoWise
           # faster than `Hash#fetch`.
           klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-              hash = (@_memo_wise[#{index}] ||= {})
-              key = #{MemoWise::InternalAPI.key_str(method)}
-              output = hash[key]
-              if output || hash.key?(key)
-                output
+              _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
+              _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
+              _memo_wise_output = _memo_wise_hash[_memo_wise_key]
+              if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
+                _memo_wise_output
               else
-                hash[key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+                _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
             end
           END_OF_METHOD
