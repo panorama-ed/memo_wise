@@ -192,6 +192,11 @@ module MemoWise
               else
                 ret = @_memo_wise[#{index}] = #{original_memo_wised_name}
                 @_memo_wise_sentinels[#{index}] = true
+                #unless frozen?
+                #  define_singleton_method(:#{method_name}) do
+                #    ret
+                #  end
+                #end
                 ret
               end
             end
