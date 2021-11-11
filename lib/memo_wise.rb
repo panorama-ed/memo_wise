@@ -190,8 +190,9 @@ module MemoWise
               if @_memo_wise_sentinels[#{index}]
                 @_memo_wise[#{index}]
               else
-                @_memo_wise[#{index}] = #{original_memo_wised_name}
+                ret = @_memo_wise[#{index}] = #{original_memo_wised_name}
                 @_memo_wise_sentinels[#{index}] = true
+                ret
               end
             end
           END_OF_METHOD
