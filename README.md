@@ -117,15 +117,15 @@ Results using Ruby 3.0.2:
 
 |Method arguments|`Dry::Core`\* (0.7.1)|`Memery` (1.4.0)|
 |--|--|--|
-|`()` (none)|1.51x|19.82x|
-|`(a)`|2.30x|11.38x|
-|`(a, b)`|0.45x|2.10x|
-|`(a:)`|2.20x|22.83x|
-|`(a:, b:)`|0.49x|4.53x|
-|`(a, b:)`|0.46x|4.35x|
-|`(a, *args)`|0.89x|2.03x|
-|`(a:, **kwargs)`|0.82x|3.18x|
-|`(a, *args, b:, **kwargs)`|0.60x|1.62x|
+|`()` (none)|1.42x|17.84x|
+|`(a)`|2.48x|11.48x|
+|`(a, b)`|0.46x|2.05x|
+|`(a:)`|2.18x|20.50x|
+|`(a:, b:)`|0.48x|4.22x|
+|`(a, b:)`|0.48x|4.08x|
+|`(a, *args)`|0.90x|1.97x|
+|`(a:, **kwargs)`|0.80x|3.02x|
+|`(a, *args, b:, **kwargs)`|0.61x|1.54x|
 
 \* `Dry::Core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
@@ -134,15 +134,15 @@ Results using Ruby 2.7.4 (because these gems raise errors in Ruby 3.x):
 
 |Method arguments|`DDMemoize` (1.0.0)|`Memoist` (0.16.2)|`Memoized` (1.0.2)|`Memoizer` (1.0.3)|
 |--|--|--|--|--|
-|`()` (none)|35.29x|3.46x|1.67x|4.27x|
-|`(a)`|25.04x|16.96x|12.83x|14.68x|
-|`(a, b)`|3.20x|2.28x|1.84x|2.04x|
-|`(a:)`|34.17x|27.77x|24.07x|25.39x|
-|`(a:, b:)`|5.22x|4.29x|3.74x|4.00x|
-|`(a, b:)`|4.81x|3.99x|3.49x|3.66x|
-|`(a, *args)`|3.21x|2.30x|1.97x|2.00x|
-|`(a:, **kwargs)`|2.84x|2.39x|2.12x|2.19x|
-|`(a, *args, b:, **kwargs)`|2.10x|1.80x|1.67x|1.66x|
+|`()` (none)|33.90x|3.44x|1.56x|4.03x|
+|`(a)`|24.56x|17.02x|12.94x|14.91x|
+|`(a, b)`|3.14x|2.35x|1.84x|2.03x|
+|`(a:)`|34.42x|28.14x|23.83x|25.26x|
+|`(a:, b:)`|5.13x|4.28x|3.77x|3.97x|
+|`(a, b:)`|4.83x|4.08x|3.50x|3.66x|
+|`(a, *args)`|3.03x|2.25x|1.95x|1.95x|
+|`(a:, **kwargs)`|2.90x|2.44x|2.14x|2.24x|
+|`(a, *args, b:, **kwargs)`|2.05x|1.77x|1.65x|1.64x|
 
 You can run benchmarks yourself with:
 
