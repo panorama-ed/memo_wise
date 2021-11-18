@@ -6,8 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-- Fix theoretical thread-safety issue for concurrent calls to an uncached
-  zero argument method
+- Fix thread-safety issue in concurrent calls to zero-arg method in unmemoized
+  state which resulted in a `nil` value being accidentally returned in one thread
 
 ## [1.2.0] - 2021-11-10
 
