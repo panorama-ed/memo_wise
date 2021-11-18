@@ -156,6 +156,17 @@ module MemoWise
           klass = klass.singleton_class
         end
 
+        if klass.singleton_class?
+          # This ensures that a memoized method defined on a parent class can
+          # still be used in a child class.
+          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+            def inherited(subclass)
+              super
+              MemoWise::InternalAPI.create_memo_wise_state!(subclass)
+            end
+          END_OF_METHOD
+        end
+
         raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
 
         api = MemoWise::InternalAPI.new(klass)
@@ -167,19 +178,7 @@ module MemoWise
         klass.send(:private, original_memo_wised_name)
 
         method_arguments = MemoWise::InternalAPI.method_arguments(method)
-        # `@_memo_wise_indices` stores the `@_memo_wise` indices of different
-        # method names. We only use this data structure when resetting or
-        # presetting memoization. It looks like:
-        #   {
-        #     single_arg_method_name: 0,
-        #     other_single_arg_method_name: 1
-        #   }
-        memo_wise_indices = klass.instance_variable_get(:@_memo_wise_indices)
-        memo_wise_indices ||= klass.instance_variable_set(:@_memo_wise_indices, {})
-        index = klass.instance_variable_get(:@_memo_wise_index_counter) || 0
-
-        memo_wise_indices[method_name] = index
-        klass.instance_variable_set(:@_memo_wise_index_counter, index + 1)
+        index = MemoWise::InternalAPI.next_index!(klass, method_name)
 
         case method_arguments
         when MemoWise::InternalAPI::NONE

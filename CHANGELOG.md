@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 - Fix thread-safety issue in concurrent calls to zero-arg method in unmemoized
   state which resulted in a `nil` value being accidentally returned in one thread
+- Fix bugs related to child classes inheriting from parent classes that use
+  `MemoWise`
 
 ## [1.2.0] - 2021-11-10
 

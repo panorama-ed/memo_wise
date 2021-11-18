@@ -20,6 +20,7 @@
   * Support for [resetting](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#reset_memo_wise-instance_method) and [presetting](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#preset_memo_wise-instance_method) memoized values
   * Support for memoization on frozen objects
   * Support for memoization of class and module methods
+  * Support for inheritance of memoized class and instance methods
   * Full [documentation](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise) and [test coverage](https://codecov.io/gh/panorama-ed/memo_wise)!
 
 ## Installation
