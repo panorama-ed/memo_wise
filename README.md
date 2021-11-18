@@ -156,6 +156,24 @@ $ bundle exec ruby benchmarks.rb
 If your results differ from what's posted here,
 [let us know](https://github.com/panorama-ed/memo_wise/issues/new)!
 
+## Thread Safety
+
+MemoWise makes the following **thread safety** guarantees on all supported Ruby
+versions:
+
+1. **Before** a value has been memoized
+
+   * Contended calls from multiple threads...
+      * May each call the original method
+      * May return different valid results (when the method is nondeterministic,
+        like `rand`)
+      * Will memoize exactly one valid return value
+
+2. **After** a value has been memoized
+
+   * Contended calls from multiple threads...
+     * Always return the same memoized value
+
 ## Documentation
 
 ### Documentation is Automatically Generated
