@@ -29,7 +29,6 @@ RSpec.describe "thread safety" do # rubocop:disable RSpec/DescribeClass
     # to unmemoized zero-args methods.
     #   * See https://github.com/panorama-ed/memo_wise/pull/224
     it "does not return accidental nil value to either thread" do
-      pending("fix for zero-arg race condition in #224")
       expect(thread_return_values).not_to include(nil)
     end
   end
