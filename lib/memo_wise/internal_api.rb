@@ -161,13 +161,70 @@ module MemoWise
     def self.original_class_from_singleton(klass)
       raise ArgumentError, "Must be a singleton class: #{klass.inspect}" unless klass.singleton_class?
 
+      # Since we call this method a lot, we memoize the results. This can have a
+      # huge impact; for example, in our test suite this drops our test times
+      # from over five minutes to just a few seconds.
+      @original_class_from_singleton ||= {}
+
       # Search ObjectSpace
       #   * 1:1 relationship of singleton class to original class is documented
       #   * Performance concern: searches all Class objects
-      #     But, only runs at load time
-      ObjectSpace.each_object(Module).find do |cls|
+      #     But, only runs at load time and results are memoized
+      @original_class_from_singleton[klass] ||= ObjectSpace.each_object(Module).find do |cls|
         cls.singleton_class == klass
       end
+    end
+
+    # Increment the class's method index counter, and return an index to use for
+    # the given method name.
+    #
+    # @param klass [Class]
+    #   Original class on which a method is being memoized
+    #
+    # @param method_name [Symbol]
+    #   The name of the method being memoized
+    #
+    # @return [Integer]
+    #   The index within `@_memo_wise` to store the method's memoized results
+    def self.next_index!(klass, method_name)
+      # `@_memo_wise_indices` stores the `@_memo_wise` indices of different
+      # method names. We only use this data structure when resetting or
+      # presetting memoization. It looks like:
+      #   {
+      #     single_arg_method_name: 0,
+      #     other_single_arg_method_name: 1
+      #   }
+      memo_wise_indices = klass.instance_variable_get(:@_memo_wise_indices)
+      memo_wise_indices ||= klass.instance_variable_set(:@_memo_wise_indices, {})
+
+      # When a parent and child class both use `class << self` to define
+      # memoized class methods, the child class' singleton is not considered a
+      # descendent of the parent class' singleton. Because we store the index
+      # counter as a class variable that can be shared up the inheritance chain,
+      # we want to detect this case and store it on the original class instead
+      # of the singleton to make the counter shared correctly.
+      counter_class = klass.singleton_class? ? original_class_from_singleton(klass) : klass
+
+      # We use a class variable for tracking the index to make this work with
+      # inheritance structures. When a parent and child class both use
+      # MemoWise, we want the child class's index to not "reset" back to 0 and
+      # overwrite the behavior of a memoized parent method. Using a class
+      # variable will share the index data between parent and child classes.
+      #
+      # However, we don't use a class variable for `@_memo_wise_indices`
+      # because we want to allow instance and class methods with the same name
+      # to both be memoized, and using a class variable would share that index
+      # data between them.
+      index = if counter_class.class_variable_defined?(:@@_memo_wise_index_counter)
+                counter_class.class_variable_get(:@@_memo_wise_index_counter)
+              else
+                0
+              end
+
+      memo_wise_indices[method_name] = index
+      counter_class.class_variable_set(:@@_memo_wise_index_counter, index + 1) # rubocop:disable Style/ClassVars
+
+      index
     end
 
     # Convention we use for renaming the original method when we replace with
