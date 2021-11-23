@@ -63,8 +63,7 @@ BENCHMARK_GEMS = [
 # Use metaprogramming to ensure that each class is created in exactly the
 # the same way.
 BENCHMARK_GEMS.each do |benchmark_gem|
-  # rubocop:disable Security/Eval
-  eval <<-CLASS, binding, __FILE__, __LINE__ + 1
+  eval <<~HEREDOC, binding, __FILE__, __LINE__ + 1 # rubocop:disable Security/Eval
     # For these methods, we alternately return truthy and falsey values in
     # order to benchmark memoization when the result of a method is falsey.
     #
@@ -125,8 +124,7 @@ BENCHMARK_GEMS.each do |benchmark_gem|
       end
       #{benchmark_gem.memoization_method} :positional_splat_keyword_and_double_splat_args
     end
-  CLASS
-  # rubocop:enable Security/Eval
+  HEREDOC
 end
 
 # We pre-create argument lists for our memoized methods with arguments, so that
