@@ -56,7 +56,7 @@ module MemoWise
   # :nocov:
   all_args = RUBY_VERSION < "2.7" ? "*" : "..."
   # :nocov:
-  class_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+  class_eval <<~HEREDOC, __FILE__, __LINE__ + 1
     # On Ruby 2.7 or greater:
     #
     # def initialize(...)
@@ -75,7 +75,7 @@ module MemoWise
       MemoWise::InternalAPI.create_memo_wise_state!(self)
       super
     end
-  END_OF_METHOD
+  HEREDOC
 
   # @private
   #
@@ -159,12 +159,12 @@ module MemoWise
         if klass.singleton_class?
           # This ensures that a memoized method defined on a parent class can
           # still be used in a child class.
-          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def inherited(subclass)
               super
               MemoWise::InternalAPI.create_memo_wise_state!(subclass)
             end
-          END_OF_METHOD
+          HEREDOC
         end
 
         raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
@@ -184,7 +184,7 @@ module MemoWise
         when MemoWise::InternalAPI::NONE
           # Zero-arg methods can use simpler/more performant logic because the
           # hash key is just the method name.
-          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}
               if @_memo_wise_sentinels[#{index}]
                 @_memo_wise[#{index}]
@@ -194,11 +194,11 @@ module MemoWise
                 ret
               end
             end
-          END_OF_METHOD
+          HEREDOC
         when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
           key = method.parameters.first.last
 
-          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
               _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
               _memo_wise_output = _memo_wise_hash[#{key}]
@@ -208,7 +208,7 @@ module MemoWise
                 _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
             end
-          END_OF_METHOD
+          HEREDOC
         # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT,
         # MemoWise::InternalAPI::DOUBLE_SPLAT, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
         else
@@ -224,7 +224,7 @@ module MemoWise
           # consistent performance. In general, this should still be faster for
           # truthy results because `Hash#[]` generally performs hash lookups
           # faster than `Hash#fetch`.
-          klass.module_eval <<-END_OF_METHOD, __FILE__, __LINE__ + 1
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
               _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
               _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
@@ -235,7 +235,7 @@ module MemoWise
                 _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
             end
-          END_OF_METHOD
+          HEREDOC
         end
 
         klass.send(visibility, method_name)

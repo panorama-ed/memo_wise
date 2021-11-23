@@ -33,7 +33,7 @@ module DefineMethodsForTestingMemoWise
     self_kw_arg = via == :self_dot ? "self: " : ""
     self_class_method = via == :self_dot ? "_class_method" : ""
 
-    target.module_eval <<~END_OF_METHODS, __FILE__, __LINE__ + 1
+    target.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
       def #{self_prefix}no_args_counter
         @no_args_counter || 0
       end
@@ -237,6 +237,6 @@ module DefineMethodsForTestingMemoWise
         yield
       end
       memo_wise #{self_kw_arg}:implicit_block_method
-    END_OF_METHODS
+    HEREDOC
   end
 end
