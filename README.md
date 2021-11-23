@@ -248,6 +248,7 @@ Then carry out these steps:
 
 1. Update `CHANGELOG.md`:
    - Add an entry for the upcoming version _x.y.z_
+   - Add a link for this version's comparison to the bottom of `CHANGELOG.md`
    - Move content from _Unreleased_ to the upcoming version _x.y.z_
    - Commit with title `Update CHANGELOG.md for x.y.z`
 
