@@ -36,6 +36,7 @@ Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
   spec.require_paths = ["lib"]
 
   spec.metadata = {
+    "rubygems_mfa_required" => "true",
     "changelog_uri" => "https://github.com/panorama-ed/memo_wise/blob/main/CHANGELOG.md",
     "source_code_uri" => "https://github.com/panorama-ed/memo_wise"
   }
