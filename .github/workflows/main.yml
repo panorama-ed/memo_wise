@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [jruby, 2.4, 2.5, 2.6, 2.7, 3.0]
+        ruby: [jruby, 2.4, 2.5, 2.6, 2.7, 3.0, truffleruby-head]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
