@@ -2,9 +2,9 @@
 
 source "https://rubygems.org"
 
-ruby ">= 2.7.4"
+ruby ">= 2.7.5"
 
-gem "benchmark-ips", "2.9.1"
+gem "benchmark-ips", "2.9.2"
 
 if RUBY_VERSION > "3"
   gem "dry-core", "0.7.1"
