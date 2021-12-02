@@ -175,6 +175,84 @@ module MemoWise
       end
     end
 
+    # Convention we use for renaming the original method when we replace with
+    # the memoized version in {MemoWise.memo_wise}.
+    #
+    # @param method_name [Symbol]
+    #   Name for which to return the renaming for the original method
+    #
+    # @return [Symbol]
+    #   Renamed method to use for the original method with name `method_name`
+    #
+    def self.original_memo_wised_name(method_name)
+      :"_memo_wise_original_#{method_name}"
+    end
+
+    # @param method_name [Symbol] the name of the memoized method
+    # @return [Integer] the array index in `@_memo_wise_indices` to use to find
+    #   the memoization data for the given method
+    def self.index(target, method_name)
+      klass = target_class(target)
+      indices = klass.instance_variable_get(:@_memo_wise_indices)
+      indices&.[](method_name) || next_index!(klass, method_name)
+    end
+
+    # Returns visibility of an instance method defined on class `target`.
+    #
+    # @param target [Class, Module]
+    #   The class to which we are prepending MemoWise to provide memoization.
+    #
+    # @param method_name [Symbol]
+    #   Name of existing *instance* method find the visibility of.
+    #
+    # @return [:private, :protected, :public]
+    #   Visibility of existing instance method of the class.
+    #
+    # @raise ArgumentError
+    #   Raises `ArgumentError` unless `method_name` is a `Symbol` corresponding
+    #   to an existing **instance** method defined on `klass`.
+    #
+    def self.method_visibility(target, method_name)
+      if target.private_method_defined?(method_name)
+        :private
+      elsif target.protected_method_defined?(method_name)
+        :protected
+      elsif target.public_method_defined?(method_name)
+        :public
+      else
+        raise ArgumentError, "#{method_name.inspect} must be a method on #{target}"
+      end
+    end
+
+    # Validates that {.memo_wise} has already been called on `method_name`.
+    #
+    # @param target [Class, Module]
+    #   The class to which we are prepending MemoWise to provide memoization.
+    #
+    # @param method_name [Symbol]
+    #   Name of method to validate has already been setup with {.memo_wise}
+    def self.validate_memo_wised!(target, method_name)
+      original_name = original_memo_wised_name(method_name)
+
+      unless target_class(target).private_method_defined?(original_name)
+        raise ArgumentError, "#{method_name} is not a memo_wised method"
+      end
+    end
+
+    # @param target [Class, Module]
+    #   The class to which we are prepending MemoWise to provide memoization.
+    # @return [Class] where we look for method definitions
+    def self.target_class(target)
+      if target.instance_of?(Class)
+        # A class's methods are defined in its singleton class
+        target.singleton_class
+      else
+        # An object's methods are defined in its class
+        target.class
+      end
+    end
+    private_class_method :target_class
+
     # Increment the class's method index counter, and return an index to use for
     # the given method name.
     #
@@ -197,113 +275,12 @@ module MemoWise
       memo_wise_indices = klass.instance_variable_get(:@_memo_wise_indices)
       memo_wise_indices ||= klass.instance_variable_set(:@_memo_wise_indices, {})
 
-      # When a parent and child class both use `class << self` to define
-      # memoized class methods, the child class' singleton is not considered a
-      # descendent of the parent class' singleton. Because we store the index
-      # counter as a class variable that can be shared up the inheritance chain,
-      # we want to detect this case and store it on the original class instead
-      # of the singleton to make the counter shared correctly.
-      counter_class = klass.singleton_class? ? original_class_from_singleton(klass) : klass
-
-      # We use a class variable for tracking the index to make this work with
-      # inheritance structures. When a parent and child class both use
-      # MemoWise, we want the child class's index to not "reset" back to 0 and
-      # overwrite the behavior of a memoized parent method. Using a class
-      # variable will share the index data between parent and child classes.
-      #
-      # However, we don't use a class variable for `@_memo_wise_indices`
-      # because we want to allow instance and class methods with the same name
-      # to both be memoized, and using a class variable would share that index
-      # data between them.
-      index = if counter_class.class_variable_defined?(:@@_memo_wise_index_counter)
-                counter_class.class_variable_get(:@@_memo_wise_index_counter)
-              else
-                0
-              end
-
+      index = klass.instance_variable_get(:@_memo_wise_index_counter) || 0
       memo_wise_indices[method_name] = index
-      counter_class.class_variable_set(:@@_memo_wise_index_counter, index + 1) # rubocop:disable Style/ClassVars
+      klass.instance_variable_set(:@_memo_wise_index_counter, index + 1)
 
       index
     end
-
-    # Convention we use for renaming the original method when we replace with
-    # the memoized version in {MemoWise.memo_wise}.
-    #
-    # @param method_name [Symbol]
-    #   Name for which to return the renaming for the original method
-    #
-    # @return [Symbol]
-    #   Renamed method to use for the original method with name `method_name`
-    #
-    def self.original_memo_wised_name(method_name)
-      :"_memo_wise_original_#{method_name}"
-    end
-
-    # @param target [Class, Module]
-    #   The class to which we are prepending MemoWise to provide memoization;
-    #   the `InternalAPI` *instance* methods will refer to this `target` class.
-    def initialize(target)
-      @target = target
-    end
-
-    # @return [Class, Module]
-    attr_reader :target
-
-    # @param method_name [Symbol] the name of the memoized method
-    # @return [Integer] the array index in `@_memo_wise_indices` to use to find
-    #   the memoization data for the given method
-    def index(method_name)
-      target_class.instance_variable_get(:@_memo_wise_indices)[method_name]
-    end
-
-    # Returns visibility of an instance method defined on class `target`.
-    #
-    # @param method_name [Symbol]
-    #   Name of existing *instance* method find the visibility of.
-    #
-    # @return [:private, :protected, :public]
-    #   Visibility of existing instance method of the class.
-    #
-    # @raise ArgumentError
-    #   Raises `ArgumentError` unless `method_name` is a `Symbol` corresponding
-    #   to an existing **instance** method defined on `klass`.
-    #
-    def method_visibility(method_name)
-      if target.private_method_defined?(method_name)
-        :private
-      elsif target.protected_method_defined?(method_name)
-        :protected
-      elsif target.public_method_defined?(method_name)
-        :public
-      else
-        raise ArgumentError, "#{method_name.inspect} must be a method on #{target}"
-      end
-    end
-
-    # Validates that {.memo_wise} has already been called on `method_name`.
-    #
-    # @param method_name [Symbol]
-    #   Name of method to validate has already been setup with {.memo_wise}
-    def validate_memo_wised!(method_name)
-      original_name = self.class.original_memo_wised_name(method_name)
-
-      unless target_class.private_method_defined?(original_name)
-        raise ArgumentError, "#{method_name} is not a memo_wised method"
-      end
-    end
-
-    private
-
-    # @return [Class] where we look for method definitions
-    def target_class
-      if target.instance_of?(Class)
-        # A class's methods are defined in its singleton class
-        target.singleton_class
-      else
-        # An object's methods are defined in its class
-        target.class
-      end
-    end
+    private_class_method :next_index!
   end
 end
