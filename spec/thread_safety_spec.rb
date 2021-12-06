@@ -77,4 +77,58 @@ RSpec.describe "thread safety" do # rubocop:disable RSpec/DescribeClass
       end
     end
   end
+
+  context "when two threads accessing unmemoized one-positional-arg method" do
+    let(:thread_return_values) do
+      check_repeatedly(condition_proc: condition_to_check) do
+        @instance = class_with_memo.new
+        threads = Array.new(2) { Thread.new { @instance.current_thread_id(42) } } # rubocop:disable RSpec/InstanceVariable
+        threads.map(&:value)
+      end
+    end
+
+    let(:class_with_memo) do
+      Class.new do
+        prepend MemoWise
+
+        def current_thread_id(n)       # rubocop:disable Naming/MethodParameterName
+          Thread.pass                  # trigger a race condition even on MRI
+          Thread.current.object_id + n # return different values in each thread
+        end
+        memo_wise :current_thread_id
+      end
+    end
+
+    context "when checking condition: are different values returned?" do
+      let(:condition_to_check) do
+        ->(values) { values.uniq.size > 1 }
+      end
+
+      let(:after_memoization_thread_return_values) do
+        thread_return_values # Ensure threads have already executed
+
+        check_repeatedly(condition_proc: condition_to_check) do
+          threads = Array.new(2) { Thread.new { @instance.current_thread_id(42) } } # rubocop:disable RSpec/InstanceVariable
+          threads.map(&:value)
+        end
+      end
+
+      # NOTE: Disabled on TruffleRuby in CI, because it takes multiple seconds
+      # to observe the different values returned to multiple threads, and errors
+      # out in some cases when that does happen.
+      unless RUBY_ENGINE == "truffleruby" && ENV["CI"] == "true"
+        it "returns different values to each thread, and memoizes one of them" do
+          # Before memoization: expect to observe threads return different values
+          expect(thread_return_values.uniq.size).to be > 1
+
+          # After memoization: expect to observe only a single value...
+          expect(after_memoization_thread_return_values.uniq.size).to be 1
+
+          # ...and that single value is one the values returned originally
+          expect(thread_return_values).
+            to include(after_memoization_thread_return_values.first)
+        end
+      end
+    end
+  end
 end
