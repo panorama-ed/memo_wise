@@ -10,7 +10,11 @@ RSpec.describe "thread safety" do # rubocop:disable RSpec/DescribeClass
       end
     end
 
-    let(:class_with_memo) do
+    # To test thread safety of the `module_eval` calls introduced in PR #241
+    # which redefine methods on their first call, we make a new class on each
+    # loop of the `check_repeatedly` above. If we remove the method redefinition
+    # code paths in MemoWise.prepended, then we can return this to being `let`.
+    def class_with_memo
       Class.new do
         prepend MemoWise
 

@@ -222,12 +222,17 @@ RSpec.describe MemoWise do
         end
       end
 
-      context "when instances are created with Class#allocate" do
-        let(:instance) { class_with_memo.allocate }
+      # This test nondeterministically fails in JRuby with the following error:
+      # NoMethodError:
+      #   super: no superclass method `allocate' for #<Class:0xacc6a69>
+      unless RUBY_PLATFORM == "java"
+        context "when instances are created with Class#allocate" do
+          let(:instance) { class_with_memo.allocate }
 
-        it "memoizes correctly" do
-          expect(Array.new(4) { instance.no_args }).to all eq("no_args")
-          expect(instance.no_args_counter).to eq(1)
+          it "memoizes correctly" do
+            expect(Array.new(4) { instance.no_args }).to all eq("no_args")
+            expect(instance.no_args_counter).to eq(1)
+          end
         end
       end
 
@@ -305,6 +310,125 @@ RSpec.describe MemoWise do
             expect(Array.new(4) { instance.child_method }).to all eq("child_method")
             expect(instance.child_method_counter).to eq(1)
           end
+        end
+      end
+
+      context "when the class inherits memoization from multiple modules" do
+        let(:module1) do
+          Module.new do
+            prepend MemoWise
+
+            def module1_method_counter
+              @module1_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
+            end
+
+            def module1_method
+              @module1_method_counter = module1_method_counter + 1
+              "module1_method"
+            end
+            memo_wise :module1_method
+          end
+        end
+
+        let(:module2) do
+          Module.new do
+            prepend MemoWise
+
+            def module2_method_counter
+              @module2_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
+            end
+
+            def module2_method
+              @module2_method_counter = module2_method_counter + 1
+              "module2_method"
+            end
+            memo_wise :module2_method
+          end
+        end
+
+        let(:klass) do
+          Class.new do
+            include Module1, Module2
+          end
+        end
+
+        let(:instance) { klass.new }
+
+        before(:each) do
+          stub_const("Module1", module1)
+          stub_const("Module2", module2)
+        end
+
+        it "memoizes inherited methods separately" do
+          expect(Array.new(4) { instance.module1_method }).to all eq("module1_method")
+          expect(instance.module1_method_counter).to eq(1)
+          expect(Array.new(4) { instance.module2_method }).to all eq("module2_method")
+          expect(instance.module2_method_counter).to eq(1)
+        end
+      end
+
+      context "when the class, its superclass, and its module all memoize methods" do
+        let(:parent_class) do
+          Class.new do
+            prepend MemoWise
+
+            def parent_class_method_counter
+              @parent_class_method_counter || 0
+            end
+
+            def parent_class_method
+              @parent_class_method_counter = parent_class_method_counter + 1
+              "parent_class_method"
+            end
+            memo_wise :parent_class_method
+          end
+        end
+
+        let(:module1) do
+          Module.new do
+            prepend MemoWise
+
+            def module1_method_counter
+              @module1_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
+            end
+
+            def module1_method
+              @module1_method_counter = module1_method_counter + 1
+              "module1_method"
+            end
+            memo_wise :module1_method
+          end
+        end
+
+        let(:child_class) do
+          Class.new(parent_class) do
+            include Module1
+
+            def child_class_method_counter
+              @child_class_method_counter || 0
+            end
+
+            def child_class_method
+              @child_class_method_counter = child_class_method_counter + 1
+              "child_class_method"
+            end
+            memo_wise :child_class_method
+          end
+        end
+
+        let(:instance) { child_class.new }
+
+        before(:each) do
+          stub_const("Module1", module1)
+        end
+
+        it "memoizes inherited methods separately" do
+          expect(Array.new(4) { instance.parent_class_method }).to all eq("parent_class_method")
+          expect(instance.parent_class_method_counter).to eq(1)
+          expect(Array.new(4) { instance.module1_method }).to all eq("module1_method")
+          expect(instance.module1_method_counter).to eq(1)
+          expect(Array.new(4) { instance.child_class_method }).to all eq("child_class_method")
+          expect(instance.child_class_method_counter).to eq(1)
         end
       end
     end

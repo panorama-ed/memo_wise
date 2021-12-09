@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Nothing yet!
+- Fix several bugs related to classes inheriting memoized methods
+  from multiple modules or a parent class ([#241](https://github.com/panorama-ed/memo_wise/pull/241))
 
 ## [1.3.0] - 2021-11-22
 
