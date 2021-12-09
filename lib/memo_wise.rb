@@ -32,6 +32,51 @@ module MemoWise
 
   def build_module
     Module.new do
+      # `@_memo_wise` stores memoized results of method calls. The structure is
+      # slightly different for different types of methods. It looks like:
+      #   [
+      #     :memoized_result, # For method 0 (which takes no arguments)
+      #     { arg1 => :memoized_result, ... }, # For method 1 (which takes an argument)
+      #     { [arg1, arg2] => :memoized_result, ... } # For method 2 (which takes multiple arguments)
+      #   ]
+      # This is a faster alternative to:
+      #   {
+      #     zero_arg_method_name: :memoized_result,
+      #     single_arg_method_name: { arg1 => :memoized_result, ... },
+      #
+      #     # Surprisingly, this is faster than a single top-level hash key of: [:multi_arg_method_name, arg1, arg2]
+      #     multi_arg_method_name: { [arg1, arg2] => :memoized_result, ... }
+      #   }
+      # because we can give each method its own array index at load time and
+      # perform that array lookup more quickly than a hash lookup by method
+      # name.
+      def _memo_wise
+        @_memo_wise ||= []
+      end
+
+      # For zero-arity methods, memoized values are stored in the `@_memo_wise`
+      # array. Arrays do not differentiate between "unset" and "set to nil" and
+      # so to handle this case we need another array to store sentinels and
+      # store `true` at indexes for which a zero-arity method has been memoized.
+      # `@_memo_wise_sentinels` looks like:
+      #   [
+      #     true, # A zero-arity method's result has been memoized
+      #     nil, # A zero-arity method's result has not been memoized
+      #     nil, # A one-arity method will always correspond to `nil` here
+      #     ...
+      #   ]
+      # NOTE: Because `@_memo_wise` stores memoized values for more than just
+      # zero-arity methods, the `@_memo_wise_sentinels` array can end up being
+      # sparse (see above), even when all methods' memoized values have been
+      # stored. If this becomes an issue we could store a separate index for
+      # zero-arity methods to make every element in `@_memo_wise_sentinels`
+      # correspond to a zero-arity method.
+      # NOTE: Surprisingly, lookups on an array of `true` and `nil` values
+      # appear to outperform even bitwise operators on integers (as of Ruby
+      # 3.0.2), allowing us to avoid more complex sentinel structures.
+      def _memo_wise_sentinels
+        @_memo_wise_sentinels ||= []
+      end
     end
   end
 
