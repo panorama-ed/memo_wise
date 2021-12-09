@@ -2,29 +2,6 @@
 
 module MemoWise
   class InternalAPI
-    # Create initial mutable state to store memoized values if it doesn't
-    # already exist
-    #
-    # @param [Object] obj
-    #   Object in which to create mutable state to store future memoized values
-    #
-    # @return [Object] the passed-in obj
-    def self.create_memo_wise_state!(obj)
-      # `@_memo_wise` stores memoized results of method calls in a hash keyed on
-      # method name. The structure is slightly different for different types of
-      # methods. It looks like:
-      #   {
-      #     zero_arg_method_name: :memoized_result,
-      #     single_arg_method_name: { arg1 => :memoized_result, ... },
-      #
-      #     # Surprisingly, this is faster than a single top-level hash key of: [:multi_arg_method_name, arg1, arg2]
-      #     multi_arg_method_name: { [arg1, arg2] => :memoized_result, ... }
-      #   }
-      obj.instance_variable_set(:@_memo_wise, {}) unless obj.instance_variable_defined?(:@_memo_wise)
-
-      obj
-    end
-
     NONE = :none
     ONE_REQUIRED_POSITIONAL = :one_required_positional
     ONE_REQUIRED_KEYWORD = :one_required_keyword
@@ -112,54 +89,17 @@ module MemoWise
       end
     end
 
-    # Find the original class for which the given class is the corresponding
-    # "singleton class".
-    #
-    # See https://stackoverflow.com/questions/54531270/retrieve-a-ruby-object-from-its-singleton-class
-    #
-    # @param klass [Class]
-    #   Singleton class to find the original class of
-    #
-    # @return Class
-    #   Original class for which `klass` is the singleton class.
-    #
-    # @raise ArgumentError
-    #   Raises if `klass` is not a singleton class.
-    #
-    def self.original_class_from_singleton(klass)
-      raise ArgumentError, "Must be a singleton class: #{klass.inspect}" unless klass.singleton_class?
-
-      # Since we call this method a lot, we memoize the results. This can have a
-      # huge impact; for example, in our test suite this drops our test times
-      # from over five minutes to just a few seconds.
-      @original_class_from_singleton ||= {}
-
-      # Search ObjectSpace
-      #   * 1:1 relationship of singleton class to original class is documented
-      #   * Performance concern: searches all Class objects
-      #     But, only runs at load time and results are memoized
-      @original_class_from_singleton[klass] ||= ObjectSpace.each_object(Module).find do |cls|
-        cls.singleton_class == klass
-      end
+    # @param target [Class, Module]
+    #   The class to which we are prepending MemoWise to provide memoization;
+    #   the `InternalAPI` *instance* methods will refer to this `target` class.
+    def initialize(target)
+      @target = target
     end
 
-    # Convention we use for renaming the original method when we replace with
-    # the memoized version in {MemoWise.memo_wise}.
-    #
-    # @param method_name [Symbol]
-    #   Name for which to return the renaming for the original method
-    #
-    # @return [Symbol]
-    #   Renamed method to use for the original method with name `method_name`
-    #
-    def self.original_memo_wised_name(method_name)
-      :"_memo_wise_original_#{method_name}"
-    end
+    # @return [Class, Module]
+    attr_reader :target
 
     # Returns visibility of an instance method defined on class `target`.
-    #
-    # @param target [Class, Module]
-    #   The class to which we are prepending MemoWise to provide memoization.
     #
     # @param method_name [Symbol]
     #   Name of existing *instance* method find the visibility of.
@@ -171,7 +111,7 @@ module MemoWise
     #   Raises `ArgumentError` unless `method_name` is a `Symbol` corresponding
     #   to an existing **instance** method defined on `klass`.
     #
-    def self.method_visibility(target, method_name)
+    def method_visibility(method_name)
       if target.private_method_defined?(method_name)
         :private
       elsif target.protected_method_defined?(method_name)
@@ -183,25 +123,34 @@ module MemoWise
       end
     end
 
-    # Validates that {.memo_wise} has already been called on `method_name`.
+    # Validates that `method_name` is a method defined by a call to {.memo_wise},
+    # and returns the method
     #
     # @param target [Class, Module]
     #   The class to which we are prepending MemoWise to provide memoization.
     #
     # @param method_name [Symbol]
-    #   Name of method to validate has already been setup with {.memo_wise}
-    def self.validate_memo_wised!(target, method_name)
-      original_name = original_memo_wised_name(method_name)
+    #   Name of method that should have been setup with {.memo_wise}
+    def memo_wised_method(method_name)
+      klass = target_class
 
-      unless target_class(target).private_method_defined?(original_name)
+      method_defined = klass.method_defined?(method_name) || klass.private_method_defined?(method_name)
+
+      raise ArgumentError, "#{method_name} is not a memo_wised method" unless method_defined
+
+      method = klass.instance_method(method_name)
+
+      unless method.owner == klass.memo_wise_module && method.super_method
         raise ArgumentError, "#{method_name} is not a memo_wised method"
       end
+
+      method
     end
 
-    # @param target [Class, Module]
-    #   The class to which we are prepending MemoWise to provide memoization.
+    private
+
     # @return [Class] where we look for method definitions
-    def self.target_class(target)
+    def target_class
       if target.instance_of?(Class)
         # A class's methods are defined in its singleton class
         target.singleton_class
@@ -210,6 +159,5 @@ module MemoWise
         target.class
       end
     end
-    private_class_method :target_class
   end
 end
