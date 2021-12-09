@@ -239,8 +239,28 @@ module MemoWise
       end
     end
 
-    # @param target [Class, Module]
-    #   The class to which we are prepending MemoWise to provide memoization.
+    # Returns the hash that stores the memoized values for any method which
+    # takes arguments.
+    #
+    # @param klass [Class]
+    #   Original class on which a method is being memoized
+    #
+    # @param method_name [Symbol]
+    #   The name of the method being memoized
+    #
+    # @return [Hash]
+    #   The hash which stores memoized values for method_name on klass
+    def self.memo_wise_hash(klass, method_name)
+      klass.instance_variable_get(method_name_to_sym(klass, method_name)) ||
+        klass.instance_variable_set(method_name_to_sym(klass, method_name), {})
+    end
+
+    def self.method_name_to_sym(klass, method_name)
+      "@_memo_wise_#{method_name}".gsub("?", "__q__").to_sym
+    end
+
+    private
+
     # @return [Class] where we look for method definitions
     def self.target_class(target)
       if target.instance_of?(Class)
