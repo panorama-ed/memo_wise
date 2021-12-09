@@ -26,57 +26,6 @@ require "memo_wise/version"
 #   - {file:README.md} for general project information.
 #
 module MemoWise
-  # Constructor to set up memoization state before
-  # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
-  # constructor.
-  #
-  # - **Q:** Why is [Module#prepend](https://ruby-doc.org/core-3.0.0/Module.html#method-i-prepend)
-  #          important here
-  #          ([more info](https://medium.com/@leo_hetsch/ruby-modules-include-vs-prepend-vs-extend-f09837a5b073))?
-  # - **A:** To set up *mutable state* inside the instance, even if the original
-  #          constructor will then call
-  #          [Object#freeze](https://ruby-doc.org/core-3.0.0/Object.html#method-i-freeze).
-  #
-  # This approach supports memoization on frozen (immutable) objects -- for
-  # example, classes created by the
-  # [Values](https://github.com/tcrayford/Values)
-  # [gem](https://rubygems.org/gems/values).
-  #
-  # To support syntax differences with keyword and positional arguments starting
-  # with ruby 2.7, we have to set up the initializer with some slightly
-  # different syntax for the different versions.  This variance in syntax is not
-  # included in coverage reports since the branch chosen will never differ
-  # within a single ruby version.  This means it is impossible for us to get
-  # 100% coverage of this line within a single CI run.
-  #
-  # See
-  # [this article](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/)
-  # for more information.
-  #
-  # :nocov:
-  all_args = RUBY_VERSION < "2.7" ? "*" : "..."
-  # :nocov:
-  class_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-    # On Ruby 2.7 or greater:
-    #
-    # def initialize(...)
-    #   MemoWise::InternalAPI.create_memo_wise_state!(self)
-    #   super
-    # end
-    #
-    # On Ruby 2.6 or lower:
-    #
-    # def initialize(*)
-    #   MemoWise::InternalAPI.create_memo_wise_state!(self)
-    #   super
-    # end
-
-    def initialize(#{all_args})
-      MemoWise::InternalAPI.create_memo_wise_state!(self)
-      super
-    end
-  HEREDOC
-
   # @private
   #
   # Private setup method, called automatically by `extend MemoWise` in a class.
