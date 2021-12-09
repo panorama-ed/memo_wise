@@ -17,7 +17,7 @@ require "memo_wise/version"
 #
 # To start using MemoWise in a class or module:
 #
-#   1. Add `prepend MemoWise` to the top of the class or module
+#   1. Add `extend MemoWise` to the top of the class or module
 #   2. Call {.memo_wise} to implement memoization for a given method
 #
 # **See Also:**
@@ -79,7 +79,7 @@ module MemoWise
 
   # @private
   #
-  # Private setup method, called automatically by `prepend MemoWise` in a class.
+  # Private setup method, called automatically by `extend MemoWise` in a class.
   #
   # @param target [Class]
   #   The `Class` into to prepend the MemoWise methods e.g. `memo_wise`
@@ -88,7 +88,7 @@ module MemoWise
   #
   # @example
   #   class Example
-  #     prepend MemoWise
+  #     extend MemoWise
   #   end
   #
   def self.prepended(target)
@@ -264,7 +264,7 @@ module MemoWise
           #   THEN find the original method's parameters, and modify current
           #        `UnboundMethod#parameters` to return them.
           if symbol == :initialize
-            # For `#initialize` - because `prepend MemoWise` overrides the same
+            # For `#initialize` - because `extend MemoWise` overrides the same
             # method in the module ancestors, use `UnboundMethod#super_method`
             # to find the original method.
             orig_method = curr_method.super_method
@@ -304,7 +304,7 @@ module MemoWise
   #
   #   @example
   #     class Example
-  #       prepend MemoWise
+  #       extend MemoWise
   #
   #       def method_to_memoize(x)
   #         @method_called_times = (@method_called_times || 0) + 1
@@ -327,7 +327,7 @@ module MemoWise
   #
   #   @example
   #     class Example
-  #       prepend MemoWise
+  #       extend MemoWise
   #
   #       def self.method_called_times
   #         @method_called_times
@@ -353,7 +353,7 @@ module MemoWise
   #
   #   @example
   #     class Example
-  #       prepend MemoWise
+  #       extend MemoWise
   #
   #       def self.method_to_reset(x)
   #         @method_called_times = (@method_called_times || 0) + 1
@@ -413,7 +413,7 @@ module MemoWise
   #
   # @example
   #   class Example
-  #     prepend MemoWise
+  #     extend MemoWise
   #     attr_reader :method_called_times
   #
   #     def method_to_preset
@@ -498,7 +498,7 @@ module MemoWise
   #
   # @example
   #   class Example
-  #     prepend MemoWise
+  #     extend MemoWise
   #
   #     def method_to_reset(x)
   #       @method_called_times = (@method_called_times || 0) + 1

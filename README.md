@@ -41,7 +41,7 @@ Or install it yourself as:
 
 ## Usage
 
-When you `prepend MemoWise` within a class or module, `MemoWise` exposes three
+When you `extend MemoWise` within a class or module, `MemoWise` exposes three
 methods:
 
 - [`memo_wise`](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise#memo_wise-class_method)
@@ -50,7 +50,7 @@ methods:
 
 ```ruby
 class Example
-  prepend MemoWise
+  extend MemoWise
 
   def slow_value(x)
     sleep x
@@ -86,7 +86,7 @@ The same three methods are exposed for class methods as well:
 
 ```ruby
 class Example
-  prepend MemoWise
+  extend MemoWise
 
   def self.class_slow_value(x)
     sleep x

@@ -16,7 +16,7 @@ RSpec.describe "thread safety" do # rubocop:disable RSpec/DescribeClass
     # code paths in MemoWise.prepended, then we can return this to being `let`.
     def class_with_memo
       Class.new do
-        prepend MemoWise
+        extend MemoWise
 
         def current_thread_id
           Thread.pass              # trigger a race condition even on MRI

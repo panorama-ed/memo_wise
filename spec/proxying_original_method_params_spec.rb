@@ -8,7 +8,7 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
 
     let(:class_with_memo) do
       Class.new do
-        prepend MemoWise
+        extend MemoWise
 
         def initialize(foo, bar:); end
 

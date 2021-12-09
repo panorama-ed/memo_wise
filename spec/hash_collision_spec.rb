@@ -6,7 +6,7 @@ RSpec.describe "hash collisions" do # rubocop:disable RSpec/DescribeClass
 
     let(:class_with_memo) do
       Class.new do
-        prepend MemoWise
+        extend MemoWise
 
         def return_given_args(a, b) # rubocop:disable Naming/MethodParameterName
           [a, b]

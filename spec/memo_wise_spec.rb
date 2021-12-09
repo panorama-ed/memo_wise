@@ -257,7 +257,7 @@ RSpec.describe MemoWise do
 
         let(:value_class) do
           Value.new(:increment_proc) do
-            prepend MemoWise # rubocop:disable RSpec/DescribedClass
+            extend MemoWise # rubocop:disable RSpec/DescribedClass
 
             def no_args
               increment_proc.call
@@ -460,7 +460,7 @@ RSpec.describe MemoWise do
           context "when an invalid hash key is passed to .memo_wise" do
             let(:class_with_memo) do
               Class.new do
-                prepend MemoWise
+                extend MemoWise
 
                 def self.class_method; end
               end
@@ -555,7 +555,7 @@ RSpec.describe MemoWise do
               let(:child_class) do
                 Class.new(class_with_memo) do
                   class << self
-                    prepend MemoWise
+                    extend MemoWise
 
                     def child_method_counter
                       @child_method_counter || 0
@@ -603,7 +603,7 @@ RSpec.describe MemoWise do
           context "when an invalid hash key is passed to .memo_wise" do
             let(:module_with_memo) do
               Module.new do
-                prepend MemoWise
+                extend MemoWise
 
                 def self.module_method; end
               end
@@ -653,7 +653,7 @@ RSpec.describe MemoWise do
         context "when 1 module extended by 2 classes" do
           let(:module_with_memo) do
             Module.new do
-              prepend MemoWise
+              extend MemoWise
 
               def test_method
                 Random.rand
@@ -721,7 +721,7 @@ RSpec.describe MemoWise do
           context "when defined with 'def self.' and 'def'" do
             let(:module_with_memo) do
               Module.new do
-                prepend MemoWise
+                extend MemoWise
 
                 def self.test_method
                   Random.rand
