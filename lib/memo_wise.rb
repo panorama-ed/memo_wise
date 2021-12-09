@@ -225,25 +225,6 @@ module MemoWise
   #   end
   #
   def self.prepended(target)
-    class << target
-      # Allocator to set up memoization state before
-      # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
-      # allocator.
-      #
-      # This is necessary in addition to the `#initialize` method definition
-      # above because
-      # [`Class#allocate`](https://ruby-doc.org/core-3.0.0/Class.html#method-i-allocate)
-      # bypasses `#initialize`, and when it's used (e.g.,
-      # [in ActiveRecord](https://github.com/rails/rails/blob/a395c3a6af1e079740e7a28994d77c8baadd2a9d/activerecord/lib/active_record/persistence.rb#L411))
-      # we still need to be able to access MemoWise's instance variable. Despite
-      # Ruby documentation indicating otherwise, `Class#new` does not call
-      # `Class#allocate`, so we need to override both.
-      #
-      def allocate
-        MemoWise::InternalAPI.create_memo_wise_state!(super)
-      end
-    end
-
     unless target.singleton_class?
       # Create class methods to implement .preset_memo_wise and .reset_memo_wise
       %i[preset_memo_wise reset_memo_wise].each do |method_name|
