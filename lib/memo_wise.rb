@@ -26,6 +26,15 @@ require "memo_wise/version"
 #   - {file:README.md} for general project information.
 #
 module MemoWise
+  def memo_wise_module
+    @memo_wise_module ||= build_module.tap { |mod| prepend(mod) }
+  end
+
+  def build_module
+    Module.new do
+    end
+  end
+
   # NOTE: See YARD docs for {.memo_wise} directly below this method!
   def memo_wise(method_name_or_hash)
     klass = self
