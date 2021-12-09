@@ -116,44 +116,8 @@ module MemoWise
     end
 
     klass = self
-    case method_name_or_hash
-    when Symbol
-      method_name = method_name_or_hash
 
-      if klass.singleton_class?
-        MemoWise::InternalAPI.create_memo_wise_state!(
-          MemoWise::InternalAPI.original_class_from_singleton(klass)
-        )
-      end
-
-      # Ensures a module extended by another class/module still works
-      # e.g. rails `ClassMethods` module
-      if klass.is_a?(Module) && !klass.is_a?(Class)
-        # Using `extended` without `included` & `prepended`
-        # As a call to `create_memo_wise_state!` is already included in
-        # `.allocate`/`#initialize`
-        #
-        # But a module/class extending another module with memo_wise
-        # would not call `.allocate`/`#initialize` before calling methods
-        #
-        # On method call `@_memo_wise` would still be `nil`
-        # causing error when fetching cache from `@_memo_wise`
-        def klass.extended(base)
-          MemoWise::InternalAPI.create_memo_wise_state!(base)
-        end
-      end
-    end
-
-    if klass.singleton_class?
-      # This ensures that a memoized method defined on a parent class can
-      # still be used in a child class.
-      klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-            def inherited(subclass)
-              super
-              MemoWise::InternalAPI.create_memo_wise_state!(subclass)
-            end
-      HEREDOC
-    end
+    method_name = method_name_or_hash
 
     raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
 
