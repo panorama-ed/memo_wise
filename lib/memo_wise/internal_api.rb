@@ -156,6 +156,16 @@ module MemoWise
       :"_memo_wise_original_#{method_name}"
     end
 
+    # @param target [Class, Module]
+    #   The class to which we are prepending MemoWise to provide memoization;
+    #   the `InternalAPI` *instance* methods will refer to this `target` class.
+    def initialize(target)
+      @target = target
+    end
+
+    # @return [Class, Module]
+    attr_reader :target
+
     # Returns visibility of an instance method defined on class `target`.
     #
     # @param target [Class, Module]
