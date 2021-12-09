@@ -182,6 +182,34 @@ module MemoWise
     memo_wise_module.send(visibility, method_name)
   end
 
+  # Override [Module#instance_method](https://ruby-doc.org/core-3.0.0/Module.html#method-i-instance_method)
+  # to proxy the original `UnboundMethod#parameters` results. We want the
+  # parameters to reflect the original method in order to support callers
+  # who want to use Ruby reflection to process the method parameters,
+  # because our overridden `#initialize` method, and in some cases the
+  # generated memoized methods, will have a generic set of parameters
+  # (`...` or `*args, **kwargs`), making reflection on method parameters
+  # useless without this.
+  def instance_method(symbol)
+    # Start by calling the original `Module#instance_method` method
+    super.tap do |curr_method|
+      # At this point, `curr_method` is either a real instance method on this
+      # module, or it is MemoWise method defined on the `memo_wise_module`.
+      # We check if it is the latter, by looking at the owner of the method and
+      # checking to see if it has a super method defined (which should be the case
+      # for all MemoWised methods).
+      memo_wise_method = curr_method.owner == memo_wise_module && curr_method.super_method
+
+      if memo_wise_method
+        # This means, we need to use the `parameters` of the super method of this
+        # method, which should be the original MemoWised method.
+        orig_method = curr_method.super_method
+        orig_params = orig_method.parameters
+        curr_method.define_singleton_method(:parameters) { orig_params }
+      end
+    end
+  end
+
   # @private
   #
   # Private setup method, called automatically by `extend MemoWise` in a class.
@@ -224,41 +252,6 @@ module MemoWise
           method_name,
           MemoWise.instance_method(method_name)
         )
-      end
-
-      # Override [Module#instance_method](https://ruby-doc.org/core-3.0.0/Module.html#method-i-instance_method)
-      # to proxy the original `UnboundMethod#parameters` results. We want the
-      # parameters to reflect the original method in order to support callers
-      # who want to use Ruby reflection to process the method parameters,
-      # because our overridden `#initialize` method, and in some cases the
-      # generated memoized methods, will have a generic set of parameters
-      # (`...` or `*args, **kwargs`), making reflection on method parameters
-      # useless without this.
-      def target.instance_method(symbol)
-        original_memo_wised_name = MemoWise::InternalAPI.original_memo_wised_name(symbol)
-
-        super.tap do |curr_method|
-          # Start with calling the original `instance_method` on `symbol`,
-          # which returns an `UnboundMethod`.
-          #   IF it was replaced by MemoWise,
-          #   THEN find the original method's parameters, and modify current
-          #        `UnboundMethod#parameters` to return them.
-          if symbol == :initialize
-            # For `#initialize` - because `extend MemoWise` overrides the same
-            # method in the module ancestors, use `UnboundMethod#super_method`
-            # to find the original method.
-            orig_method = curr_method.super_method
-            orig_params = orig_method.parameters
-            curr_method.define_singleton_method(:parameters) { orig_params }
-          elsif private_method_defined?(original_memo_wised_name)
-            # For any memoized method - because the original method was renamed,
-            # call the original `instance_method` again to find the renamed
-            # original method.
-            orig_method = super(original_memo_wised_name)
-            orig_params = orig_method.parameters
-            curr_method.define_singleton_method(:parameters) { orig_params }
-          end
-        end
       end
     end
   end
