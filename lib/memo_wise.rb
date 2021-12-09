@@ -110,41 +110,36 @@ module MemoWise
       # See: https://medium.com/@leo_hetsch/demystifying-singleton-classes-in-ruby-caf3fa4c9d91
       #
       # So, we make the singleton class extend the MemoWise module too, and
-      # just delegate the call to the `memo_wise` method on the singleton class
+      # just delegate the call to the `memo_wise` method that is now defined
+      # on the singleton class.
       singleton_class.extend(MemoWise)
       return singleton_class.memo_wise(method_name)
     end
-
-    klass = self
 
     method_name = method_name_or_hash
 
     raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
 
-    visibility = MemoWise::InternalAPI.method_visibility(klass, method_name)
-    original_memo_wised_name = MemoWise::InternalAPI.original_memo_wised_name(method_name)
-    method = klass.instance_method(method_name)
+    api = MemoWise::InternalAPI.new(self)
+    visibility = api.method_visibility(method_name)
+    method = instance_method(method_name)
 
-    klass.send(:alias_method, original_memo_wised_name, method_name)
-    klass.send(:private, original_memo_wised_name)
-
-    method_arguments = MemoWise::InternalAPI.method_arguments(method)
-
-    case method_arguments
+    case MemoWise::InternalAPI.method_arguments(method)
     when MemoWise::InternalAPI::NONE
-      klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+      # Zero-arg methods can use simpler/more performant logic because the
+      # hash key is just the method name.
+      memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
         def #{method_name}
           _memo_wise_output = @_memo_wise[:#{method_name}]
           if _memo_wise_output || @_memo_wise.key?(:#{method_name})
             _memo_wise_output
           else
-            @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
+            @_memo_wise[:#{method_name}] = super(&nil)
           end
         end
       HEREDOC
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
-      key = method.parameters.first.last
-      klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+      memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
         def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
           _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
           _memo_wise_output = _memo_wise_hash[#{key}]
@@ -170,7 +165,7 @@ module MemoWise
       # consistent performance. In general, this should still be faster for
       # truthy results because `Hash#[]` generally performs hash lookups
       # faster than `Hash#fetch`.
-      klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+      memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
         def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
           _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
           _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
@@ -184,7 +179,7 @@ module MemoWise
       HEREDOC
     end
 
-    klass.send(visibility, method_name)
+    memo_wise_module.send(visibility, method_name)
   end
 
   # @private
