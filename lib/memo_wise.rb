@@ -77,6 +77,21 @@ module MemoWise
       def _memo_wise_sentinels
         @_memo_wise_sentinels ||= []
       end
+
+      # In order to support memoization on frozen (immutable) objects, we
+      # need to override the `Object#freeze` method, initialize our lazy
+      # initialized internal state and call the `super` method. This allows
+      # the cleanest way to support frozen objects without intercepting the
+      # constructor method.
+      #
+      # For examples of frozen objects, see classes created by the
+      # [Values](https://github.com/tcrayford/Values)
+      # [gem](https://rubygems.org/gems/values).
+      def freeze
+        _memo_wise
+        _memo_wise_sentinels
+        super
+      end
     end
   end
 
