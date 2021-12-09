@@ -26,6 +26,131 @@ require "memo_wise/version"
 #   - {file:README.md} for general project information.
 #
 module MemoWise
+  # NOTE: See YARD docs for {.memo_wise} directly below this method!
+  def memo_wise(method_name_or_hash)
+    klass = self
+    case method_name_or_hash
+    when Symbol
+      method_name = method_name_or_hash
+
+      if klass.singleton_class?
+        MemoWise::InternalAPI.create_memo_wise_state!(
+          MemoWise::InternalAPI.original_class_from_singleton(klass)
+        )
+      end
+
+      # Ensures a module extended by another class/module still works
+      # e.g. rails `ClassMethods` module
+      if klass.is_a?(Module) && !klass.is_a?(Class)
+        # Using `extended` without `included` & `prepended`
+        # As a call to `create_memo_wise_state!` is already included in
+        # `.allocate`/`#initialize`
+        #
+        # But a module/class extending another module with memo_wise
+        # would not call `.allocate`/`#initialize` before calling methods
+        #
+        # On method call `@_memo_wise` would still be `nil`
+        # causing error when fetching cache from `@_memo_wise`
+        def klass.extended(base)
+          MemoWise::InternalAPI.create_memo_wise_state!(base)
+        end
+      end
+    when Hash
+      unless method_name_or_hash.keys == [:self]
+        raise ArgumentError,
+          "`:self` is the only key allowed in memo_wise"
+      end
+
+      method_name = method_name_or_hash[:self]
+
+      MemoWise::InternalAPI.create_memo_wise_state!(self)
+
+      # In Ruby, "class methods" are implemented as normal instance methods
+      # on the "singleton class" of a given Class object, found via
+      # {Class#singleton_class}.
+      # See: https://medium.com/@leo_hetsch/demystifying-singleton-classes-in-ruby-caf3fa4c9d91
+      klass = klass.singleton_class
+    end
+
+    if klass.singleton_class?
+      # This ensures that a memoized method defined on a parent class can
+      # still be used in a child class.
+      klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+            def inherited(subclass)
+              super
+              MemoWise::InternalAPI.create_memo_wise_state!(subclass)
+            end
+      HEREDOC
+    end
+
+    raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
+
+    visibility = MemoWise::InternalAPI.method_visibility(klass, method_name)
+    original_memo_wised_name = MemoWise::InternalAPI.original_memo_wised_name(method_name)
+    method = klass.instance_method(method_name)
+
+    klass.send(:alias_method, original_memo_wised_name, method_name)
+    klass.send(:private, original_memo_wised_name)
+
+    method_arguments = MemoWise::InternalAPI.method_arguments(method)
+
+    case method_arguments
+    when MemoWise::InternalAPI::NONE
+      klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+        def #{method_name}
+          _memo_wise_output = @_memo_wise[:#{method_name}]
+          if _memo_wise_output || @_memo_wise.key?(:#{method_name})
+            _memo_wise_output
+          else
+            @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
+          end
+        end
+      HEREDOC
+    when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
+      key = method.parameters.first.last
+      klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+        def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+          _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
+          _memo_wise_output = _memo_wise_hash[#{key}]
+          if _memo_wise_output || _memo_wise_hash.key?(#{key})
+            _memo_wise_output
+          else
+            _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+          end
+        end
+      HEREDOC
+    # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT,
+    # MemoWise::InternalAPI::DOUBLE_SPLAT, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+    else
+      # NOTE: When benchmarking this implementation against something like:
+      #
+      #   @_memo_wise.fetch(key) do
+      #     ...
+      #   end
+      #
+      # this implementation may sometimes perform worse than the above. This
+      # is because this case uses a more complex hash key (see
+      # `MemoWise::InternalAPI.key_str`), and hashing that key has less
+      # consistent performance. In general, this should still be faster for
+      # truthy results because `Hash#[]` generally performs hash lookups
+      # faster than `Hash#fetch`.
+      klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+        def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+          _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
+          _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
+          _memo_wise_output = _memo_wise_hash[_memo_wise_key]
+          if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
+            _memo_wise_output
+          else
+            _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+          end
+        end
+      HEREDOC
+    end
+
+    klass.send(visibility, method_name)
+  end
+
   # @private
   #
   # Private setup method, called automatically by `extend MemoWise` in a class.
@@ -57,131 +182,6 @@ module MemoWise
       #
       def allocate
         MemoWise::InternalAPI.create_memo_wise_state!(super)
-      end
-
-      # NOTE: See YARD docs for {.memo_wise} directly below this method!
-      def memo_wise(method_name_or_hash)
-        klass = self
-        case method_name_or_hash
-        when Symbol
-          method_name = method_name_or_hash
-
-          if klass.singleton_class?
-            MemoWise::InternalAPI.create_memo_wise_state!(
-              MemoWise::InternalAPI.original_class_from_singleton(klass)
-            )
-          end
-
-          # Ensures a module extended by another class/module still works
-          # e.g. rails `ClassMethods` module
-          if klass.is_a?(Module) && !klass.is_a?(Class)
-            # Using `extended` without `included` & `prepended`
-            # As a call to `create_memo_wise_state!` is already included in
-            # `.allocate`/`#initialize`
-            #
-            # But a module/class extending another module with memo_wise
-            # would not call `.allocate`/`#initialize` before calling methods
-            #
-            # On method call `@_memo_wise` would still be `nil`
-            # causing error when fetching cache from `@_memo_wise`
-            def klass.extended(base)
-              MemoWise::InternalAPI.create_memo_wise_state!(base)
-            end
-          end
-        when Hash
-          unless method_name_or_hash.keys == [:self]
-            raise ArgumentError,
-                  "`:self` is the only key allowed in memo_wise"
-          end
-
-          method_name = method_name_or_hash[:self]
-
-          MemoWise::InternalAPI.create_memo_wise_state!(self)
-
-          # In Ruby, "class methods" are implemented as normal instance methods
-          # on the "singleton class" of a given Class object, found via
-          # {Class#singleton_class}.
-          # See: https://medium.com/@leo_hetsch/demystifying-singleton-classes-in-ruby-caf3fa4c9d91
-          klass = klass.singleton_class
-        end
-
-        if klass.singleton_class?
-          # This ensures that a memoized method defined on a parent class can
-          # still be used in a child class.
-          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-            def inherited(subclass)
-              super
-              MemoWise::InternalAPI.create_memo_wise_state!(subclass)
-            end
-          HEREDOC
-        end
-
-        raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
-
-        visibility = MemoWise::InternalAPI.method_visibility(klass, method_name)
-        original_memo_wised_name = MemoWise::InternalAPI.original_memo_wised_name(method_name)
-        method = klass.instance_method(method_name)
-
-        klass.send(:alias_method, original_memo_wised_name, method_name)
-        klass.send(:private, original_memo_wised_name)
-
-        method_arguments = MemoWise::InternalAPI.method_arguments(method)
-
-        case method_arguments
-        when MemoWise::InternalAPI::NONE
-          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-            def #{method_name}
-              _memo_wise_output = @_memo_wise[:#{method_name}]
-              if _memo_wise_output || @_memo_wise.key?(:#{method_name})
-                _memo_wise_output
-              else
-                @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
-              end
-            end
-          HEREDOC
-        when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
-          key = method.parameters.first.last
-          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-            def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-              _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
-              _memo_wise_output = _memo_wise_hash[#{key}]
-              if _memo_wise_output || _memo_wise_hash.key?(#{key})
-                _memo_wise_output
-              else
-                _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
-              end
-            end
-          HEREDOC
-        # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT,
-        # MemoWise::InternalAPI::DOUBLE_SPLAT, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-        else
-          # NOTE: When benchmarking this implementation against something like:
-          #
-          #   @_memo_wise.fetch(key) do
-          #     ...
-          #   end
-          #
-          # this implementation may sometimes perform worse than the above. This
-          # is because this case uses a more complex hash key (see
-          # `MemoWise::InternalAPI.key_str`), and hashing that key has less
-          # consistent performance. In general, this should still be faster for
-          # truthy results because `Hash#[]` generally performs hash lookups
-          # faster than `Hash#fetch`.
-          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-            def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-              _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
-              _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
-              _memo_wise_output = _memo_wise_hash[_memo_wise_key]
-              if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
-                _memo_wise_output
-              else
-                _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
-              end
-            end
-          HEREDOC
-        end
-
-        klass.send(visibility, method_name)
       end
     end
 
