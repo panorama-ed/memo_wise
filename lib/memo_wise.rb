@@ -200,7 +200,7 @@ module MemoWise
 
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-              _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
+              _memo_wise_hash = (@_memo_wise_#{method_name} ||= {})
               _memo_wise_output = _memo_wise_hash[#{key}]
               if _memo_wise_output || _memo_wise_hash.key?(#{key})
                 _memo_wise_output
@@ -226,7 +226,7 @@ module MemoWise
           # faster than `Hash#fetch`.
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-              _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
+              _memo_wise_hash = (@_memo_wise_#{method_name} ||= {})
               _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
               _memo_wise_output = _memo_wise_hash[_memo_wise_key]
               if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
@@ -453,7 +453,7 @@ module MemoWise
       return
     end
 
-    hash = (@_memo_wise[index] ||= {})
+    hash = MemoWise::InternalAPI.memo_wise_hash(self, method_name)
 
     case method_arguments
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then hash[args.first] = yield
@@ -540,6 +540,7 @@ module MemoWise
       raise ArgumentError, "Provided args when method_name = nil" unless args.empty?
       raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
 
+      # TODO: track and clear all memo_wise instance vars
       @_memo_wise.clear
       @_memo_wise_sentinels.clear
       return
@@ -554,6 +555,7 @@ module MemoWise
     method = method(method_name)
     method_arguments = MemoWise::InternalAPI.method_arguments(method)
     index = api.index(method_name)
+    memo_wise_hash = MemoWise::InternalAPI.memo_wise_hash(self, method_name)
 
     case method_arguments
     when MemoWise::InternalAPI::NONE
@@ -561,31 +563,31 @@ module MemoWise
       @_memo_wise[index] = nil
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL
       if args.empty?
-        @_memo_wise[index]&.clear
+        memo_wise_hash&.clear
       else
-        @_memo_wise[index]&.delete(args.first)
+        memo_wise_hash&.delete(args.first)
       end
     when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
       if kwargs.empty?
-        @_memo_wise[index]&.clear
+        memo_wise_hash&.clear
       else
-        @_memo_wise[index]&.delete(kwargs.first.last)
+        memo_wise_hash&.delete(kwargs.first.last)
       end
     when MemoWise::InternalAPI::SPLAT
       if args.empty?
-        @_memo_wise[index]&.clear
+        memo_wise_hash&.clear
       else
-        @_memo_wise[index]&.delete(args)
+        memo_wise_hash&.delete(args)
       end
     when MemoWise::InternalAPI::DOUBLE_SPLAT
       if kwargs.empty?
-        @_memo_wise[index]&.clear
+        memo_wise_hash&.clear
       else
-        @_memo_wise[index]&.delete(kwargs)
+        memo_wise_hash&.delete(kwargs)
       end
     else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
       if args.empty? && kwargs.empty?
-        @_memo_wise[index]&.clear
+        memo_wise_hash&.clear
       else
         key = if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
                 [args, kwargs]
@@ -594,7 +596,7 @@ module MemoWise
                   type == :req ? args[i] : kwargs[name] # rubocop:disable Metrics/BlockNesting
                 end
               end
-        @_memo_wise[index]&.delete(key)
+        memo_wise_hash&.delete(key)
       end
     end
   end

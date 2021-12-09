@@ -293,6 +293,15 @@ module MemoWise
       end
     end
 
+    def self.memo_wise_hash(klass, method_name)
+      klass.instance_variable_get(method_name_to_sym(klass, method_name)) ||
+        klass.instance_variable_set(method_name_to_sym(klass, method_name), {})
+    end
+
+    def self.method_name_to_sym(klass, method_name)
+      "@_memo_wise_#{method_name}".gsub("?", "__q__").to_sym
+    end
+
     private
 
     # @return [Class] where we look for method definitions
