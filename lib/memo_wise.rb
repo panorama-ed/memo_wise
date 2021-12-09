@@ -37,6 +37,24 @@ module MemoWise
 
   # NOTE: See YARD docs for {.memo_wise} directly below this method!
   def memo_wise(method_name_or_hash)
+    if Hash === method_name_or_hash
+      unless method_name_or_hash.keys == [:self]
+        raise ArgumentError, "`:self` is the only key allowed in memo_wise"
+      end
+
+      method_name = method_name_or_hash[:self]
+
+      # In Ruby, "class methods" are implemented as normal instance methods
+      # on the "singleton class" of a given Class object, found via
+      # {Class#singleton_class}.
+      # See: https://medium.com/@leo_hetsch/demystifying-singleton-classes-in-ruby-caf3fa4c9d91
+      #
+      # So, we make the singleton class extend the MemoWise module too, and
+      # just delegate the call to the `memo_wise` method on the singleton class
+      singleton_class.extend(MemoWise)
+      return singleton_class.memo_wise(method_name)
+    end
+
     klass = self
     case method_name_or_hash
     when Symbol
@@ -64,21 +82,6 @@ module MemoWise
           MemoWise::InternalAPI.create_memo_wise_state!(base)
         end
       end
-    when Hash
-      unless method_name_or_hash.keys == [:self]
-        raise ArgumentError,
-          "`:self` is the only key allowed in memo_wise"
-      end
-
-      method_name = method_name_or_hash[:self]
-
-      MemoWise::InternalAPI.create_memo_wise_state!(self)
-
-      # In Ruby, "class methods" are implemented as normal instance methods
-      # on the "singleton class" of a given Class object, found via
-      # {Class#singleton_class}.
-      # See: https://medium.com/@leo_hetsch/demystifying-singleton-classes-in-ruby-caf3fa4c9d91
-      klass = klass.singleton_class
     end
 
     if klass.singleton_class?
