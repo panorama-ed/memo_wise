@@ -193,19 +193,30 @@ module MemoWise
       end
     end
 
-    # Validates that {.memo_wise} has already been called on `method_name`.
+    # Validates that `method_name` is a method defined by a call to {.memo_wise},
+    # and returns the method
     #
     # @param target [Class, Module]
     #   The class to which we are prepending MemoWise to provide memoization.
     #
     # @param method_name [Symbol]
-    #   Name of method to validate has already been setup with {.memo_wise}
-    def self.validate_memo_wised!(target, method_name)
-      original_name = original_memo_wised_name(method_name)
+    #   Name of method that should have been setup with {.memo_wise}
+    def memo_wised_method(method_name)
+      klass = target_class
 
-      unless target_class(target).private_method_defined?(original_name)
+      method_defined = klass.method_defined?(method_name) || klass.private_method_defined?(method_name)
+
+      unless method_defined
         raise ArgumentError, "#{method_name} is not a memo_wised method"
       end
+
+      method = klass.instance_method(method_name)
+
+      unless method.owner == klass.memo_wise_module && method.super_method
+        raise ArgumentError, "#{method_name} is not a memo_wised method"
+      end
+
+      method
     end
 
     # @param target [Class, Module]
