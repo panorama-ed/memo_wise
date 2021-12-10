@@ -95,7 +95,43 @@ module MemoWise
     end
   end
 
-  # NOTE: See YARD docs for {.memo_wise} directly below this method!
+  ##
+  # @!method self.memo_wise(method_name)
+  #   Implements memoization for the given method name.
+  #
+  #   - **Q:** What does it mean to "implement memoization"?
+  #   - **A:** To wrap the original method such that, for any given set of
+  #            arguments, the original method will be called at most *once*. The
+  #            result of that call will be stored on the object. All future
+  #            calls to the same method with the same set of arguments will then
+  #            return that saved result.
+  #
+  #   Methods which implicitly or explicitly take block arguments cannot be
+  #   memoized.
+  #
+  #   @param method_name [Symbol]
+  #     Name of method for which to implement memoization.
+  #
+  #   @return [void]
+  #
+  #   @example
+  #     class Example
+  #       extend MemoWise
+  #
+  #       def method_to_memoize(x)
+  #         @method_called_times = (@method_called_times || 0) + 1
+  #       end
+  #       memo_wise :method_to_memoize
+  #     end
+  #
+  #     ex = Example.new
+  #
+  #     ex.method_to_memoize("a") #=> 1
+  #     ex.method_to_memoize("a") #=> 1
+  #
+  #     ex.method_to_memoize("b") #=> 2
+  #     ex.method_to_memoize("b") #=> 2
+  ##
   def memo_wise(method_name_or_hash)
     if Hash === method_name_or_hash
       unless method_name_or_hash.keys == [:self]
@@ -209,44 +245,6 @@ module MemoWise
       end
     end
   end
-
-  ##
-  # @!method self.memo_wise(method_name)
-  #   Implements memoization for the given method name.
-  #
-  #   - **Q:** What does it mean to "implement memoization"?
-  #   - **A:** To wrap the original method such that, for any given set of
-  #            arguments, the original method will be called at most *once*. The
-  #            result of that call will be stored on the object. All future
-  #            calls to the same method with the same set of arguments will then
-  #            return that saved result.
-  #
-  #   Methods which implicitly or explicitly take block arguments cannot be
-  #   memoized.
-  #
-  #   @param method_name [Symbol]
-  #     Name of method for which to implement memoization.
-  #
-  #   @return [void]
-  #
-  #   @example
-  #     class Example
-  #       extend MemoWise
-  #
-  #       def method_to_memoize(x)
-  #         @method_called_times = (@method_called_times || 0) + 1
-  #       end
-  #       memo_wise :method_to_memoize
-  #     end
-  #
-  #     ex = Example.new
-  #
-  #     ex.method_to_memoize("a") #=> 1
-  #     ex.method_to_memoize("a") #=> 1
-  #
-  #     ex.method_to_memoize("b") #=> 2
-  #     ex.method_to_memoize("b") #=> 2
-  ##
 
   ##
   # @!method self.preset_memo_wise(method_name, *args, **kwargs)
