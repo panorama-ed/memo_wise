@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Nothing yet!
+
+## [1.4.0] - 2021-12-10
+
+### Fixed
+
 - Fix several bugs related to classes inheriting memoized methods
   from multiple modules or a parent class ([#241](https://github.com/panorama-ed/memo_wise/pull/241))
 
 ## [1.3.0] - 2021-11-22
+
+### Fixed
 
 - Fix thread-safety issue in concurrent calls to zero-arg method in unmemoized
   state which resulted in a `nil` value being accidentally returned in one thread
@@ -102,7 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Panolint
 - Dependabot setup
 
-[Unreleased]: https://github.com/panorama-ed/memo_wise/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/panorama-ed/memo_wise/compare/v1.4.0...HEAD
+[1.3.0]: https://github.com/panorama-ed/memo_wise/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/panorama-ed/memo_wise/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/panorama-ed/memo_wise/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/panorama-ed/memo_wise/compare/v1.0.0...v1.1.0
