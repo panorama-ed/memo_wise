@@ -327,169 +327,104 @@ module MemoWise
           hash[[args, kwargs]] = yield
         end
       end
-    end
-  end
 
-  ##
-  # @!method self.preset_memo_wise(method_name, *args, **kwargs)
-  #   Implementation of {#preset_memo_wise} for class methods.
-  #
-  #   @example
-  #     class Example
-  #       extend MemoWise
-  #
-  #       def self.method_called_times
-  #         @method_called_times
-  #       end
-  #
-  #       def self.method_to_preset
-  #         @method_called_times = (@method_called_times || 0) + 1
-  #         "A"
-  #       end
-  #       memo_wise self: :method_to_preset
-  #     end
-  #
-  #     Example.preset_memo_wise(:method_to_preset) { "B" }
-  #
-  #     Example.method_to_preset #=> "B"
-  #
-  #     Example.method_called_times #=> nil
-  ##
+      # Resets memoized results of a given method, or all methods.
+      #
+      # There are three _reset modes_ depending on how this method is called:
+      #
+      # **method + args** mode (most specific)
+      #
+      # - If given `method_name` and *either* `args` *or* `kwargs` *or* both:
+      # - Resets *only* the memoized result of calling `method_name` with those
+      #   particular arguments.
+      #
+      # **method** (any args) mode
+      #
+      # - If given `method_name` and *neither* `args` *nor* `kwargs`:
+      # - Resets *all* memoized results of calling `method_name` with any arguments.
+      #
+      # **all methods** mode (most general)
+      #
+      # - If *not* given `method_name`:
+      # - Resets all memoized results of calling *all methods*.
+      #
+      # @param method_name [Symbol, nil]
+      #   (Optional) Name of a method previously set up with `#memo_wise`. If not
+      #   given, will reset *all* memoized results for *all* methods.
+      #
+      # @param args [Array]
+      #   (Optional) If the method takes positional args, these are the values of
+      #   position args for which the memoized result will be reset.
+      #
+      # @param kwargs [Hash]
+      #   (Optional) If the method takes keyword args, these are the keys and values
+      #   of keyword args for which the memoized result will be reset.
+      #
+      # @return [void]
+      #
+      # @example
+      #   class Example
+      #     extend MemoWise
+      #
+      #     def method_to_reset(x)
+      #       @method_called_times = (@method_called_times || 0) + 1
+      #     end
+      #     memo_wise :method_to_reset
+      #   end
+      #
+      #   ex = Example.new
+      #
+      #   ex.method_to_reset("a") #=> 1
+      #   ex.method_to_reset("a") #=> 1
+      #   ex.method_to_reset("b") #=> 2
+      #   ex.method_to_reset("b") #=> 2
+      #
+      #   ex.reset_memo_wise(:method_to_reset, "a") # reset "method + args" mode
+      #
+      #   ex.method_to_reset("a") #=> 3
+      #   ex.method_to_reset("a") #=> 3
+      #   ex.method_to_reset("b") #=> 2
+      #   ex.method_to_reset("b") #=> 2
+      #
+      #   ex.reset_memo_wise(:method_to_reset) # reset "method" (any args) mode
+      #
+      #   ex.method_to_reset("a") #=> 4
+      #   ex.method_to_reset("b") #=> 5
+      #
+      #   ex.reset_memo_wise # reset "all methods" mode
+      #
+      def reset_memo_wise(method_name = nil, *args, **kwargs)
+        if method_name.nil?
+          raise ArgumentError, "Provided args when method_name = nil" unless args.empty?
+          raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
 
-  ##
-  # @!method self.reset_memo_wise(method_name = nil, *args, **kwargs)
-  #   Implementation of {#reset_memo_wise} for class methods.
-  #
-  #   @example
-  #     class Example
-  #       extend MemoWise
-  #
-  #       def self.method_to_reset(x)
-  #         @method_called_times = (@method_called_times || 0) + 1
-  #       end
-  #       memo_wise self: :method_to_reset
-  #     end
-  #
-  #     Example.method_to_reset("a") #=> 1
-  #     Example.method_to_reset("a") #=> 1
-  #     Example.method_to_reset("b") #=> 2
-  #     Example.method_to_reset("b") #=> 2
-  #
-  #     Example.reset_memo_wise(:method_to_reset, "a") # reset "method + args" mode
-  #
-  #     Example.method_to_reset("a") #=> 3
-  #     Example.method_to_reset("a") #=> 3
-  #     Example.method_to_reset("b") #=> 2
-  #     Example.method_to_reset("b") #=> 2
-  #
-  #     Example.reset_memo_wise(:method_to_reset) # reset "method" (any args) mode
-  #
-  #     Example.method_to_reset("a") #=> 4
-  #     Example.method_to_reset("b") #=> 5
-  #
-  #     Example.reset_memo_wise # reset "all methods" mode
-  ##
+          @_memo_wise.clear
+          return
+        end
 
-  # Resets memoized results of a given method, or all methods.
-  #
-  # There are three _reset modes_ depending on how this method is called:
-  #
-  # **method + args** mode (most specific)
-  #
-  # - If given `method_name` and *either* `args` *or* `kwargs` *or* both:
-  # - Resets *only* the memoized result of calling `method_name` with those
-  #   particular arguments.
-  #
-  # **method** (any args) mode
-  #
-  # - If given `method_name` and *neither* `args` *nor* `kwargs`:
-  # - Resets *all* memoized results of calling `method_name` with any arguments.
-  #
-  # **all methods** mode (most general)
-  #
-  # - If *not* given `method_name`:
-  # - Resets all memoized results of calling *all methods*.
-  #
-  # @param method_name [Symbol, nil]
-  #   (Optional) Name of a method previously set up with `#memo_wise`. If not
-  #   given, will reset *all* memoized results for *all* methods.
-  #
-  # @param args [Array]
-  #   (Optional) If the method takes positional args, these are the values of
-  #   position args for which the memoized result will be reset.
-  #
-  # @param kwargs [Hash]
-  #   (Optional) If the method takes keyword args, these are the keys and values
-  #   of keyword args for which the memoized result will be reset.
-  #
-  # @return [void]
-  #
-  # @example
-  #   class Example
-  #     extend MemoWise
-  #
-  #     def method_to_reset(x)
-  #       @method_called_times = (@method_called_times || 0) + 1
-  #     end
-  #     memo_wise :method_to_reset
-  #   end
-  #
-  #   ex = Example.new
-  #
-  #   ex.method_to_reset("a") #=> 1
-  #   ex.method_to_reset("a") #=> 1
-  #   ex.method_to_reset("b") #=> 2
-  #   ex.method_to_reset("b") #=> 2
-  #
-  #   ex.reset_memo_wise(:method_to_reset, "a") # reset "method + args" mode
-  #
-  #   ex.method_to_reset("a") #=> 3
-  #   ex.method_to_reset("a") #=> 3
-  #   ex.method_to_reset("b") #=> 2
-  #   ex.method_to_reset("b") #=> 2
-  #
-  #   ex.reset_memo_wise(:method_to_reset) # reset "method" (any args) mode
-  #
-  #   ex.method_to_reset("a") #=> 4
-  #   ex.method_to_reset("b") #=> 5
-  #
-  #   ex.reset_memo_wise # reset "all methods" mode
-  #
-  def reset_memo_wise(method_name = nil, *args, **kwargs)
-    if method_name.nil?
-      raise ArgumentError, "Provided args when method_name = nil" unless args.empty?
-      raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
+        method = method(MemoWise::InternalAPI.original_memo_wised_name(method_name))
+        method_arguments = MemoWise::InternalAPI.method_arguments(method)
 
-      @_memo_wise.clear
-      return
-    end
+        # method_name == MemoWise::InternalAPI::NONE will be covered by this case.
+        @_memo_wise.delete(method_name) if args.empty? && kwargs.empty?
+        method_hash = @_memo_wise[method_name]
 
-    raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
-    raise ArgumentError, "#{method_name} is not a defined method" unless respond_to?(method_name, true)
-
-    MemoWise::InternalAPI.validate_memo_wised!(self, method_name)
-
-    method = method(MemoWise::InternalAPI.original_memo_wised_name(method_name))
-    method_arguments = MemoWise::InternalAPI.method_arguments(method)
-
-    # method_name == MemoWise::InternalAPI::NONE will be covered by this case.
-    @_memo_wise.delete(method_name) if args.empty? && kwargs.empty?
-    method_hash = @_memo_wise[method_name]
-
-    case method_arguments
-    when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then method_hash&.delete(args.first)
-    when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD then method_hash&.delete(kwargs.first.last)
-    when MemoWise::InternalAPI::SPLAT then method_hash&.delete(args)
-    when MemoWise::InternalAPI::DOUBLE_SPLAT then method_hash&.delete(kwargs)
-    else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-      key = if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-              [args, kwargs]
-            else
-              method.parameters.map.with_index do |(type, name), i|
-                type == :req ? args[i] : kwargs[name]
-              end
-            end
-      method_hash&.delete(key)
+        case method_arguments
+        when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then method_hash&.delete(args.first)
+        when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD then method_hash&.delete(kwargs.first.last)
+        when MemoWise::InternalAPI::SPLAT then method_hash&.delete(args)
+        when MemoWise::InternalAPI::DOUBLE_SPLAT then method_hash&.delete(kwargs)
+        else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+          key = if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+                  [args, kwargs]
+                else
+                  method.parameters.map.with_index do |(type, name), i|
+                    type == :req ? args[i] : kwargs[name]
+                  end
+                end
+          method_hash&.delete(key)
+        end
+      end
     end
   end
 end
