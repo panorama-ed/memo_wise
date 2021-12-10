@@ -80,10 +80,7 @@ module MemoWise
       # just delegate the call to the `memo_wise` method that is now defined
       # on the singleton class.
       singleton_class.extend(MemoWise)
-      res = singleton_class.memo_wise(method_name)
-      binding.irb if method_name== :child_method
-      binding.irb if method_name== :no_args
-      return res
+      return singleton_class.memo_wise(method_name)
     end
 
     method_name = method_name_or_hash
@@ -96,7 +93,6 @@ module MemoWise
 
     case MemoWise::InternalAPI.method_arguments(method)
     when MemoWise::InternalAPI::NONE
-      index = api.index(method_name)
       # Zero-arg methods can use simpler/more performant logic because the
       # hash key is just the method name.
       memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
@@ -107,8 +103,8 @@ module MemoWise
           else
             @_memo_wise[:#{method_name}] = super(&nil)
           end
-        end
-      HEREDOC
+        HEREDOC
+      end
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
       key = method.parameters.first.last
       index = api.index(method_name)
