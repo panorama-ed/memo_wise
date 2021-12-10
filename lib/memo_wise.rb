@@ -210,33 +210,6 @@ module MemoWise
     end
   end
 
-  # @private
-  #
-  # Private setup method, called automatically by `extend MemoWise` in a class.
-  #
-  # @param target [Class]
-  #   The `Class` into to prepend the MemoWise methods e.g. `memo_wise`
-  #
-  # @see https://ruby-doc.org/core-3.0.0/Module.html#method-i-prepended
-  #
-  # @example
-  #   class Example
-  #     extend MemoWise
-  #   end
-  #
-  def self.prepended(target)
-    unless target.singleton_class?
-      # Create class methods to implement .preset_memo_wise and .reset_memo_wise
-      %i[preset_memo_wise reset_memo_wise].each do |method_name|
-        # Like calling 'module_function', but original method stays public
-        target.define_singleton_method(
-          method_name,
-          MemoWise.instance_method(method_name)
-        )
-      end
-    end
-  end
-
   ##
   # @!method self.memo_wise(method_name)
   #   Implements memoization for the given method name.
