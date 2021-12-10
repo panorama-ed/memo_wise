@@ -30,11 +30,7 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
       it "returns expected parameters" do
         is_expected.to eq(expected_parameters)
       end
-
-      it "proxies UnboundMethod#parameters via singleton method" do
-        expect(unbound_method.singleton_methods).to eq [:parameters]
-      end
-    end
+   end
 
     context "when #with_optional_positional_and_keyword_args" do
       let(:method_name) { :with_optional_positional_and_keyword_args }

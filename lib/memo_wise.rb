@@ -106,6 +106,8 @@ module MemoWise
         end
       HEREDOC
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
+      key = method.parameters.first.last
+
       memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
         def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
           _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})

@@ -108,8 +108,8 @@ RSpec.describe MemoWise::InternalAPI do
     end
   end
 
-  describe ".method_visibility" do
-    subject { described_class.method_visibility(String, method_name) }
+  describe "#method_visibility" do
+    subject { described_class.new.method_visibility(String, method_name) }
 
     context "when method_name is not a method on klass" do
       let(:method_name) { :not_a_method }

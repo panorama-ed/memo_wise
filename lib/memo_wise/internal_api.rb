@@ -168,9 +168,6 @@ module MemoWise
 
     # Returns visibility of an instance method defined on class `target`.
     #
-    # @param target [Class, Module]
-    #   The class to which we are prepending MemoWise to provide memoization.
-    #
     # @param method_name [Symbol]
     #   Name of existing *instance* method find the visibility of.
     #
@@ -181,7 +178,7 @@ module MemoWise
     #   Raises `ArgumentError` unless `method_name` is a `Symbol` corresponding
     #   to an existing **instance** method defined on `klass`.
     #
-    def self.method_visibility(target, method_name)
+    def method_visibility(method_name)
       if target.private_method_defined?(method_name)
         :private
       elsif target.protected_method_defined?(method_name)
@@ -219,10 +216,8 @@ module MemoWise
       method
     end
 
-    # @param target [Class, Module]
-    #   The class to which we are prepending MemoWise to provide memoization.
     # @return [Class] where we look for method definitions
-    def self.target_class(target)
+    def target_class
       if target.instance_of?(Class)
         # A class's methods are defined in its singleton class
         target.singleton_class
