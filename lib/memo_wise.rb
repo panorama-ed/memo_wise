@@ -184,7 +184,7 @@ module MemoWise
   private
 
   def build_module
-    Module.new do
+    mod = Module.new do
       # `@_memo_wise` stores memoized results of method calls. The structure is
       # slightly different for different types of methods. It looks like:
       #   [
@@ -426,5 +426,7 @@ module MemoWise
         end
       end
     end
+
+    mod.tap { const_set(:MemoWiseMethods, mod) }
   end
 end
