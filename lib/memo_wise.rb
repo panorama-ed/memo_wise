@@ -117,8 +117,8 @@ module MemoWise
           end
         end
       HEREDOC
-    # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT,
-    # MemoWise::InternalAPI::DOUBLE_SPLAT, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+      # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT,
+      # MemoWise::InternalAPI::DOUBLE_SPLAT, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
     else
       # NOTE: When benchmarking this implementation against something like:
       #
@@ -245,6 +245,88 @@ module MemoWise
         _memo_wise_sentinels
         super
       end
+
+      # Presets the memoized result for the given method to the result of the given
+      # block.
+      #
+      # This method is for situations where the caller *already* has the result of
+      # an expensive method call, and wants to preset that result as memoized for
+      # future calls. In other words, the memoized method will be called *zero*
+      # times rather than once.
+      #
+      # NOTE: Currently, no attempt is made to validate that the given arguments are
+      # valid for the given method.
+      #
+      # @param method_name [Symbol]
+      #   Name of a method previously set up with `#memo_wise`.
+      #
+      # @param args [Array]
+      #   (Optional) If the method takes positional args, these are the values of
+      #   position args for which the given block's result will be preset as the
+      #   memoized result.
+      #
+      # @param kwargs [Hash]
+      #   (Optional) If the method takes keyword args, these are the keys and values
+      #   of keyword args for which the given block's result will be preset as the
+      #   memoized result.
+      #
+      # @yieldreturn [Object]
+      #   The result of the given block will be preset as memoized for future calls
+      #   to the given method.
+      #
+      # @return [void]
+      #
+      # @example
+      #   class Example
+      #     extend MemoWise
+      #     attr_reader :method_called_times
+      #
+      #     def method_to_preset
+      #       @method_called_times = (@method_called_times || 0) + 1
+      #       "A"
+      #     end
+      #     memo_wise :method_to_preset
+      #   end
+      #
+      #   ex = Example.new
+      #
+      #   ex.preset_memo_wise(:method_to_preset) { "B" }
+      #
+      #   ex.method_to_preset #=> "B"
+      #
+      #   ex.method_called_times #=> nil
+      #
+      def preset_memo_wise(method_name, *args, **kwargs)
+        raise ArgumentError, "Pass a block as the value to preset for #{method_name}, #{args}" unless block_given?
+
+        api = MemoWise::InternalAPI.new(self)
+        method = api.memo_wised_method(method_name)
+
+        method_arguments = MemoWise::InternalAPI.method_arguments(method)
+        index = api.index(method_name)
+
+        if method_arguments == MemoWise::InternalAPI::NONE
+          _memo_wise_sentinels[index] = true
+          _memo_wise[index] = yield
+          return
+        end
+
+        hash = (_memo_wise[index] ||= {})
+
+        case method_arguments
+        when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then hash[args.first] = yield
+        when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD then hash[kwargs.first.last] = yield
+        when MemoWise::InternalAPI::SPLAT then hash[args] = yield
+        when MemoWise::InternalAPI::DOUBLE_SPLAT then hash[kwargs] = yield
+        when MemoWise::InternalAPI::MULTIPLE_REQUIRED
+          key = method.parameters.map.with_index do |(type, name), idx|
+            type == :req ? args[idx] : kwargs[name]
+          end
+          hash[key] = yield
+        else # MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+          hash[[args, kwargs]] = yield
+        end
+      end
     end
   end
 
@@ -307,87 +389,6 @@ module MemoWise
   #
   #     Example.reset_memo_wise # reset "all methods" mode
   ##
-
-  # Presets the memoized result for the given method to the result of the given
-  # block.
-  #
-  # This method is for situations where the caller *already* has the result of
-  # an expensive method call, and wants to preset that result as memoized for
-  # future calls. In other words, the memoized method will be called *zero*
-  # times rather than once.
-  #
-  # NOTE: Currently, no attempt is made to validate that the given arguments are
-  # valid for the given method.
-  #
-  # @param method_name [Symbol]
-  #   Name of a method previously set up with `#memo_wise`.
-  #
-  # @param args [Array]
-  #   (Optional) If the method takes positional args, these are the values of
-  #   position args for which the given block's result will be preset as the
-  #   memoized result.
-  #
-  # @param kwargs [Hash]
-  #   (Optional) If the method takes keyword args, these are the keys and values
-  #   of keyword args for which the given block's result will be preset as the
-  #   memoized result.
-  #
-  # @yieldreturn [Object]
-  #   The result of the given block will be preset as memoized for future calls
-  #   to the given method.
-  #
-  # @return [void]
-  #
-  # @example
-  #   class Example
-  #     extend MemoWise
-  #     attr_reader :method_called_times
-  #
-  #     def method_to_preset
-  #       @method_called_times = (@method_called_times || 0) + 1
-  #       "A"
-  #     end
-  #     memo_wise :method_to_preset
-  #   end
-  #
-  #   ex = Example.new
-  #
-  #   ex.preset_memo_wise(:method_to_preset) { "B" }
-  #
-  #   ex.method_to_preset #=> "B"
-  #
-  #   ex.method_called_times #=> nil
-  #
-  def preset_memo_wise(method_name, *args, **kwargs)
-    raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
-    raise ArgumentError, "Pass a block as the value to preset for #{method_name}, #{args}" unless block_given?
-
-    MemoWise::InternalAPI.validate_memo_wised!(self, method_name)
-
-    method = method(MemoWise::InternalAPI.original_memo_wised_name(method_name))
-    method_arguments = MemoWise::InternalAPI.method_arguments(method)
-
-    if method_arguments == MemoWise::InternalAPI::NONE
-      @_memo_wise[method_name] = yield
-      return
-    end
-
-    hash = (@_memo_wise[method_name] ||= {})
-
-    case method_arguments
-    when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then hash[args.first] = yield
-    when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD then hash[kwargs.first.last] = yield
-    when MemoWise::InternalAPI::SPLAT then hash[args] = yield
-    when MemoWise::InternalAPI::DOUBLE_SPLAT then hash[kwargs] = yield
-    when MemoWise::InternalAPI::MULTIPLE_REQUIRED
-      key = method.parameters.map.with_index do |(type, name), idx|
-        type == :req ? args[idx] : kwargs[name]
-      end
-      hash[key] = yield
-    else # MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-      hash[[args, kwargs]] = yield
-    end
-  end
 
   # Resets memoized results of a given method, or all methods.
   #
