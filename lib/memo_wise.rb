@@ -147,6 +147,8 @@ module MemoWise
     end
 
     memo_wise_module.send(visibility, method_name)
+
+    method_name
   end
 
   # Override [Module#instance_method](https://ruby-doc.org/core-3.0.0/Module.html#method-i-instance_method)
