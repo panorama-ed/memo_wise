@@ -226,6 +226,5 @@ module MemoWise
         target.class
       end
     end
-    private_class_method :target_class
   end
 end

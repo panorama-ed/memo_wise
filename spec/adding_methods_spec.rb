@@ -1,23 +1,29 @@
 # frozen_string_literal: true
 
 RSpec.describe "adding methods" do # rubocop:disable RSpec/DescribeClass
-  let(:klass) { Class.new }
+  let(:klass) do 
+    Class.new do
+      extend MemoWise
+      def self.no_args ; end
+      def no_args ; end
+    end
+  end
 
   context "when class extends MemoWise" do
-    subject { klass.send(:extend, MemoWise) }
+    subject { klass.memo_wise(:no_args) }
 
     let(:expected_public_instance_methods) do
       %i[
         preset_memo_wise
         reset_memo_wise
+        _memo_wise
       ].to_set
     end
 
     let(:expected_public_class_methods) do
       %i[
-        allocate
-        instance_method
-        memo_wise
+        _memo_wise
+        freeze
         preset_memo_wise
         reset_memo_wise
       ].to_set
@@ -35,7 +41,7 @@ RSpec.describe "adding methods" do # rubocop:disable RSpec/DescribeClass
     end
 
     it "adds expected public *class* methods only" do
-      expect { subject }.
+      expect { klass.memo_wise(self: :no_args) }.
         to change { klass.singleton_methods.to_set }.
         by(expected_public_class_methods)
     end

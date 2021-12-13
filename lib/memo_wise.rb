@@ -96,26 +96,26 @@ module MemoWise
       # Zero-arg methods can use simpler/more performant logic because the
       # hash key is just the method name.
       memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-        def #{method_name}
-          _memo_wise_output = @_memo_wise[:#{method_name}]
-          if _memo_wise_output || @_memo_wise.key?(:#{method_name})
-            _memo_wise_output
-          else
-            @_memo_wise[:#{method_name}] = super(&nil)
+          def #{method_name}
+            _memo_wise_output = _memo_wise[:#{method_name}]
+            if _memo_wise_output || _memo_wise.key?(:#{method_name})
+              _memo_wise_output
+            else
+              _memo_wise[:#{method_name}] = super(&nil)
+            end
           end
         HEREDOC
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
       key = method.parameters.first.last
-      index = api.index(method_name)
 
       memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
         def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-          _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
+          _memo_wise_hash = (_memo_wise[:#{method_name}] ||= {})
           _memo_wise_output = _memo_wise_hash[#{key}]
           if _memo_wise_output || _memo_wise_hash.key?(#{key})
             _memo_wise_output
           else
-            _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+            _memo_wise_hash[#{key}] = super(#{MemoWise::InternalAPI.call_str(method)})
           end
         end
       HEREDOC
@@ -134,16 +134,15 @@ module MemoWise
       # consistent performance. In general, this should still be faster for
       # truthy results because `Hash#[]` generally performs hash lookups
       # faster than `Hash#fetch`.
-      index = api.index(method_name)
       memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
         def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-          _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
+          _memo_wise_hash = (_memo_wise[:#{method_name}] ||= {})
           _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
           _memo_wise_output = _memo_wise_hash[_memo_wise_key]
           if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
             _memo_wise_output
           else
-            _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+            _memo_wise_hash[_memo_wise_key] = super(#{MemoWise::InternalAPI.call_str(method)})
           end
         end
       HEREDOC
@@ -209,31 +208,7 @@ module MemoWise
       # perform that array lookup more quickly than a hash lookup by method
       # name.
       def _memo_wise
-        @_memo_wise ||= []
-      end
-
-      # For zero-arity methods, memoized values are stored in the `@_memo_wise`
-      # array. Arrays do not differentiate between "unset" and "set to nil" and
-      # so to handle this case we need another array to store sentinels and
-      # store `true` at indexes for which a zero-arity method has been memoized.
-      # `@_memo_wise_sentinels` looks like:
-      #   [
-      #     true, # A zero-arity method's result has been memoized
-      #     nil, # A zero-arity method's result has not been memoized
-      #     nil, # A one-arity method will always correspond to `nil` here
-      #     ...
-      #   ]
-      # NOTE: Because `@_memo_wise` stores memoized values for more than just
-      # zero-arity methods, the `@_memo_wise_sentinels` array can end up being
-      # sparse (see above), even when all methods' memoized values have been
-      # stored. If this becomes an issue we could store a separate index for
-      # zero-arity methods to make every element in `@_memo_wise_sentinels`
-      # correspond to a zero-arity method.
-      # NOTE: Surprisingly, lookups on an array of `true` and `nil` values
-      # appear to outperform even bitwise operators on integers (as of Ruby
-      # 3.0.2), allowing us to avoid more complex sentinel structures.
-      def _memo_wise_sentinels
-        @_memo_wise_sentinels ||= []
+        @_memo_wise ||= {}
       end
 
       # In order to support memoization on frozen (immutable) objects, we
@@ -247,7 +222,6 @@ module MemoWise
       # [gem](https://rubygems.org/gems/values).
       def freeze
         _memo_wise
-        _memo_wise_sentinels
         super
       end
 
@@ -302,21 +276,20 @@ module MemoWise
       #   ex.method_called_times #=> nil
       #
       def preset_memo_wise(method_name, *args, **kwargs)
+        raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
         raise ArgumentError, "Pass a block as the value to preset for #{method_name}, #{args}" unless block_given?
 
         api = MemoWise::InternalAPI.new(self)
         method = api.memo_wised_method(method_name)
 
         method_arguments = MemoWise::InternalAPI.method_arguments(method)
-        index = api.index(method_name)
 
         if method_arguments == MemoWise::InternalAPI::NONE
-          _memo_wise_sentinels[index] = true
-          _memo_wise[index] = yield
+          _memo_wise[method_name] = yield
           return
         end
 
-        hash = (_memo_wise[index] ||= {})
+        hash = (_memo_wise[method_name] ||= {})
 
         case method_arguments
         when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then hash[args.first] = yield
@@ -403,16 +376,20 @@ module MemoWise
           raise ArgumentError, "Provided args when method_name = nil" unless args.empty?
           raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
 
-          @_memo_wise.clear
+          _memo_wise.clear
           return
         end
 
-        method = method(MemoWise::InternalAPI.original_memo_wised_name(method_name))
+        raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
+        raise ArgumentError, "#{method_name} is not a defined method" unless respond_to?(method_name, true)
+
+        api = MemoWise::InternalAPI.new(self)
+        method = api.memo_wised_method(method_name)
         method_arguments = MemoWise::InternalAPI.method_arguments(method)
 
         # method_name == MemoWise::InternalAPI::NONE will be covered by this case.
-        @_memo_wise.delete(method_name) if args.empty? && kwargs.empty?
-        method_hash = @_memo_wise[method_name]
+        _memo_wise.delete(method_name) if args.empty? && kwargs.empty?
+        method_hash = _memo_wise[method_name]
 
         case method_arguments
         when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then method_hash&.delete(args.first)
