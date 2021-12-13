@@ -104,7 +104,6 @@ module MemoWise
             @_memo_wise[:#{method_name}] = super(&nil)
           end
         HEREDOC
-      end
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
       key = method.parameters.first.last
       index = api.index(method_name)
