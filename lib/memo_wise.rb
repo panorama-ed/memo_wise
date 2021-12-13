@@ -555,12 +555,12 @@ module MemoWise
     when MemoWise::InternalAPI::DOUBLE_SPLAT then method_hash&.delete(kwargs)
     else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
       key = if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-        [args, kwargs]
-      else
-        method.parameters.map.with_index do |(type, name), i|
-          type == :req ? args[i] : kwargs[name] # rubocop:disable Metrics/BlockNesting
-        end
-      end
+              [args, kwargs]
+            else
+              method.parameters.map.with_index do |(type, name), i|
+                type == :req ? args[i] : kwargs[name]
+              end
+            end
       method_hash&.delete(key)
     end
   end
