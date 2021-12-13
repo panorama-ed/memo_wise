@@ -76,14 +76,6 @@ BENCHMARK_GEMS.each do |benchmark_gem|
       end
       #{benchmark_gem.memoization_method} :no_args
 
-      # For the no_args case, we can't depend on arguments to alternate between
-      # returning truthy and falsey values, so instead make two separate
-      # no_args methods
-      def no_args_falsey
-        nil
-      end
-      #{benchmark_gem.memoization_method} :no_args_falsey
-
       def one_positional_arg(a)
         100 if a.positive?
       end
@@ -132,9 +124,7 @@ end
 #
 # NOTE: The proportion of falsey results is 1/N_UNIQUE_ARGUMENTS (because for
 # the methods with arguments we are truthy for all but the first unique argument
-# set, and for zero-arity methods we manually execute `no_args` N_TRUTHY_RESULTS
-# times per each execution of `no_args_falsey`). This number was selected as the
-# lowest number such that this logic:
+# set). This number was selected as the lowest number such that this logic:
 #
 #   output = hash[key]
 #   if output || hash.key?(key)
@@ -165,12 +155,10 @@ N_RESULT_DECIMAL_DIGITS = 2
 # result value, so our benchmark only tests memoized retrieval time.
 benchmark_lambdas = [
   lambda do |x, instance, benchmark_gem|
-    instance.no_args_falsey
     instance.no_args
 
     x.report("#{benchmark_gem.benchmark_name}: ()") do
-      instance.no_args_falsey
-      N_TRUTHY_RESULTS.times { instance.no_args }
+      instance.no_args
     end
   end,
   lambda do |x, instance, benchmark_gem|
