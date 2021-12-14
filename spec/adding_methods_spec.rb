@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe "adding methods" do # rubocop:disable RSpec/DescribeClass
-  let(:klass) do 
+  let(:klass) do
     Class.new do
       extend MemoWise
-      def self.no_args ; end
-      def no_args ; end
+      def self.no_args; end
+      def no_args; end
     end
   end
 

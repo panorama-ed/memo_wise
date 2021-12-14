@@ -64,10 +64,8 @@ module MemoWise
   #     ex.method_to_memoize("b") #=> 2
   ##
   def memo_wise(method_name_or_hash)
-    if Hash === method_name_or_hash
-      unless method_name_or_hash.keys == [:self]
-        raise ArgumentError, "`:self` is the only key allowed in memo_wise"
-      end
+    if method_name_or_hash.is_a?(Hash)
+      raise ArgumentError, "`:self` is the only key allowed in memo_wise" unless method_name_or_hash.keys == [:self]
 
       method_name = method_name_or_hash[:self]
 
@@ -96,15 +94,15 @@ module MemoWise
       # Zero-arg methods can use simpler/more performant logic because the
       # hash key is just the method name.
       memo_wise_module.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-          def #{method_name}
-            _memo_wise_output = _memo_wise[:#{method_name}]
-            if _memo_wise_output || _memo_wise.key?(:#{method_name})
-              _memo_wise_output
-            else
-              _memo_wise[:#{method_name}] = super(&nil)
-            end
+        def #{method_name}
+          _memo_wise_output = _memo_wise[:#{method_name}]
+          if _memo_wise_output || _memo_wise.key?(:#{method_name})
+            _memo_wise_output
+          else
+            _memo_wise[:#{method_name}] = super(&nil)
           end
-        HEREDOC
+        end
+      HEREDOC
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
       key = method.parameters.first.last
 

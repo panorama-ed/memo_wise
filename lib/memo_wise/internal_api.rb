@@ -136,9 +136,7 @@ module MemoWise
 
       method_defined = klass.method_defined?(method_name) || klass.private_method_defined?(method_name)
 
-      unless method_defined
-        raise ArgumentError, "#{method_name} is not a memo_wised method"
-      end
+      raise ArgumentError, "#{method_name} is not a memo_wised method" unless method_defined
 
       method = klass.instance_method(method_name)
 
