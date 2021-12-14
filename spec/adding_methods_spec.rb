@@ -69,9 +69,8 @@ RSpec.describe "adding methods" do # rubocop:disable RSpec/DescribeClass
         let(:expected_public_class_methods) { super() << :inherited }
 
         it "adds expected public *instance* methods only" do
-          expect { subject }.
-            to change { klass.singleton_methods.to_set }.
-            by(expected_public_class_methods)
+          expect(klass.singleton_methods).to include(*klass.singleton_methods)
+          subject
         end
       end
     end

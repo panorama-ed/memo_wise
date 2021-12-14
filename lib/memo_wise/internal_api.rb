@@ -2,29 +2,6 @@
 
 module MemoWise
   class InternalAPI
-    # Create initial mutable state to store memoized values if it doesn't
-    # already exist
-    #
-    # @param [Object] obj
-    #   Object in which to create mutable state to store future memoized values
-    #
-    # @return [Object] the passed-in obj
-    def self.create_memo_wise_state!(obj)
-      # `@_memo_wise` stores memoized results of method calls in a hash keyed on
-      # method name. The structure is slightly different for different types of
-      # methods. It looks like:
-      #   {
-      #     zero_arg_method_name: :memoized_result,
-      #     single_arg_method_name: { arg1 => :memoized_result, ... },
-      #
-      #     # Surprisingly, this is faster than a single top-level hash key of: [:multi_arg_method_name, arg1, arg2]
-      #     multi_arg_method_name: { [arg1, arg2] => :memoized_result, ... }
-      #   }
-      obj.instance_variable_set(:@_memo_wise, {}) unless obj.instance_variable_defined?(:@_memo_wise)
-
-      obj
-    end
-
     NONE = :none
     ONE_REQUIRED_POSITIONAL = :one_required_positional
     ONE_REQUIRED_KEYWORD = :one_required_keyword
@@ -110,50 +87,6 @@ module MemoWise
       else
         raise ArgumentError, "Unexpected arguments for #{method.name}"
       end
-    end
-
-    # Find the original class for which the given class is the corresponding
-    # "singleton class".
-    #
-    # See https://stackoverflow.com/questions/54531270/retrieve-a-ruby-object-from-its-singleton-class
-    #
-    # @param klass [Class]
-    #   Singleton class to find the original class of
-    #
-    # @return Class
-    #   Original class for which `klass` is the singleton class.
-    #
-    # @raise ArgumentError
-    #   Raises if `klass` is not a singleton class.
-    #
-    def self.original_class_from_singleton(klass)
-      raise ArgumentError, "Must be a singleton class: #{klass.inspect}" unless klass.singleton_class?
-
-      # Since we call this method a lot, we memoize the results. This can have a
-      # huge impact; for example, in our test suite this drops our test times
-      # from over five minutes to just a few seconds.
-      @original_class_from_singleton ||= {}
-
-      # Search ObjectSpace
-      #   * 1:1 relationship of singleton class to original class is documented
-      #   * Performance concern: searches all Class objects
-      #     But, only runs at load time and results are memoized
-      @original_class_from_singleton[klass] ||= ObjectSpace.each_object(Module).find do |cls|
-        cls.singleton_class == klass
-      end
-    end
-
-    # Convention we use for renaming the original method when we replace with
-    # the memoized version in {MemoWise.memo_wise}.
-    #
-    # @param method_name [Symbol]
-    #   Name for which to return the renaming for the original method
-    #
-    # @return [Symbol]
-    #   Renamed method to use for the original method with name `method_name`
-    #
-    def self.original_memo_wised_name(method_name)
-      :"_memo_wise_original_#{method_name}"
     end
 
     # @param target [Class, Module]
