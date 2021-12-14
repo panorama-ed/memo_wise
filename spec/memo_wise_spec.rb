@@ -316,7 +316,7 @@ RSpec.describe MemoWise do
       context "when the class inherits memoization from multiple modules" do
         let(:module1) do
           Module.new do
-            prepend MemoWise
+            extend MemoWise
 
             def module1_method_counter
               @module1_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
@@ -332,7 +332,7 @@ RSpec.describe MemoWise do
 
         let(:module2) do
           Module.new do
-            prepend MemoWise
+            extend MemoWise
 
             def module2_method_counter
               @module2_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
@@ -370,7 +370,7 @@ RSpec.describe MemoWise do
       context "when the class, its superclass, and its module all memoize methods" do
         let(:parent_class) do
           Class.new do
-            prepend MemoWise
+            extend MemoWise
 
             def parent_class_method_counter
               @parent_class_method_counter || 0
@@ -386,7 +386,7 @@ RSpec.describe MemoWise do
 
         let(:module1) do
           Module.new do
-            prepend MemoWise
+            extend MemoWise
 
             def module1_method_counter
               @module1_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
@@ -448,7 +448,7 @@ RSpec.describe MemoWise do
 
           it "creates a class-level instance variable" do
             # NOTE: test implementation detail to ensure the inverse test is valid
-            expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+            expect(class_with_memo.public_methods).to include(:_memo_wise)
           end
 
           it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
@@ -519,7 +519,7 @@ RSpec.describe MemoWise do
 
           it "creates a class-level instance variable" do
             # NOTE: this test ensure the inverse test above continues to be valid
-            expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+            expect(class_with_memo.public_methods).to include(:_memo_wise)
           end
 
           it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
@@ -597,7 +597,7 @@ RSpec.describe MemoWise do
 
           it "creates a module-level instance variable" do
             # NOTE: test implementation detail to ensure the inverse test is valid
-            expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+            expect(module_with_memo.public_methods).to include(:_memo_wise)
           end
 
           context "when an invalid hash key is passed to .memo_wise" do
@@ -626,7 +626,7 @@ RSpec.describe MemoWise do
 
           it "creates a module-level instance variable" do
             # NOTE: this test ensure the inverse test above continues to be valid
-            expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+            expect(module_with_memo.public_methods).to include(:_memo_wise)
           end
         end
       end
