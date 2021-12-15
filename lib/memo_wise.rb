@@ -166,7 +166,7 @@ module MemoWise
   #
   #   @example
   #     class Example
-  #       prepend MemoWise
+  #       extend MemoWise
   #
   #       def self.method_called_times
   #         @method_called_times
@@ -195,7 +195,7 @@ module MemoWise
   #
   #   @example
   #     class Example
-  #       prepend MemoWise
+  #       extend MemoWise
   #
   #       def self.method_to_reset(x)
   #         @method_called_times = (@method_called_times || 0) + 1
@@ -261,7 +261,7 @@ module MemoWise
   #
   # @example
   #   class Example
-  #     prepend MemoWise
+  #     extend MemoWise
   #     attr_reader :method_called_times
   #
   #     def method_to_preset
@@ -323,7 +323,7 @@ module MemoWise
   #
   # @example
   #   class Example
-  #     prepend MemoWise
+  #     extend MemoWise
   #
   #     def method_to_reset(x)
   #       @method_called_times = (@method_called_times || 0) + 1
