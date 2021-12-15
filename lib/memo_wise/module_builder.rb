@@ -2,7 +2,7 @@
 
 module ModuleBuilder
   def self.build
-    mod = Module.new do
+    Module.new do
       # `@_memo_wise` stores memoized results of method calls. The structure is
       # slightly different for different types of methods. It looks like:
       #   [

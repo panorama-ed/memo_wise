@@ -161,6 +161,9 @@ module MemoWise
   # @!method self.preset_memo_wise(method_name, *args, **kwargs)
   #   Implementation of {#preset_memo_wise} for class methods.
   #
+  #   @note This method is only defined on a class once at least one class
+  #     method on that same class is memoized by calling `memo_wise`.
+  #
   #   @example
   #     class Example
   #       prepend MemoWise
@@ -186,6 +189,9 @@ module MemoWise
   ##
   # @!method self.reset_memo_wise(method_name = nil, *args, **kwargs)
   #   Implementation of {#reset_memo_wise} for class methods.
+  #
+  #   @note This method is only defined on a class once at least one class
+  #     method on that same class is memoized by calling `memo_wise`.
   #
   #   @example
   #     class Example
@@ -223,13 +229,16 @@ module MemoWise
   # Presets the memoized result for the given method to the result of the given
   # block.
   #
+  # @note This method is only defined on an instance once at least one
+  #   instance method on the class is memoized by calling `memo_wise`.
+  #
   # This method is for situations where the caller *already* has the result of
   # an expensive method call, and wants to preset that result as memoized for
   # future calls. In other words, the memoized method will be called *zero*
   # times rather than once.
   #
-  # NOTE: Currently, no attempt is made to validate that the given arguments are
-  # valid for the given method.
+  # @note Currently, no attempt is made to validate that the given arguments are
+  #   valid for the given method.
   #
   # @param method_name [Symbol]
   #   Name of a method previously set up with `#memo_wise`.
@@ -276,6 +285,9 @@ module MemoWise
   # @!method reset_memo_wise(method_name = nil, *args, **kwargs)
   #
   # Resets memoized results of a given method, or all methods.
+  #
+  # @note This method is only defined on an instance once at least one
+  #   instance method on the class is memoized by calling `memo_wise`.
   #
   # There are three _reset modes_ depending on how this method is called:
   #
