@@ -111,7 +111,7 @@ module MemoWise
           if _memo_wise_output || _memo_wise_hash.key?(#{key})
             _memo_wise_output
           else
-            _memo_wise_hash[#{key}] = super(#{MemoWise::InternalAPI.call_str(method)})
+            _memo_wise_hash[#{key}] = super
           end
         end
       HEREDOC
@@ -139,7 +139,7 @@ module MemoWise
           if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
             _memo_wise_output
           else
-            _memo_wise_hash[_memo_wise_key] = super(#{MemoWise::InternalAPI.call_str(method)})
+            _memo_wise_hash[_memo_wise_key] = super
           end
         end
       HEREDOC

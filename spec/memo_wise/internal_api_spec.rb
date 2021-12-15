@@ -42,20 +42,6 @@ RSpec.describe MemoWise::InternalAPI do
     end
   end
 
-  describe ".call_str" do
-    subject { described_class.call_str(method) }
-
-    include_context "with context for instance methods"
-
-    context "when called on an unexpected method type" do
-      let(:method) { class_with_memo.instance_method(:no_args) }
-
-      it "raises an ArgumentError" do
-        expect { subject }.to raise_error(ArgumentError)
-      end
-    end
-  end
-
   describe ".key_str" do
     subject { described_class.key_str(method) }
 

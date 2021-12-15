@@ -58,24 +58,6 @@ module MemoWise
     end
 
     # @param method [UnboundMethod] a method being memoized
-    # @return [String] the arguments string to use when calling the original
-    #   method in our new memoized version of the method, i.e. when setting a
-    #   memoized value
-    def self.call_str(method)
-      case method_arguments(method)
-      when SPLAT then "*args"
-      when DOUBLE_SPLAT then "**kwargs"
-      when SPLAT_AND_DOUBLE_SPLAT then "*args, **kwargs"
-      when ONE_REQUIRED_POSITIONAL, ONE_REQUIRED_KEYWORD, MULTIPLE_REQUIRED
-        method.parameters.map do |type, name|
-          type == :req ? name : "#{name}: #{name}"
-        end.join(", ")
-      else
-        raise ArgumentError, "Unexpected arguments for #{method.name}"
-      end
-    end
-
-    # @param method [UnboundMethod] a method being memoized
     # @return [String] the string to use as a hash key when looking up a
     #   memoized value, based on the method's arguments
     def self.key_str(method)
