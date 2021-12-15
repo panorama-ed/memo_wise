@@ -180,72 +180,26 @@ module MemoWise
 
         case method_arguments
         when MemoWise::InternalAPI::NONE
-          # Zero-arg methods can use simpler/more performant logic because the
-          # hash key is just the method name.
-          klass.send(:define_method, method_name) do # Ruby 2.4's `define_method` is private in some cases
-            index = MemoWise::InternalAPI.index(self, method_name)
-            klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-              def #{method_name}
-                if @_memo_wise_sentinels[#{index}]
-                  @_memo_wise[#{index}]
-                else
-                  ret = @_memo_wise[#{index}] = #{original_memo_wised_name}
-                  @_memo_wise_sentinels[#{index}] = true
-                  ret
-                end
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+            def #{method_name}
+              @_memo_wise.fetch(:#{method_name}) do
+                @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
               end
-            HEREDOC
-
-            klass.send(visibility, method_name)
-            send(method_name)
-          end
+            end
+          HEREDOC
         when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL, MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
           key = method.parameters.first.last
-          # NOTE: Ruby 2.6 and below, and TruffleRuby 3.0, break when we use
-          # `define_method(...) do |*args, **kwargs|`. Instead we must use the
-          # simpler `|*args|` pattern. We can't just do this always though
-          # because Ruby 2.7 and above require `|*args, **kwargs|` to work
-          # correctly.
-          # See: https://blog.saeloun.com/2019/10/07/ruby-2-7-keyword-arguments-redesign.html#ruby-26
-          # :nocov:
-          if RUBY_VERSION < "2.7" || RUBY_ENGINE == "truffleruby"
-            klass.send(:define_method, method_name) do |*args| # Ruby 2.4's `define_method` is private in some cases
-              index = MemoWise::InternalAPI.index(self, method_name)
-              klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-                def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-                  _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
-                  _memo_wise_output = _memo_wise_hash[#{key}]
-                  if _memo_wise_output || _memo_wise_hash.key?(#{key})
-                    _memo_wise_output
-                  else
-                    _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
-                  end
-                end
-              HEREDOC
-
-              klass.send(visibility, method_name)
-              send(method_name, *args)
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+            def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+              _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
+              _memo_wise_output = _memo_wise_hash[#{key}]
+              if _memo_wise_output || _memo_wise_hash.key?(#{key})
+                _memo_wise_output
+              else
+                _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+              end
             end
-            # :nocov:
-          else
-            klass.define_method(method_name) do |*args, **kwargs|
-              index = MemoWise::InternalAPI.index(self, method_name)
-              klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-                def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-                  _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
-                  _memo_wise_output = _memo_wise_hash[#{key}]
-                  if _memo_wise_output || _memo_wise_hash.key?(#{key})
-                    _memo_wise_output
-                  else
-                    _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
-                  end
-                end
-              HEREDOC
-
-              klass.send(visibility, method_name)
-              send(method_name, *args, **kwargs)
-            end
-          end
+          HEREDOC
         # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT,
         # MemoWise::InternalAPI::DOUBLE_SPLAT, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
         else
@@ -261,54 +215,18 @@ module MemoWise
           # consistent performance. In general, this should still be faster for
           # truthy results because `Hash#[]` generally performs hash lookups
           # faster than `Hash#fetch`.
-          #
-          # NOTE: Ruby 2.6 and below, and TruffleRuby 3.0, break when we use
-          # `define_method(...) do |*args, **kwargs|`. Instead we must use the
-          # simpler `|*args|` pattern. We can't just do this always though
-          # because Ruby 2.7 and above require `|*args, **kwargs|` to work
-          # correctly.
-          # See: https://blog.saeloun.com/2019/10/07/ruby-2-7-keyword-arguments-redesign.html#ruby-26
-          # :nocov:
-          if RUBY_VERSION < "2.7" || RUBY_ENGINE == "truffleruby"
-            klass.send(:define_method, method_name) do |*args| # Ruby 2.4's `define_method` is private in some cases
-              index = MemoWise::InternalAPI.index(self, method_name)
-              klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-                def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-                  _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
-                  _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
-                  _memo_wise_output = _memo_wise_hash[_memo_wise_key]
-                  if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
-                    _memo_wise_output
-                  else
-                    _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
-                  end
-                end
-              HEREDOC
-
-              klass.send(visibility, method_name)
-              send(method_name, *args)
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+            def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+              _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
+              _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
+              _memo_wise_output = _memo_wise_hash[_memo_wise_key]
+              if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
+                _memo_wise_output
+              else
+                _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+              end
             end
-            # :nocov:
-          else # Ruby 2.7 and above break with (*args)
-            klass.define_method(method_name) do |*args, **kwargs|
-              index = MemoWise::InternalAPI.index(self, method_name)
-              klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-                def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
-                  _memo_wise_hash = (@_memo_wise[#{index}] ||= {})
-                  _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
-                  _memo_wise_output = _memo_wise_hash[_memo_wise_key]
-                  if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
-                    _memo_wise_output
-                  else
-                    _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
-                  end
-                end
-              HEREDOC
-
-              klass.send(visibility, method_name)
-              send(method_name, *args, **kwargs)
-            end
-          end
+          HEREDOC
         end
 
         klass.send(visibility, method_name)
@@ -511,21 +429,20 @@ module MemoWise
   #   ex.method_called_times #=> nil
   #
   def preset_memo_wise(method_name, *args, **kwargs)
+    raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
     raise ArgumentError, "Pass a block as the value to preset for #{method_name}, #{args}" unless block_given?
 
     MemoWise::InternalAPI.validate_memo_wised!(self, method_name)
 
     method = method(MemoWise::InternalAPI.original_memo_wised_name(method_name))
     method_arguments = MemoWise::InternalAPI.method_arguments(method)
-    index = MemoWise::InternalAPI.index(self, method_name)
 
     if method_arguments == MemoWise::InternalAPI::NONE
-      @_memo_wise_sentinels[index] = true
-      @_memo_wise[index] = yield
+      @_memo_wise[method_name] = yield
       return
     end
 
-    hash = (@_memo_wise[index] ||= {})
+    hash = (@_memo_wise[method_name] ||= {})
 
     case method_arguments
     when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then hash[args.first] = yield
@@ -613,7 +530,6 @@ module MemoWise
       raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
 
       @_memo_wise.clear
-      @_memo_wise_sentinels.clear
       return
     end
 
@@ -624,49 +540,25 @@ module MemoWise
 
     method = method(MemoWise::InternalAPI.original_memo_wised_name(method_name))
     method_arguments = MemoWise::InternalAPI.method_arguments(method)
-    index = MemoWise::InternalAPI.index(self, method_name)
+
+    # method_name == MemoWise::InternalAPI::NONE will be covered by this case.
+    @_memo_wise.delete(method_name) if args.empty? && kwargs.empty?
+    method_hash = @_memo_wise[method_name]
 
     case method_arguments
-    when MemoWise::InternalAPI::NONE
-      @_memo_wise_sentinels[index] = nil
-      @_memo_wise[index] = nil
-    when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL
-      if args.empty?
-        @_memo_wise[index]&.clear
-      else
-        @_memo_wise[index]&.delete(args.first)
-      end
-    when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD
-      if kwargs.empty?
-        @_memo_wise[index]&.clear
-      else
-        @_memo_wise[index]&.delete(kwargs.first.last)
-      end
-    when MemoWise::InternalAPI::SPLAT
-      if args.empty?
-        @_memo_wise[index]&.clear
-      else
-        @_memo_wise[index]&.delete(args)
-      end
-    when MemoWise::InternalAPI::DOUBLE_SPLAT
-      if kwargs.empty?
-        @_memo_wise[index]&.clear
-      else
-        @_memo_wise[index]&.delete(kwargs)
-      end
+    when MemoWise::InternalAPI::ONE_REQUIRED_POSITIONAL then method_hash&.delete(args.first)
+    when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD then method_hash&.delete(kwargs.first.last)
+    when MemoWise::InternalAPI::SPLAT then method_hash&.delete(args)
+    when MemoWise::InternalAPI::DOUBLE_SPLAT then method_hash&.delete(kwargs)
     else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-      if args.empty? && kwargs.empty?
-        @_memo_wise[index]&.clear
-      else
-        key = if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-                [args, kwargs]
-              else
-                method.parameters.map.with_index do |(type, name), i|
-                  type == :req ? args[i] : kwargs[name] # rubocop:disable Metrics/BlockNesting
-                end
+      key = if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+              [args, kwargs]
+            else
+              method.parameters.map.with_index do |(type, name), i|
+                type == :req ? args[i] : kwargs[name]
               end
-        @_memo_wise[index]&.delete(key)
-      end
+            end
+      method_hash&.delete(key)
     end
   end
 end

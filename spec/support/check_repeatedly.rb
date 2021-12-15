@@ -15,7 +15,7 @@
 #   return if this returns `true`.
 #
 # @param up_to_max_secs [Numeric]
-#   Max number of seconds to run, default: 1.
+#   Max number of seconds to run, default: 15.
 #
 # @yieldreturn [Object]
 #   Return value of given block is checked against given condition on each
@@ -23,7 +23,7 @@
 #
 # @return [Object]
 #   Returns the final return value of the given block.
-def check_repeatedly(condition_proc:, up_to_max_secs: 1.0)
+def check_repeatedly(condition_proc:, up_to_max_secs: 15.0)
   time_max = Time.now.utc + up_to_max_secs
 
   loop do
