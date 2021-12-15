@@ -117,7 +117,7 @@ Benchmarks are run in GitHub Actions, and the tables below are updated with ever
 
 Results using Ruby 3.1.0:
 
-|Method arguments|`Dry::Core` (0.7.1)|`Memery` (1.4.0)|
+|Method arguments|`Dry::Core`\* (0.7.1)|`Memery` (1.4.0)|
 |--|--|--|
 |`()` (none)|1.09x|11.80x|
 |`(a)`|1.64x|9.74x|
