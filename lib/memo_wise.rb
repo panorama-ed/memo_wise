@@ -157,6 +157,130 @@ module MemoWise
     end
   end
 
+  ##
+  # @!method preset_memo_wise(method_name, *args, **kwargs)
+  #
+  # Presets the memoized result for the given method to the result of the given
+  # block.
+  #
+  # This method is for situations where the caller *already* has the result of
+  # an expensive method call, and wants to preset that result as memoized for
+  # future calls. In other words, the memoized method will be called *zero*
+  # times rather than once.
+  #
+  # NOTE: Currently, no attempt is made to validate that the given arguments are
+  # valid for the given method.
+  #
+  # @param method_name [Symbol]
+  #   Name of a method previously set up with `#memo_wise`.
+  #
+  # @param args [Array]
+  #   (Optional) If the method takes positional args, these are the values of
+  #   position args for which the given block's result will be preset as the
+  #   memoized result.
+  #
+  # @param kwargs [Hash]
+  #   (Optional) If the method takes keyword args, these are the keys and values
+  #   of keyword args for which the given block's result will be preset as the
+  #   memoized result.
+  #
+  # @yieldreturn [Object]
+  #   The result of the given block will be preset as memoized for future calls
+  #   to the given method.
+  #
+  # @return [void]
+  #
+  # @example
+  #   class Example
+  #     prepend MemoWise
+  #     attr_reader :method_called_times
+  #
+  #     def method_to_preset
+  #       @method_called_times = (@method_called_times || 0) + 1
+  #       "A"
+  #     end
+  #     memo_wise :method_to_preset
+  #   end
+  #
+  #   ex = Example.new
+  #
+  #   ex.preset_memo_wise(:method_to_preset) { "B" }
+  #
+  #   ex.method_to_preset #=> "B"
+  #
+  #   ex.method_called_times #=> nil
+  #
+  ##
+
+  ##
+  # @!method reset_memo_wise(method_name = nil, *args, **kwargs)
+  #
+  # Resets memoized results of a given method, or all methods.
+  #
+  # There are three _reset modes_ depending on how this method is called:
+  #
+  # **method + args** mode (most specific)
+  #
+  # - If given `method_name` and *either* `args` *or* `kwargs` *or* both:
+  # - Resets *only* the memoized result of calling `method_name` with those
+  #   particular arguments.
+  #
+  # **method** (any args) mode
+  #
+  # - If given `method_name` and *neither* `args` *nor* `kwargs`:
+  # - Resets *all* memoized results of calling `method_name` with any arguments.
+  #
+  # **all methods** mode (most general)
+  #
+  # - If *not* given `method_name`:
+  # - Resets all memoized results of calling *all methods*.
+  #
+  # @param method_name [Symbol, nil]
+  #   (Optional) Name of a method previously set up with `#memo_wise`. If not
+  #   given, will reset *all* memoized results for *all* methods.
+  #
+  # @param args [Array]
+  #   (Optional) If the method takes positional args, these are the values of
+  #   position args for which the memoized result will be reset.
+  #
+  # @param kwargs [Hash]
+  #   (Optional) If the method takes keyword args, these are the keys and values
+  #   of keyword args for which the memoized result will be reset.
+  #
+  # @return [void]
+  #
+  # @example
+  #   class Example
+  #     prepend MemoWise
+  #
+  #     def method_to_reset(x)
+  #       @method_called_times = (@method_called_times || 0) + 1
+  #     end
+  #     memo_wise :method_to_reset
+  #   end
+  #
+  #   ex = Example.new
+  #
+  #   ex.method_to_reset("a") #=> 1
+  #   ex.method_to_reset("a") #=> 1
+  #   ex.method_to_reset("b") #=> 2
+  #   ex.method_to_reset("b") #=> 2
+  #
+  #   ex.reset_memo_wise(:method_to_reset, "a") # reset "method + args" mode
+  #
+  #   ex.method_to_reset("a") #=> 3
+  #   ex.method_to_reset("a") #=> 3
+  #   ex.method_to_reset("b") #=> 2
+  #   ex.method_to_reset("b") #=> 2
+  #
+  #   ex.reset_memo_wise(:method_to_reset) # reset "method" (any args) mode
+  #
+  #   ex.method_to_reset("a") #=> 4
+  #   ex.method_to_reset("b") #=> 5
+  #
+  #   ex.reset_memo_wise # reset "all methods" mode
+  ##
+
   # Override [Module#instance_method](https://ruby-doc.org/core-3.0.0/Module.html#method-i-instance_method)
   # to proxy the original `UnboundMethod#parameters` results. We want the
   # parameters to reflect the original method in order to support callers
