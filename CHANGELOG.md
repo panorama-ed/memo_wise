@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Remove optimization for truthy results to fix race condition bugs
 - Switch to a simpler internal data structure to fix several classes of bugs
   that the previous few versions were unable to sufficiently address
 

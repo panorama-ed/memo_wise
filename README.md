@@ -21,6 +21,7 @@
   * Support for memoization on frozen objects
   * Support for memoization of class and module methods
   * Support for inheritance of memoized class and instance methods
+  * Documented and tested [thread-safety guarantees](#thread-safety)
   * Full [documentation](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise) and [test coverage](https://codecov.io/gh/panorama-ed/memo_wise)!
 
 ## Installation
@@ -118,15 +119,15 @@ Results using Ruby 3.0.3:
 
 |Method arguments|`Dry::Core`\* (0.7.1)|`Memery` (1.4.0)|
 |--|--|--|
-|`()` (none)|1.29x|17.21x|
-|`(a)`|2.33x|11.03x|
-|`(a, b)`|0.44x|2.00x|
-|`(a:)`|2.06x|21.20x|
-|`(a:, b:)`|0.47x|4.40x|
-|`(a, b:)`|0.47x|4.27x|
-|`(a, *args)`|0.86x|1.95x|
-|`(a:, **kwargs)`|0.77x|3.01x|
-|`(a, *args, b:, **kwargs)`|0.59x|1.60x|
+|`()` (none)|1.06x|11.96x|
+|`(a)`|1.99x|10.19x|
+|`(a, b)`|0.39x|1.94x|
+|`(a:)`|1.80x|19.36x|
+|`(a:, b:)`|0.43x|4.26x|
+|`(a, b:)`|0.39x|3.97x|
+|`(a, *args)`|0.83x|1.85x|
+|`(a:, **kwargs)`|0.77x|2.94x|
+|`(a, *args, b:, **kwargs)`|0.59x|1.57x|
 
 \* `Dry::Core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
@@ -135,15 +136,15 @@ Results using Ruby 2.7.5 (because these gems raise errors in Ruby 3.x):
 
 |Method arguments|`DDMemoize` (1.0.0)|`Memoist` (0.16.2)|`Memoized` (1.0.2)|`Memoizer` (1.0.3)|
 |--|--|--|--|--|
-|`()` (none)|31.13x|3.12x|1.51x|3.57x|
-|`(a)`|23.95x|16.52x|12.11x|14.00x|
-|`(a, b)`|3.18x|2.31x|1.82x|2.00x|
-|`(a:)`|33.55x|27.09x|23.21x|24.68x|
-|`(a:, b:)`|5.20x|4.28x|3.82x|3.99x|
-|`(a, b:)`|4.96x|4.09x|3.57x|3.76x|
-|`(a, *args)`|3.10x|2.32x|1.95x|1.97x|
-|`(a:, **kwargs)`|2.89x|2.43x|2.12x|2.25x|
-|`(a, *args, b:, **kwargs)`|2.05x|1.77x|1.63x|1.65x|
+|`()` (none)|24.30x|2.57x|1.19x|2.98x|
+|`(a)`|21.68x|14.63x|11.13x|12.71x|
+|`(a, b)`|3.18x|2.36x|1.86x|2.06x|
+|`(a:)`|30.62x|24.52x|21.44x|22.61x|
+|`(a:, b:)`|5.25x|4.40x|3.80x|4.04x|
+|`(a, b:)`|4.91x|4.06x|3.55x|3.83x|
+|`(a, *args)`|3.10x|2.31x|1.96x|1.98x|
+|`(a:, **kwargs)`|2.87x|2.40x|2.09x|2.20x|
+|`(a, *args, b:, **kwargs)`|2.08x|1.82x|1.67x|1.70x|
 
 You can run benchmarks yourself with:
 
