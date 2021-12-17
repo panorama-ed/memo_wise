@@ -36,7 +36,7 @@ RSpec.describe "thread safety" do # rubocop:disable RSpec/DescribeClass
         ->(values) { values.any?(&:nil?) }
       end
 
-      xit "does not return accidental nil value to either thread" do
+      it "does not return accidental nil value to either thread" do
         expect(thread_return_values).not_to include(nil)
       end
     end
@@ -64,7 +64,7 @@ RSpec.describe "thread safety" do # rubocop:disable RSpec/DescribeClass
       # to observe the different values returned to multiple threads, and errors
       # out in some cases when that does happen.
       unless RUBY_ENGINE == "truffleruby" && ENV["CI"] == "true"
-        xit "returns different values to each thread, and memoizes one of them" do
+        it "returns different values to each thread, and memoizes one of them" do
           # Before memoization: expect to observe threads return different values
           expect(thread_return_values.uniq.size).to be > 1
 

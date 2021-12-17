@@ -64,10 +64,6 @@ BENCHMARK_GEMS = [
 # the same way.
 BENCHMARK_GEMS.each do |benchmark_gem|
   eval <<~HEREDOC, binding, __FILE__, __LINE__ + 1 # rubocop:disable Security/Eval
-    # For these methods, we alternately return truthy and falsey values in
-    # order to benchmark memoization when the result of a method is falsey.
-    #
-    # We do this by checking if the first argument to a method is even.
     class #{benchmark_gem.klass}Example
       #{benchmark_gem.activation_code}
 
@@ -77,78 +73,48 @@ BENCHMARK_GEMS.each do |benchmark_gem|
       #{benchmark_gem.memoization_method} :no_args
 
       def one_positional_arg(a)
-        100 if a.positive?
+        100
       end
       #{benchmark_gem.memoization_method} :one_positional_arg
 
       def positional_args(a, b)
-        100 if a.positive?
+        100
       end
       #{benchmark_gem.memoization_method} :positional_args
 
       def one_keyword_arg(a:)
-        100 if a.positive?
+        100
       end
       #{benchmark_gem.memoization_method} :one_keyword_arg
 
       def keyword_args(a:, b:)
-        100 if a.positive?
+        100
       end
       #{benchmark_gem.memoization_method} :keyword_args
 
       def positional_and_keyword_args(a, b:)
-        100 if a.positive?
+        100
       end
       #{benchmark_gem.memoization_method} :positional_and_keyword_args
 
       def positional_and_splat_args(a, *args)
-        100 if a.positive?
+        100
       end
       #{benchmark_gem.memoization_method} :positional_and_splat_args
 
       def keyword_and_double_splat_args(a:, **kwargs)
-        100 if a.positive?
+        100
       end
       #{benchmark_gem.memoization_method} :keyword_and_double_splat_args
 
       def positional_splat_keyword_and_double_splat_args(a, *args, b:, **kwargs)
-        100 if a.positive?
+        100
       end
       #{benchmark_gem.memoization_method} :positional_splat_keyword_and_double_splat_args
     end
   HEREDOC
 end
 
-# We pre-create argument lists for our memoized methods with arguments, so that
-# our benchmarks are running the exact same inputs for each case.
-#
-# NOTE: The proportion of falsey results is 1/N_UNIQUE_ARGUMENTS (because for
-# the methods with arguments we are truthy for all but the first unique argument
-# set). This number was selected as the lowest number such that this logic:
-#
-#   output = hash[key]
-#   if output || hash.key?(key)
-#     output
-#   else
-#     hash[key] = _original_method(...)
-#   end
-#
-# is consistently faster for cached lookups than:
-#
-#   hash.fetch(key) do
-#     hash[key] = _original_method(...)
-#   end
-#
-# as a result of `Hash#[]` having less overhead than `Hash#fetch`.
-#
-# We believe this is a reasonable choice because we believe most memoized method
-# results will be truthy, and so that is the case we should most optimize for.
-# However, we do not want to completely remove falsey method results from these
-# benchmarks because we do want to catch performance regressions for that case,
-# since it has its own "hot path."
-N_UNIQUE_ARGUMENTS = 30
-ARGUMENTS = Array.new(N_UNIQUE_ARGUMENTS) { |i| [i, i + 1] }
-N_TRUTHY_RESULTS = N_UNIQUE_ARGUMENTS - 1
 N_RESULT_DECIMAL_DIGITS = 2
 
 # Each method within these benchmarks is initially run once to memoize the
@@ -162,70 +128,59 @@ benchmark_lambdas = [
     end
   end,
   lambda do |x, instance, benchmark_gem|
-    ARGUMENTS.each { |a, _| instance.one_positional_arg(a) }
+    instance.one_positional_arg(1)
 
     x.report("#{benchmark_gem.benchmark_name}: (a)") do
-      ARGUMENTS.each { |a, _| instance.one_positional_arg(a) }
+      instance.one_positional_arg(1)
     end
   end,
   lambda do |x, instance, benchmark_gem|
-    ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
+    instance.positional_args(1, 2)
 
     x.report("#{benchmark_gem.benchmark_name}: (a, b)") do
-      ARGUMENTS.each { |a, b| instance.positional_args(a, b) }
+      instance.positional_args(1, 2)
     end
   end,
   lambda do |x, instance, benchmark_gem|
-    ARGUMENTS.each { |a, _| instance.one_keyword_arg(a: a) }
+    instance.one_keyword_arg(a: 1)
 
     x.report("#{benchmark_gem.benchmark_name}: (a:)") do
-      ARGUMENTS.each { |a, _| instance.one_keyword_arg(a: a) }
+      instance.one_keyword_arg(a: 1)
     end
   end,
   lambda do |x, instance, benchmark_gem|
-    ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
+    instance.keyword_args(a: 1, b: 2)
 
     x.report("#{benchmark_gem.benchmark_name}: (a:, b:)") do
-      ARGUMENTS.each { |a, b| instance.keyword_args(a: a, b: b) }
+      instance.keyword_args(a: 1, b: 2)
     end
   end,
   lambda do |x, instance, benchmark_gem|
-    ARGUMENTS.each { |a, b| instance.positional_and_keyword_args(a, b: b) }
+    instance.positional_and_keyword_args(1, b: 2)
 
     x.report("#{benchmark_gem.benchmark_name}: (a, b:)") do
-      ARGUMENTS.each { |a, b| instance.positional_and_keyword_args(a, b: b) }
+      instance.positional_and_keyword_args(1, b: 2)
     end
   end,
   lambda do |x, instance, benchmark_gem|
-    ARGUMENTS.each { |a, b| instance.positional_and_splat_args(a, b) }
+    instance.positional_and_splat_args(1, 2)
 
     x.report("#{benchmark_gem.benchmark_name}: (a, *args)") do
-      ARGUMENTS.each { |a, b| instance.positional_and_splat_args(a, b) }
+      instance.positional_and_splat_args(1, 2)
     end
   end,
   lambda do |x, instance, benchmark_gem|
-    ARGUMENTS.each { |a, b| instance.keyword_and_double_splat_args(a: a, b: b) }
+    instance.keyword_and_double_splat_args(a: 1, b: 2)
 
-    x.report(
-      "#{benchmark_gem.benchmark_name}: (a:, **kwargs)"
-    ) do
-      ARGUMENTS.each do |a, b|
-        instance.keyword_and_double_splat_args(a: a, b: b)
-      end
+    x.report("#{benchmark_gem.benchmark_name}: (a:, **kwargs)") do
+      instance.keyword_and_double_splat_args(a: 1, b: 2)
     end
   end,
   lambda do |x, instance, benchmark_gem|
-    ARGUMENTS.each do |a, b|
-      instance.positional_splat_keyword_and_double_splat_args(a, b, b: b, a: a)
-    end
+    instance.positional_splat_keyword_and_double_splat_args(1, 2, b: 3, a: 4)
 
-    x.report(
-      "#{benchmark_gem.benchmark_name}: (a, *args, b:, **kwargs)"
-    ) do
-      ARGUMENTS.each do |a, b|
-        instance.
-          positional_splat_keyword_and_double_splat_args(a, b, b: b, a: a)
-      end
+    x.report("#{benchmark_gem.benchmark_name}: (a, *args, b:, **kwargs)") do
+      instance.positional_splat_keyword_and_double_splat_args(1, 2, b: 3, a: 4)
     end
   end
 ]

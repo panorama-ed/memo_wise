@@ -192,10 +192,7 @@ module MemoWise
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
               _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
-              _memo_wise_output = _memo_wise_hash[#{key}]
-              if _memo_wise_output || _memo_wise_hash.key?(#{key})
-                _memo_wise_output
-              else
+              _memo_wise_hash.fetch(#{key}) do
                 _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
             end
@@ -203,26 +200,11 @@ module MemoWise
         # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT,
         # MemoWise::InternalAPI::DOUBLE_SPLAT, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
         else
-          # NOTE: When benchmarking this implementation against something like:
-          #
-          #   @_memo_wise.fetch(key) do
-          #     ...
-          #   end
-          #
-          # this implementation may sometimes perform worse than the above. This
-          # is because this case uses a more complex hash key (see
-          # `MemoWise::InternalAPI.key_str`), and hashing that key has less
-          # consistent performance. In general, this should still be faster for
-          # truthy results because `Hash#[]` generally performs hash lookups
-          # faster than `Hash#fetch`.
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
               _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
               _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
-              _memo_wise_output = _memo_wise_hash[_memo_wise_key]
-              if _memo_wise_output || _memo_wise_hash.key?(_memo_wise_key)
-                _memo_wise_output
-              else
+              _memo_wise_hash.fetch(_memo_wise_key) do
                 _memo_wise_hash[_memo_wise_key] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
               end
             end
