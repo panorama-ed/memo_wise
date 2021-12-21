@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.0] - 2021-12-17
 
-- Remove optimization for truthy results to fix race condition bugs
+### Fixed
+
+- Remove optimization for truthy results to fix thread safety race condition
+  bugs
 - Switch to a simpler internal data structure to fix several classes of bugs
-  that the previous few versions were unable to sufficiently address
+  related to inheritance that the previous few versions were unable to
+  sufficiently address
 
 ## [1.4.0] - 2021-12-10
 
