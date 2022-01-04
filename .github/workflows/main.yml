@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [jruby, 2.4, 2.5, 2.6, 2.7, 3.0, truffleruby-head]
+        ruby: [jruby, 2.4, 2.5, 2.6, 2.7, 3.0, 3.1, truffleruby-head]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
     - name: Set bundler environment variables
       run: |
         echo "BUNDLE_WITHOUT=checks:docs" >> $GITHUB_ENV
-      if: matrix.ruby != 3.0
+      if: matrix.ruby != 3.1
 
     # Use 'bundler-cache: true' instead of actions/cache as advised:
     #   * https://github.com/actions/cache/blob/main/examples.md#ruby---bundler
@@ -34,15 +34,15 @@ jobs:
     - run: bundle exec rspec
 
     - run: bundle exec rubocop
-      if: matrix.ruby == 3.0
+      if: matrix.ruby == 3.1
 
     - run: |
         bundle exec yard doctest
         bundle exec dokaz
-      if: matrix.ruby == 3.0
+      if: matrix.ruby == 3.1
 
-    - name: Run benchmarks on Ruby 2.7 or 3.0
+    - name: Run benchmarks on Ruby 2.7 or 3.1
       run: |
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle install --jobs 4 --retry 3
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle exec ruby benchmarks/benchmarks.rb
-      if: matrix.ruby == '2.7' || matrix.ruby == '3.0'
+      if: matrix.ruby == '2.7' || matrix.ruby == '3.1'

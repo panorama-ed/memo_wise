@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-- Nothing yet!
+- Update official test coverage to support Ruby 3.1
 
 ## [1.5.0] - 2021-12-17
 
