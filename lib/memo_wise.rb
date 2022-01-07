@@ -156,16 +156,14 @@ module MemoWise
           klass = klass.singleton_class
         end
 
-        if klass.singleton_class?
-          # This ensures that a memoized method defined on a parent class can
-          # still be used in a child class.
-          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-            def inherited(subclass)
-              super
-              MemoWise::InternalAPI.create_memo_wise_state!(subclass)
-            end
-          HEREDOC
-        end
+        # This ensures that a memoized method defined on a parent class can
+        # still be used in a child class.
+        klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+          def inherited(subclass)
+            super
+            MemoWise::InternalAPI.create_memo_wise_state!(subclass)
+          end
+        HEREDOC
 
         raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
 

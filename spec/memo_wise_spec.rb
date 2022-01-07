@@ -630,6 +630,43 @@ RSpec.describe MemoWise do
           end
         end
       end
+
+      context "when a class inherits from a parent class whose extended module memoizes methods" do
+        let(:parent_class) do
+          Class.new do
+            extend Module1
+          end
+        end
+
+        let(:module1) do
+          Module.new do
+            prepend MemoWise
+
+            def module1_method_counter
+              @module1_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
+            end
+
+            def module1_method
+              @module1_method_counter = module1_method_counter + 1
+              "module1_method"
+            end
+            memo_wise :module1_method
+          end
+        end
+
+        let(:child_class) do
+          Class.new(parent_class)
+        end
+
+        before(:each) do
+          stub_const("Module1", module1)
+        end
+
+        it "memoizes inherited methods separately" do
+          expect(Array.new(4) { child_class.module1_method }).to all eq("module1_method")
+          expect(child_class.module1_method_counter).to eq(1)
+        end
+      end
     end
 
     context "with module mixed into other classes" do
