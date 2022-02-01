@@ -640,7 +640,7 @@ RSpec.describe MemoWise do
 
         let(:module1) do
           Module.new do
-            prepend MemoWise
+            extend MemoWise
 
             def module1_method_counter
               @module1_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
