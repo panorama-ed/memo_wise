@@ -12,7 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [jruby, 2.4, 2.5, 2.6, 2.7, 3.0, 3.1, truffleruby-head]
+        # Due to https://github.com/actions/runner/issues/849, we have to use
+        # quotes for '3.0' -- without quotes, CI sees '3' and runs the latest.
+        ruby: [2.4, 2.5, 2.6, 2.7, '3.0', 3.1, jruby, truffleruby-head]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
