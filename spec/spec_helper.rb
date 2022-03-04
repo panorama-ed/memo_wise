@@ -2,9 +2,8 @@
 
 # Simplecov needs to be loaded before we require `memo_wise` in order to
 # properly track all memo_wise files
-if Gem.loaded_specs.key?("codecov")
-  require "codecov"
-  require "simplecov"
+if Gem.loaded_specs.key?("simplecov")
+  require "simplecov-cobertura"
 
   SimpleCov.start do
     enable_coverage :branch
@@ -12,7 +11,7 @@ if Gem.loaded_specs.key?("codecov")
   end
 
   SimpleCov.formatter = if ENV["CI"] == "true"
-                          SimpleCov::Formatter::Codecov
+                          SimpleCov::Formatter::CoberturaFormatter
                         else
                           # Writes coverage file into coverage/index.html
                           # when run outside of CI for local development
