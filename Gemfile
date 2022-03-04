@@ -13,8 +13,13 @@ end
 
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
 group :checks do
-  gem "codecov"
   gem "panolint", github: "panorama-ed/panolint", branch: "main"
+
+  # Simplecov to generate coverage info
+  gem "simplecov", require: false
+
+  # Simplecov-cobertura to generate an xml coverage file to upload to Codecov
+  gem "simplecov-cobertura", require: false
 end
 
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden

@@ -35,6 +35,13 @@ jobs:
 
     - run: bundle exec rspec
 
+    - uses: codecov/codecov-action@v2
+      with:
+        files: ./coverage/coverage.xml
+        fail_ci_if_error: true # optional (default = false)
+        verbose: true # optional (default = false)
+      if: matrix.ruby == 3.1
+
     - run: bundle exec rubocop
       if: matrix.ruby == 3.1
 
