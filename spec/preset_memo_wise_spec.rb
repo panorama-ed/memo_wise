@@ -291,7 +291,7 @@ RSpec.describe MemoWise do
 
         it "presets memoization" do
           target.preset_memo_wise(:true_method) { false }
-          expect(Array.new(4) { target.true_method }).to all eq(false)
+          expect(Array.new(4) { target.true_method }).to all be(false)
           expect(target.true_method_counter).to eq(expected_counter)
         end
       end
@@ -301,7 +301,7 @@ RSpec.describe MemoWise do
 
         it "presets memoization" do
           target.preset_memo_wise(:no_args) { nil }
-          expect(Array.new(4) { target.no_args }).to all eq(nil)
+          expect(Array.new(4) { target.no_args }).to all be_nil
           expect(target.no_args_counter).to eq(expected_counter)
         end
       end

@@ -212,14 +212,14 @@ RSpec.describe MemoWise do
         it "resets memoization for methods set to false values" do
           target.false_method
           target.reset_memo_wise(:false_method)
-          expect(Array.new(4) { target.false_method }).to all eq(false)
+          expect(Array.new(4) { target.false_method }).to all be(false)
           expect(target.false_method_counter).to eq(2)
         end
 
         it "resets memoization for methods set to nil values" do
           target.nil_method
           target.reset_memo_wise(:nil_method)
-          expect(Array.new(4) { target.nil_method }).to all eq(nil)
+          expect(Array.new(4) { target.nil_method }).to all be_nil
           expect(target.nil_method_counter).to eq(2)
         end
 
@@ -328,12 +328,12 @@ RSpec.describe MemoWise do
         end
 
         it "resets memoization for methods set to false values" do
-          expect(Array.new(4) { target.false_method }).to all eq(false)
+          expect(Array.new(4) { target.false_method }).to all be(false)
           expect(target.false_method_counter).to eq(2)
         end
 
         it "resets memoization for methods set to nil values" do
-          expect(Array.new(4) { target.nil_method }).to all eq(nil)
+          expect(Array.new(4) { target.nil_method }).to all be_nil
           expect(target.nil_method_counter).to eq(2)
         end
       end

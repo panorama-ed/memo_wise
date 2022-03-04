@@ -96,12 +96,12 @@ RSpec.describe MemoWise do
       end
 
       it "memoizes methods set to false values" do
-        expect(Array.new(4) { target.false_method }).to all eq(false)
+        expect(Array.new(4) { target.false_method }).to all be(false)
         expect(target.false_method_counter).to eq(1)
       end
 
       it "memoizes methods set to nil values" do
-        expect(Array.new(4) { target.nil_method }).to all eq(nil)
+        expect(Array.new(4) { target.nil_method }).to all be_nil
         expect(target.nil_method_counter).to eq(1)
       end
 
@@ -129,7 +129,7 @@ RSpec.describe MemoWise do
 
       it "memoizes methods with proc arguments" do
         proc_param = proc { true }
-        expect(Array.new(4) { target.proc_method(proc_param) }).to all eq(true)
+        expect(Array.new(4) { target.proc_method(proc_param) }).to all be(true)
 
         expect(target.proc_method_counter).to eq(1)
       end
