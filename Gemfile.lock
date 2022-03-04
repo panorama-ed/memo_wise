@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/panorama-ed/panolint.git
-  revision: 5850a218b96da7dd196438fb65d41169cd6747e5
+  revision: 32da31ae800b7e16068b6495397cd98aa04c68a3
   branch: main
   specs:
     panolint (0.1.4)
@@ -19,12 +19,11 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (6.1.4.1)
+    activesupport (5.2.6.2)
       concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (>= 1.6, < 2)
-      minitest (>= 5.1)
-      tzinfo (~> 2.0)
-      zeitwerk (~> 2.3)
+      i18n (>= 0.7, < 2)
+      minitest (~> 5.1)
+      tzinfo (~> 1.1)
     ansi (1.5.0)
     ast (2.4.2)
     brakeman (5.1.2)
@@ -35,17 +34,17 @@ GEM
       ansi
       rouge
       slop (~> 3)
-    i18n (1.8.11)
+    i18n (1.10.0)
       concurrent-ruby (~> 1.0)
-    minitest (5.14.4)
-    parallel (1.21.0)
-    parser (3.1.0.0)
+    minitest (5.15.0)
+    parallel (1.20.1)
+    parser (3.1.1.0)
       ast (~> 2.4.1)
     rack (2.2.3)
-    rainbow (3.0.0)
+    rainbow (3.1.1)
     rake (13.0.6)
     redcarpet (3.5.1)
-    regexp_parser (2.2.0)
+    regexp_parser (2.2.1)
     rexml (3.2.5)
     rouge (3.26.0)
     rspec (3.11.0)
@@ -61,28 +60,29 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.11.0)
     rspec-support (3.11.0)
-    rubocop (1.24.1)
+    rubocop (1.12.1)
       parallel (~> 1.10)
       parser (>= 3.0.0.0)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml
-      rubocop-ast (>= 1.15.1, < 2.0)
+      rubocop-ast (>= 1.2.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.15.1)
-      parser (>= 3.0.1.1)
-    rubocop-performance (1.12.0)
-      rubocop (>= 1.7.0, < 2.0)
+    rubocop-ast (1.4.1)
+      parser (>= 2.7.1.5)
+    rubocop-performance (1.10.2)
+      rubocop (>= 0.90.0, < 2.0)
       rubocop-ast (>= 0.4.0)
-    rubocop-rails (2.12.4)
+    rubocop-rails (2.9.1)
       activesupport (>= 4.2.0)
       rack (>= 1.1)
-      rubocop (>= 1.7.0, < 2.0)
-    rubocop-rake (0.6.0)
+      rubocop (>= 0.90.0, < 2.0)
+    rubocop-rake (0.5.1)
+      rubocop
+    rubocop-rspec (2.2.0)
       rubocop (~> 1.0)
-    rubocop-rspec (2.6.0)
-      rubocop (~> 1.19)
+      rubocop-ast (>= 1.1.0)
     ruby-progressbar (1.11.0)
     simplecov (0.18.5)
       docile (~> 1.1)
@@ -91,8 +91,9 @@ GEM
       simplecov (~> 0.8)
     simplecov-html (0.12.3)
     slop (3.6.0)
-    tzinfo (2.0.4)
-      concurrent-ruby (~> 1.0)
+    thread_safe (0.3.6)
+    tzinfo (1.2.9)
+      thread_safe (~> 0.1)
     unicode-display_width (2.1.0)
     values (1.8.0)
     webrick (1.7.0)
@@ -101,7 +102,6 @@ GEM
     yard-doctest (0.1.17)
       minitest
       yard
-    zeitwerk (2.5.1)
 
 PLATFORMS
   ruby
