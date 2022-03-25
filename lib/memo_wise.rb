@@ -195,9 +195,40 @@ module MemoWise
               end
             end
           HEREDOC
-        # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT,
-        # MemoWise::InternalAPI::DOUBLE_SPLAT, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-        else
+        when MemoWise::InternalAPI::MULTIPLE_REQUIRED
+          # When we have multiple required params, we store the memoized values in a deeply nested hash, like:
+          # { method_name: { arg1 => { arg2 => { arg3 => memoized_value } } } }
+          last_index = method.parameters.size
+          layers = method.parameters.map.with_index(1) do |(_, name), index|
+            prev_hash = "_memo_wise_hash#{index - 1 if index > 1}"
+            fallback = if index == last_index
+                         "#{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})"
+                       else
+                         "{}"
+                       end
+            "_memo_wise_hash#{index} = #{prev_hash}.fetch(#{name}) { #{prev_hash}[#{name}] = #{fallback} }"
+          end
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+            def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+              _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
+              #{layers.join("\n  ")}
+            end
+          HEREDOC
+        when MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+          # When we have both *args and **kwargs, we store the memoized values in a deeply nested hash, like:
+          # { method_name: { args => { kwargs => memoized_value } } }
+          klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+            def #{method_name}(*args, **kwargs)
+              _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
+              _memo_wise_kwargs_hash = _memo_wise_hash.fetch(args) do
+                _memo_wise_hash[args] = {}
+              end
+              _memo_wise_kwargs_hash.fetch(kwargs) do
+                _memo_wise_kwargs_hash[kwargs] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
+              end
+            end
+          HEREDOC
+        else # MemoWise::InternalAPI::SPLAT, MemoWise::InternalAPI::DOUBLE_SPLAT
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
               _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
@@ -430,12 +461,23 @@ module MemoWise
     when MemoWise::InternalAPI::SPLAT then hash[args] = yield
     when MemoWise::InternalAPI::DOUBLE_SPLAT then hash[kwargs] = yield
     when MemoWise::InternalAPI::MULTIPLE_REQUIRED
-      key = method.parameters.map.with_index do |(type, name), idx|
-        type == :req ? args[idx] : kwargs[name]
+      n_parameters = method.parameters.size
+      method.parameters.each_with_index do |(type, name), index|
+        val = type == :req ? args[index] : kwargs[name]
+
+        # Walk through the layers of nested hashes. When we get to the final
+        # layer, yield to the block to set its value.
+        if index < n_parameters - 1
+          hash = (hash[val] ||= {})
+        else
+          hash[val] = yield
+        end
       end
-      hash[key] = yield
     else # MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-      hash[[args, kwargs]] = yield
+      # When we have both *args and **kwargs, we store the memoized values like:
+      #   { method_name: { args => { kwargs => memoized_value } } }
+      # so we need to initialize `hash[args]`` if it does not already exist.
+      (hash[args] ||= {})[kwargs] = yield
     end
   end
 
@@ -530,15 +572,26 @@ module MemoWise
     when MemoWise::InternalAPI::ONE_REQUIRED_KEYWORD then method_hash&.delete(kwargs.first.last)
     when MemoWise::InternalAPI::SPLAT then method_hash&.delete(args)
     when MemoWise::InternalAPI::DOUBLE_SPLAT then method_hash&.delete(kwargs)
-    else # MemoWise::InternalAPI::MULTIPLE_REQUIRED, MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-      key = if method_arguments == MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
-              [args, kwargs]
-            else
-              method.parameters.map.with_index do |(type, name), i|
-                type == :req ? args[i] : kwargs[name]
-              end
-            end
-      method_hash&.delete(key)
+    when MemoWise::InternalAPI::SPLAT_AND_DOUBLE_SPLAT
+      # Here, memoized values are stored like:
+      #   { method_name: { args => { kwargs => memoized_value } } }
+      # so we need to delete the innermost value (because the same args array
+      # may have multiple memoized values for different kwargs hashes).
+      method_hash&.[](args)&.delete(kwargs)
+    else # MemoWise::InternalAPI::MULTIPLE_REQUIRED
+      n_parameters = method.parameters.size
+      method.parameters.each_with_index do |(type, name), index|
+        val = type == :req ? args[index] : kwargs[name]
+
+        # Walk through the layers of nested hashes. When we get to the final
+        # layer, delete its value. We use the safe navigation operator to
+        # gracefully handle any layer not yet existing.
+        if index < n_parameters - 1
+          method_hash = method_hash&.[](val)
+        else
+          method_hash&.delete(val)
+        end
+      end
     end
   end
 end

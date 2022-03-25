@@ -17,8 +17,8 @@ module MemoWise
       #     zero_arg_method_name: :memoized_result,
       #     single_arg_method_name: { arg1 => :memoized_result, ... },
       #
-      #     # Surprisingly, this is faster than a single top-level hash key of: [:multi_arg_method_name, arg1, arg2]
-      #     multi_arg_method_name: { [arg1, arg2] => :memoized_result, ... }
+      #     # This is faster than a single top-level hash key of: [:multi_arg_method_name, arg1, arg2]
+      #     multi_arg_method_name: { arg1 => { arg2 => :memoized_result, ... }, ... }
       #   }
       obj.instance_variable_set(:@_memo_wise, {}) unless obj.instance_variable_defined?(:@_memo_wise)
 
@@ -70,7 +70,6 @@ module MemoWise
       case method_arguments(method)
       when SPLAT then "*args"
       when DOUBLE_SPLAT then "**kwargs"
-      when SPLAT_AND_DOUBLE_SPLAT then "*args, **kwargs"
       when ONE_REQUIRED_POSITIONAL, ONE_REQUIRED_KEYWORD, MULTIPLE_REQUIRED
         method.parameters.map do |type, name|
           "#{name}#{':' if type == :keyreq}"
@@ -105,8 +104,6 @@ module MemoWise
       case method_arguments(method)
       when SPLAT then "args"
       when DOUBLE_SPLAT then "kwargs"
-      when SPLAT_AND_DOUBLE_SPLAT then "[args, kwargs]"
-      when MULTIPLE_REQUIRED then "[#{method.parameters.map(&:last).join(', ')}]"
       else
         raise ArgumentError, "Unexpected arguments for #{method.name}"
       end

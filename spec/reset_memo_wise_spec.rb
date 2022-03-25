@@ -267,8 +267,9 @@ RSpec.describe MemoWise do
             expect { target.reset_memo_wise(:with_optional_positional_and_keyword_args) }.not_to raise_error
           end
 
-          it "doesn't raise an error for methods with optional positional and keyword arguments provided" do
-            expect { target.reset_memo_wise(:with_optional_positional_and_keyword_args, a: 1) }.not_to raise_error
+          it "doesn't raise an error for methods with optional positional and keyword arguments partially provided" do
+            target.with_optional_positional_and_keyword_args(1, b: 1)
+            expect { target.reset_memo_wise(:with_optional_positional_and_keyword_args, 1) }.not_to raise_error
           end
         end
 
