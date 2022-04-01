@@ -2,9 +2,9 @@
 
 require "set"
 
-require "memo_wise/internal_api"
-require "memo_wise/module_builder"
-require "memo_wise/version"
+require_relative "memo_wise/internal_api"
+require_relative "memo_wise/module_builder"
+require_relative "memo_wise/version"
 
 # MemoWise is the wise choice for memoization in Ruby.
 #
