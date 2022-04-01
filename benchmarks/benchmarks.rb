@@ -3,7 +3,26 @@
 require "benchmark/ips"
 
 require "tempfile"
-require "memo_wise"
+
+github_memo_wise_path = Gem.loaded_specs["memo_wise"].full_gem_path
+
+# This string is both used for temp filepaths necessary to separate the GitHub
+# version of MemoWise and the local version, and used for the reported results
+GITHUB_MAIN = "MemoWise_GitHubMain"
+
+# We download a the main branch of MemoWise on GitHub into a tmp directory to
+# compare against the local version when we run benchmarks
+Dir.mktmpdir do |directory|
+  Dir["#{github_memo_wise_path}/lib/**/*.rb"].each do |file|
+    Tempfile.open([File.basename(file)[0..-4], ".rb"], directory) do |tempfile|
+      tempfile.write(File.read(file).gsub("MemoWise", GITHUB_MAIN))
+      tempfile.rewind
+      require tempfile.path
+    end
+  end
+end
+
+require_relative "../lib/memo_wise"
 
 # Some gems do not yet work in Ruby 3 so we only require them if they're loaded
 # in the Gemfile.
@@ -51,6 +70,7 @@ end
 # NOTE: Some gems do not yet work in Ruby 3 so we only test with them if they've
 # been `require`d.
 BENCHMARK_GEMS = [
+  BenchmarkGem.new(MemoWise_GitHubMain, "prepend #{GITHUB_MAIN}", :memo_wise),
   BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise),
   (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize) if defined?(DDMemoize)),
   (BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize) if defined?(Dry::Core)),
@@ -187,7 +207,7 @@ benchmark_lambdas = [
 
 # We benchmark different cases separately, to ensure that slow performance in
 # one method or code path isn't hidden by fast performance in another.
-benchmark_lambdas.map do |benchmark|
+benchmark_jsons = benchmark_lambdas.map do |benchmark|
   json_file = Tempfile.new
 
   Benchmark.ips do |x|
@@ -203,42 +223,52 @@ benchmark_lambdas.map do |benchmark|
   end
 
   JSON.parse(json_file.read)
-end.each_with_index do |benchmark_json, i|
-  # We print a comparison table after we run each benchmark to copy into our
-  # README.md
+end
 
-  # MemoWise will not appear in the comparison table, but we will use it to
-  # compare against other gems' benchmarks
-  memo_wise = benchmark_json.find { _1["name"].include?("MemoWise") }
-  benchmark_json.delete(memo_wise)
+[true, false].each do |github_comparison|
+  benchmark_jsons.each_with_index do |benchmark_json, i|
+    # We print a comparison table after we run each benchmark to copy into our
+    # README.md
 
-  # Sort benchmarks by gem name to alphabetize our final output table.
-  benchmark_json.sort_by! { _1["name"] }
+    # MemoWise will not appear in the comparison table, but we will use it to
+    # compare against other gems' benchmarks
+    memo_wise = benchmark_json.find { |json| json["name"].split.first == "MemoWise" }
+    benchmark_json -= [memo_wise]
 
-  # Print headers based on the first benchmark_json
-  if i.zero?
-    benchmark_headers = benchmark_json.map do |benchmark_gem|
-      # Gem name is of the form:
-      # "MemoWise (1.1.0): ()"
-      # We use this mapping to get a header of the form
-      # "`MemoWise` (1.1.0)
-      gem_name_parts = benchmark_gem["name"].split
-      "`#{gem_name_parts[0]}` #{gem_name_parts[1][...-1]}"
+    github_main = benchmark_json.find { |json| json["name"].split.first == GITHUB_MAIN }
+    benchmark_json = github_comparison ? [github_main] : benchmark_json - [github_main]
+
+    # Sort benchmarks by gem name to alphabetize our final output table.
+    benchmark_json.sort_by! { |json| json["name"] }
+
+    # Print headers based on the first benchmark_json
+    if i.zero?
+      benchmark_headers = benchmark_json.map do |benchmark_gem|
+        # Gem name is of the form:
+        # "MemoWise (1.1.0): ()"
+        # We use this mapping to get a header of the form
+        # "`MemoWise` (1.1.0)
+        gem_name_parts = benchmark_gem["name"].split
+        "`#{gem_name_parts[0]}` #{gem_name_parts[1][...-1]}"
+      end.join("|")
+      puts "|Method arguments|#{benchmark_headers}|"
+      puts "#{'|--' * (benchmark_json.size + 1)}|"
+    end
+
+    output_str = benchmark_json.map do |bgem|
+      # "%.2f" % 12.345 => "12.34" (instead of "12.35")
+      #   See: https://bugs.ruby-lang.org/issues/12548
+      # 1.00.round(2).to_s => "1.0" (instead of "1.00")
+      #
+      # So to round and format correctly, we first use Float#round and then %
+      "%.#{N_RESULT_DECIMAL_DIGITS}fx" %
+        (memo_wise["central_tendency"] / bgem["central_tendency"]).round(N_RESULT_DECIMAL_DIGITS)
     end.join("|")
-    puts "|Method arguments|#{benchmark_headers}|"
-    puts "#{'|--' * (benchmark_json.size + 1)}|"
+
+    name = memo_wise["name"].partition(": ").last
+    puts "|`#{name}`#{' (none)' if name == '()'}|#{output_str}|"
   end
 
-  output_str = benchmark_json.map do |bgem|
-    # "%.2f" % 12.345 => "12.34" (instead of "12.35")
-    #   See: https://bugs.ruby-lang.org/issues/12548
-    # 1.00.round(2).to_s => "1.0" (instead of "1.00")
-    #
-    # So to round and format correctly, we first use Float#round and then %
-    "%.#{N_RESULT_DECIMAL_DIGITS}fx" %
-      (memo_wise["central_tendency"] / bgem["central_tendency"]).round(N_RESULT_DECIMAL_DIGITS)
-  end.join("|")
-
-  name = memo_wise["name"].partition(": ").last
-  puts "|`#{name}`#{' (none)' if name == '()'}|#{output_str}|"
+  # Output a blank line between sections
+  puts ""
 end
