@@ -8,7 +8,7 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
 
     let(:class_with_memo) do
       Class.new do
-        prepend MemoWise
+        extend MemoWise
 
         def initialize(foo, bar:); end
 
@@ -29,10 +29,6 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
 
       it "returns expected parameters" do
         is_expected.to eq(expected_parameters)
-      end
-
-      it "proxies UnboundMethod#parameters via singleton method" do
-        expect(unbound_method.singleton_methods).to eq [:parameters]
       end
     end
 

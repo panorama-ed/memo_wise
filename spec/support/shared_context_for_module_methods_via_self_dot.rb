@@ -3,7 +3,7 @@
 RSpec.shared_context "with context for module methods via 'def self.'" do
   let(:module_with_memo) do
     Module.new do
-      prepend MemoWise
+      extend MemoWise
 
       DefineMethodsForTestingMemoWise.define_methods_for_testing_memo_wise(
         target: self,

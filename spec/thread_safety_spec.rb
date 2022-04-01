@@ -15,7 +15,7 @@ RSpec.describe "thread safety" do # rubocop:disable RSpec/DescribeClass
     # Using `def` here makes race conditions far more likely than `let`.
     def class_with_memo(args_str)
       Class.new do
-        prepend MemoWise
+        extend MemoWise
 
         module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
           def current_thread_id(#{args_str})

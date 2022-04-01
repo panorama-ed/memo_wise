@@ -7,7 +7,7 @@ RSpec.shared_context "with context for instance methods" do
   # a class with instance methods setup to test memoization
   let(:class_with_memo) do
     Class.new do
-      prepend MemoWise
+      extend MemoWise
 
       DefineMethodsForTestingMemoWise.define_methods_for_testing_memo_wise(
         target: self,

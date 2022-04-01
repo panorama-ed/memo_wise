@@ -395,7 +395,7 @@ RSpec.describe MemoWise do
         context "when method name is the same as a memoized class method" do
           let(:class_with_memo) do
             Class.new do
-              prepend MemoWise
+              extend MemoWise
 
               def instance_one_arg_counter
                 @instance_one_arg_counter || 0
@@ -460,7 +460,7 @@ RSpec.describe MemoWise do
           context "when method name is the same as a memoized instance method" do
             let(:class_with_memo) do
               Class.new do
-                prepend MemoWise
+                extend MemoWise
 
                 def instance_one_arg_counter
                   @instance_one_arg_counter || 0
@@ -519,7 +519,7 @@ RSpec.describe MemoWise do
           context "when method name is the same as a memoized instance method" do
             let(:class_with_memo) do
               Class.new do
-                prepend MemoWise
+                extend MemoWise
 
                 def instance_one_arg_counter
                   @instance_one_arg_counter || 0
@@ -532,7 +532,7 @@ RSpec.describe MemoWise do
                 memo_wise :one_arg
 
                 class << self
-                  prepend MemoWise
+                  extend MemoWise
 
                   def class_one_arg_counter
                     @class_one_arg_counter || 0
