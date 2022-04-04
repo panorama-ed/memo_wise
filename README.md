@@ -133,17 +133,17 @@ Results using Ruby 3.1.1:
 
 Results using Ruby 2.7.5 (because these gems raise errors in Ruby 3.x):
 
-|Method arguments|`DDMemoize` (1.0.0)|`Memoist` (0.16.2)|`Memoized` (1.0.2)|`Memoizer` (1.0.3)|
+|Method arguments|`DDMemoize` (1.0.0)|`Memoist` (0.16.2)|`Memoized` (1.1.0)|`Memoizer` (1.0.3)|
 |--|--|--|--|--|
-|`()` (none)|24.22x|2.48x|1.22x|3.08x|
-|`(a)`|20.38x|14.06x|10.85x|12.26x|
-|`(a, b)`|17.48x|12.67x|10.07x|11.32x|
-|`(a:)`|29.72x|24.26x|21.04x|21.72x|
-|`(a:, b:)`|24.17x|20.17x|17.81x|18.85x|
-|`(a, b:)`|24.20x|20.15x|17.51x|18.05x|
-|`(a, *args)`|3.11x|2.23x|1.95x|2.03x|
-|`(a:, **kwargs)`|2.96x|2.46x|2.17x|2.28x|
-|`(a, *args, b:, **kwargs)`|2.17x|1.86x|1.76x|1.76x|
+|`()` (none)|24.06x|2.41x|1.21x|2.98x|
+|`(a)`|21.38x|14.81x|10.93x|12.63x|
+|`(a, b)`|16.45x|12.02x|9.48x|10.61x|
+|`(a:)`|31.19x|25.57x|21.50x|23.00x|
+|`(a:, b:)`|25.22x|21.26x|18.42x|19.44x|
+|`(a, b:)`|24.03x|19.97x|17.04x|18.10x|
+|`(a, *args)`|3.15x|2.29x|1.94x|2.03x|
+|`(a:, **kwargs)`|2.74x|2.35x|2.01x|2.13x|
+|`(a, *args, b:, **kwargs)`|2.16x|1.87x|1.72x|1.74x|
 
 You can run benchmarks yourself with:
 

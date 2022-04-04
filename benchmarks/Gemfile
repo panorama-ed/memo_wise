@@ -14,7 +14,7 @@ if RUBY_VERSION > "3"
 else
   gem "ddmemoize", "1.0.0"
   gem "memoist", "0.16.2"
-  gem "memoized", "1.0.2"
+  gem "memoized", "1.1.0"
   gem "memoizer", "1.0.3"
 end
 
