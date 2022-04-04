@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Nothing yet!
+
+## [1.7.0] - 2022-04-04
+
 ### Updated
 
 - Optimize memoized lookups for methods with multiple required arguments
+  ([#276](https://github.com/panorama-ed/memo_wise/pull/276))
 
 ## [1.6.0] - 2022-01-24
 
@@ -133,7 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Panolint
 - Dependabot setup
 
-[Unreleased]: https://github.com/panorama-ed/memo_wise/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/panorama-ed/memo_wise/compare/v1.7.0...HEAD
+[1.6.0]: https://github.com/panorama-ed/memo_wise/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/panorama-ed/memo_wise/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/panorama-ed/memo_wise/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/panorama-ed/memo_wise/compare/v1.3.0...v1.4.0
