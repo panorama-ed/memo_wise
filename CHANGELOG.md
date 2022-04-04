@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-Nothing yet!
+### Updated
+
+- Optimize memoized lookups for methods with multiple required arguments
 
 ## [1.6.0] - 2022-01-24
 

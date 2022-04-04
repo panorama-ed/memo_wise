@@ -114,19 +114,19 @@ For more usage details, see our detailed [documentation](#documentation).
 
 Benchmarks are run in GitHub Actions, and the tables below are updated with every code change. **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval is than the latest commit of `MemoWise`**, according to [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (2.9.2).
 
-Results using Ruby 3.1.0:
+Results using Ruby 3.1.1:
 
-|Method arguments|`Dry::Core` (0.7.1)|`Memery` (1.4.0)|
+|Method arguments|`Dry::Core`\* (0.7.1)|`Memery` (1.4.0)|
 |--|--|--|
-|`()` (none)|1.09x|11.80x|
-|`(a)`|1.64x|9.74x|
-|`(a, b)`|0.34x|2.00x|
-|`(a:)`|1.49x|18.84x|
-|`(a:, b:)`|0.35x|4.26x|
-|`(a, b:)`|0.35x|4.18x|
-|`(a, *args)`|0.83x|1.89x|
-|`(a:, **kwargs)`|0.84x|3.30x|
-|`(a, *args, b:, **kwargs)`|0.54x|1.47x|
+|`()` (none)|1.11x|12.24x|
+|`(a)`|1.71x|9.55x|
+|`(a, b)`|1.27x|6.95x|
+|`(a:)`|1.58x|18.25x|
+|`(a:, b:)`|1.19x|13.31x|
+|`(a, b:)`|1.22x|13.29x|
+|`(a, *args)`|0.86x|1.84x|
+|`(a:, **kwargs)`|0.83x|3.15x|
+|`(a, *args, b:, **kwargs)`|0.76x|1.92x|
 
 \* `Dry::Core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
@@ -135,15 +135,15 @@ Results using Ruby 2.7.5 (because these gems raise errors in Ruby 3.x):
 
 |Method arguments|`DDMemoize` (1.0.0)|`Memoist` (0.16.2)|`Memoized` (1.0.2)|`Memoizer` (1.0.3)|
 |--|--|--|--|--|
-|`()` (none)|24.30x|2.57x|1.19x|2.98x|
-|`(a)`|21.68x|14.63x|11.13x|12.71x|
-|`(a, b)`|3.18x|2.36x|1.86x|2.06x|
-|`(a:)`|30.62x|24.52x|21.44x|22.61x|
-|`(a:, b:)`|5.25x|4.40x|3.80x|4.04x|
-|`(a, b:)`|4.91x|4.06x|3.55x|3.83x|
-|`(a, *args)`|3.10x|2.31x|1.96x|1.98x|
-|`(a:, **kwargs)`|2.87x|2.40x|2.09x|2.20x|
-|`(a, *args, b:, **kwargs)`|2.08x|1.82x|1.67x|1.70x|
+|`()` (none)|24.22x|2.48x|1.22x|3.08x|
+|`(a)`|20.38x|14.06x|10.85x|12.26x|
+|`(a, b)`|17.48x|12.67x|10.07x|11.32x|
+|`(a:)`|29.72x|24.26x|21.04x|21.72x|
+|`(a:, b:)`|24.17x|20.17x|17.81x|18.85x|
+|`(a, b:)`|24.20x|20.15x|17.51x|18.05x|
+|`(a, *args)`|3.11x|2.23x|1.95x|2.03x|
+|`(a:, **kwargs)`|2.96x|2.46x|2.17x|2.28x|
+|`(a, *args, b:, **kwargs)`|2.17x|1.86x|1.76x|1.76x|
 
 You can run benchmarks yourself with:
 
