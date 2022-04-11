@@ -7,7 +7,7 @@
 
 [![Tests](https://github.com/panorama-ed/memo_wise/workflows/Main/badge.svg)](https://github.com/panorama-ed/memo_wise/actions?query=workflow%3AMain)
 [![Code Coverage](https://codecov.io/gh/panorama-ed/memo_wise/branch/main/graph/badge.svg)](https://codecov.io/gh/panorama-ed/memo_wise/branches/main)
-[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/panorama-ed/memo_wise)
+[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/gems/memo_wise)
 [![Gem Version](https://img.shields.io/gem/v/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
 [![Gem Downloads](https://img.shields.io/gem/dt/memo_wise.svg)](https://rubygems.org/gems/memo_wise)
 
@@ -180,7 +180,7 @@ versions:
 
 We maintain API documentation using [YARD](https://yardoc.org/), which is
 published automatically at
-[RubyDoc.info](https://rubydoc.info/github/panorama-ed/memo_wise/MemoWise). To
+[RubyDoc.info](https://rubydoc.info/gems/memo_wise). To
 edit documentation locally and see it rendered in your browser, run:
 
 ```bash
