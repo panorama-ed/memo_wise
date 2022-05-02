@@ -268,7 +268,14 @@ Then carry out these steps:
    - Add an entry for the upcoming version _x.y.z_
    - Add a link for this version's comparison to the bottom of `CHANGELOG.md`
    - Move content from _Unreleased_ to the upcoming version _x.y.z_
-   - Change _Unreleased_ section to say `- Nothing yet!`
+   - Change _Unreleased_ section to say:
+     ```
+     **Gem enhancements:** none
+
+     _No breaking changes!_
+
+     **Project enhancements:** none
+     ```
    - Commit with title `Update CHANGELOG.md for x.y.z`
 
 2. Update `lib/memo_wise/version.rb`
