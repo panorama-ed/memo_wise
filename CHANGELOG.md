@@ -11,7 +11,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 _No breaking changes!_
 
-**Project enhancements:** none
+**Project enhancements:**
+
+- Reorganized `CHANGELOG.md` for improved clarity and completeness
+  [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
 
 ## [v1.7.0](https://github.com/panorama-ed/memo_wise/compare/v1.6.0...v1.7.0) - 2022-04-04
 
