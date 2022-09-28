@@ -715,9 +715,9 @@ RSpec.describe MemoWise do
 
           it "memoizes each extended class separately" do
             aggregate_failures do
-              expect(class_a_extending_module_with_memo.test_method). # rubocop:disable RSpec/IdenticalEqualityAssertion
+              expect(class_a_extending_module_with_memo.test_method).
                 to eq(class_a_extending_module_with_memo.test_method)
-              expect(class_b_extending_module_with_memo.test_method). # rubocop:disable RSpec/IdenticalEqualityAssertion
+              expect(class_b_extending_module_with_memo.test_method).
                 to eq(class_b_extending_module_with_memo.test_method)
               expect(class_a_extending_module_with_memo.test_method).
                 to_not eq(class_b_extending_module_with_memo.test_method)
@@ -784,8 +784,8 @@ RSpec.describe MemoWise do
 
             it "memoizes instance and singleton methods separately" do
               aggregate_failures do
-                expect(instance.test_method).to eq(instance.test_method) # rubocop:disable RSpec/IdenticalEqualityAssertion
-                expect(module_with_memo.test_method).to eq(module_with_memo.test_method) # rubocop:disable RSpec/IdenticalEqualityAssertion
+                expect(instance.test_method).to eq(instance.test_method)
+                expect(module_with_memo.test_method).to eq(module_with_memo.test_method)
                 expect(instance.test_method).to_not eq(module_with_memo.test_method)
               end
             end
