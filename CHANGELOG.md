@@ -13,6 +13,8 @@ _No breaking changes!_
 
 **Project enhancements:**
 
+- Updated benchmark results in `README.md` to Ruby 3.1.2 and 2.7.6
+- Updated `Memoized` gem version to 1.1.1 in benchmarks
 - Reorganized `CHANGELOG.md` for improved clarity and completeness
   [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
 

@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby ">= 2.7.5"
+ruby ">= 2.7.6"
 
 gem "benchmark-ips", "2.10.0"
 
@@ -14,7 +14,7 @@ if RUBY_VERSION > "3"
 else
   gem "ddmemoize", "1.0.0"
   gem "memoist", "0.16.2"
-  gem "memoized", "1.1.0"
+  gem "memoized", "1.1.1"
   gem "memoizer", "1.0.3"
 end
 
