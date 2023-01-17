@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "set"
+# Disable RuboCop here because Ruby < 3.2 does not load `set` by default.
+require "set" # rubocop:disable Lint/RedundantRequireStatement
 
 require "memo_wise/internal_api"
 require "memo_wise/version"
@@ -30,12 +31,12 @@ module MemoWise
   # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
   # constructor.
   #
-  # - **Q:** Why is [Module#prepend](https://ruby-doc.org/core-3.1.0/Module.html#method-i-prepend)
+  # - **Q:** Why is [Module#prepend](https://ruby-doc.org/3.2.1/Module.html#method-i-prepend)
   #          important here
   #          ([more info](https://medium.com/@leo_hetsch/ruby-modules-include-vs-prepend-vs-extend-f09837a5b073))?
   # - **A:** To set up *mutable state* inside the instance, even if the original
   #          constructor will then call
-  #          [Object#freeze](https://ruby-doc.org/core-3.1.0/Object.html#method-i-freeze).
+  #          [Object#freeze](https://ruby-doc.org/3.2.1/Object.html#method-i-freeze).
   #
   # This approach supports memoization on frozen (immutable) objects -- for
   # example, classes created by the
@@ -84,7 +85,7 @@ module MemoWise
   # @param target [Class]
   #   The `Class` into to prepend the MemoWise methods e.g. `memo_wise`
   #
-  # @see https://ruby-doc.org/core-3.1.0/Module.html#method-i-prepended
+  # @see https://ruby-doc.org/3.2.1/Module.html#method-i-prepend
   #
   # @example
   #   class Example
@@ -99,7 +100,7 @@ module MemoWise
       #
       # This is necessary in addition to the `#initialize` method definition
       # above because
-      # [`Class#allocate`](https://ruby-doc.org/core-3.1.0/Class.html#method-i-allocate)
+      # [`Class#allocate`](https://ruby-doc.org/3.2.1/Class.html#method-i-allocate)
       # bypasses `#initialize`, and when it's used (e.g.,
       # [in ActiveRecord](https://github.com/rails/rails/blob/a395c3a6af1e079740e7a28994d77c8baadd2a9d/activerecord/lib/active_record/persistence.rb#L411))
       # we still need to be able to access MemoWise's instance variable. Despite
@@ -254,7 +255,7 @@ module MemoWise
         )
       end
 
-      # Override [Module#instance_method](https://ruby-doc.org/core-3.1.0/Module.html#method-i-instance_method)
+      # Override [Module#instance_method](https://ruby-doc.org/3.2.1/Module.html#method-i-instance_method)
       # to proxy the original `UnboundMethod#parameters` results. We want the
       # parameters to reflect the original method in order to support callers
       # who want to use Ruby reflection to process the method parameters,

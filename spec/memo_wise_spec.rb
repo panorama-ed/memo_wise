@@ -143,8 +143,7 @@ RSpec.describe MemoWise do
       end
     end
 
-    shared_examples "handles memoized/non-memoized methods with the same name at different "\
-                    "scopes" do
+    shared_examples "handles memoized/non-memoized methods with the same name at different scopes" do
       context "with non-memoized method with same name as memoized method" do
         context "when methods have no arguments" do
           it "does not memoize the non-memoized method" do

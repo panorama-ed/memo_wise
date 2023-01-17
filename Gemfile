@@ -24,8 +24,8 @@ end
 
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
 group :docs do
-  gem "dokaz"
-  gem "redcarpet", "~> 3.5"
+  gem "dokaz", "~> 0.0.5"
+  gem "redcarpet", "~> 3.6"
   gem "yard", "~> 0.9"
   gem "yard-doctest", "~> 0.1"
 end
