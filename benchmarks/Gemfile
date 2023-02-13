@@ -4,13 +4,13 @@ source "https://rubygems.org"
 
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby ">= 2.7.6"
+ruby ">= 2.7.7"
 
 gem "benchmark-ips", "2.10.0"
 
 if RUBY_VERSION > "3"
-  gem "dry-core", "0.7.1"
-  gem "memery", "1.4.0"
+  gem "dry-core", "1.0.0"
+  gem "memery", "1.4.1"
 else
   gem "ddmemoize", "1.0.0"
   gem "memoist", "0.16.2"

@@ -7,7 +7,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
         Class.new do
           prepend MemoWise
 
-          def initialize(arg); end
+          def initialize(arg); end # rubocop:disable Style/RedundantInitialize
         end
       end
 
@@ -21,7 +21,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
         Class.new do
           prepend MemoWise
 
-          def initialize(kwarg:); end
+          def initialize(kwarg:); end # rubocop:disable Style/RedundantInitialize
         end
       end
 
@@ -35,7 +35,7 @@ RSpec.describe "prepending initializer" do # rubocop:disable RSpec/DescribeClass
         Class.new do
           prepend MemoWise
 
-          def initialize(arg, kwarg:); end
+          def initialize(arg, kwarg:); end # rubocop:disable Style/RedundantInitialize
         end
       end
 
