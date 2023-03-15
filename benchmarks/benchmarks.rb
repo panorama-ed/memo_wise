@@ -211,7 +211,7 @@ benchmark_jsons = benchmark_lambdas.map do |benchmark|
   json_file = Tempfile.new
 
   Benchmark.ips do |x|
-    x.config(suite: suite) # rubocop:disable Style/HashSyntax
+    x.config(suite: suite)
     BENCHMARK_GEMS.each do |benchmark_gem|
       instance = Object.const_get("#{benchmark_gem.klass}Example").new
 
