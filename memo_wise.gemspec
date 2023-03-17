@@ -2,7 +2,7 @@
 
 require_relative "lib/memo_wise/version"
 
-Gem::Specification.new do |spec| # rubocop:disable Metrics/BlockLength
+Gem::Specification.new do |spec|
   spec.name     = "memo_wise"
   spec.version  = MemoWise::VERSION
   spec.summary  = "The wise choice for Ruby memoization"
