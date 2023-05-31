@@ -13,7 +13,7 @@ end
 
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
 group :checks do
-  gem "panolint", github: "panorama-ed/panolint", branch: "main"
+  gem "panolint-ruby", github: "panorama-ed/panolint-ruby", branch: "main"
 
   # Simplecov to generate coverage info
   gem "simplecov", require: false

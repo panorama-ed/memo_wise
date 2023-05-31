@@ -13,10 +13,11 @@ _No breaking changes!_
 
 **Project enhancements:**
 
-- Updated benchmark results in `README.md` to Ruby 3.2.1 and 2.7.7
-- Updated `Dry::Core` gem version to 1.0.0 in benchmarks
-- Updated `Memery` gem version to 1.4.1 in benchmarks
-- Updated `Memoized` gem version to 1.1.1 in benchmarks
+- Switched RuboCop configuration from `panolint` to `panolint-ruby` [[#312]](https://github.com/panorama-ed/memo_wise/pull/312)
+- Updated benchmark results in `README.md` to Ruby 3.2.1 and 2.7.7 [[#297]](https://github.com/panorama-ed/memo_wise/pull/297)
+- Updated `Dry::Core` gem version to 1.0.0 in benchmarks [[#297]](https://github.com/panorama-ed/memo_wise/pull/297)
+- Updated `Memery` gem version to 1.4.1 in benchmarks [[#297]](https://github.com/panorama-ed/memo_wise/pull/297)
+- Updated `Memoized` gem version to 1.1.1 in benchmarks [[#288]](https://github.com/panorama-ed/memo_wise/pull/288)
 - Reorganized `CHANGELOG.md` for improved clarity and completeness
   [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
 
