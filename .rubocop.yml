@@ -1,5 +1,5 @@
 inherit_gem:
-  panolint: panolint-rubocop.yml
+  panolint-ruby: panolint-ruby-rubocop.yml
 
 Layout/LineLength:
   Max: 120
