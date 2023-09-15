@@ -18,6 +18,7 @@ _No breaking changes!_
 - Updated `Dry::Core` gem version to 1.0.0 in benchmarks [[#297]](https://github.com/panorama-ed/memo_wise/pull/297)
 - Updated `Memery` gem version to 1.5.0 in benchmarks [[#313]](https://github.com/panorama-ed/memo_wise/pull/313)
 - Updated `Memoized` gem version to 1.1.1 in benchmarks [[#288]](https://github.com/panorama-ed/memo_wise/pull/288)
+- In Ruby3.2+, for singleton classes, use `#attached_object` instead of `ObjectSpace` [[#318]](https://github.com/panorama-ed/memo_wise/pull/318)
 - Reorganized `CHANGELOG.md` for improved clarity and completeness
   [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
 
