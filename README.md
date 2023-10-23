@@ -116,17 +116,17 @@ Benchmarks are run in GitHub Actions, and the tables below are updated with ever
 
 Results using Ruby 3.2.2:
 
-|Method arguments|`Dry::Core`\* (1.0.0)|`Memery` (1.5.0)|
+|Method arguments|`Dry::Core`\* (1.0.1)|`Memery` (1.5.0)|
 |--|--|--|
-|`()` (none)|0.55x|3.69x|
-|`(a)`|1.60x|7.84x|
-|`(a, b)`|1.16x|5.52x|
-|`(a:)`|1.48x|12.66x|
-|`(a:, b:)`|1.10x|8.56x|
-|`(a, b:)`|1.08x|8.68x|
-|`(a, *args)`|0.79x|1.36x|
-|`(a:, **kwargs)`|0.84x|2.16x|
-|`(a, *args, b:, **kwargs)`|0.71x|1.37x|
+|`()` (none)|0.54x|3.62x|
+|`(a)`|1.54x|7.74x|
+|`(a, b)`|1.29x|5.58x|
+|`(a:)`|1.55x|12.37x|
+|`(a:, b:)`|1.15x|8.76x|
+|`(a, b:)`|1.15x|8.75x|
+|`(a, *args)`|0.84x|1.54x|
+|`(a:, **kwargs)`|0.79x|2.13x|
+|`(a, *args, b:, **kwargs)`|0.69x|1.38x|
 
 \* `Dry::Core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
@@ -135,15 +135,15 @@ Results using Ruby 2.7.8 (because these gems raise errors in Ruby 3.x):
 
 |Method arguments|`DDMemoize` (1.0.0)|`Memoist` (0.16.2)|`Memoized` (1.1.1)|`Memoizer` (1.0.3)|
 |--|--|--|--|--|
-|`()` (none)|22.61x|2.39x|26.68x|2.89x|
-|`(a)`|21.17x|14.68x|23.11x|12.37x|
-|`(a, b)`|16.49x|12.08x|17.26x|10.52x|
-|`(a:)`|28.76x|22.96x|24.80x|21.01x|
-|`(a:, b:)`|23.40x|19.54x|20.70x|17.90x|
-|`(a, b:)`|22.58x|18.40x|19.51x|16.97x|
-|`(a, *args)`|3.10x|2.26x|3.32x|1.98x|
-|`(a:, **kwargs)`|2.77x|2.28x|2.51x|2.12x|
-|`(a, *args, b:, **kwargs)`|2.14x|1.81x|1.96x|1.72x|
+|`()` (none)|24.22x|2.42x|26.43x|2.70x|
+|`(a)`|22.08x|15.19x|22.03x|13.67x|
+|`(a, b)`|19.12x|14.01x|18.60x|12.80x|
+|`(a:)`|30.21x|24.29x|26.43x|23.11x|
+|`(a:, b:)`|27.73x|22.97x|25.11x|21.89x|
+|`(a, b:)`|26.87x|22.76x|23.71x|21.26x|
+|`(a, *args)`|3.15x|2.30x|3.18x|2.11x|
+|`(a:, **kwargs)`|2.89x|2.40x|2.69x|2.28x|
+|`(a, *args, b:, **kwargs)`|2.12x|1.82x|1.96x|1.74x|
 
 You can run benchmarks yourself with:
 

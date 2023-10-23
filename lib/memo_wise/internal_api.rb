@@ -126,18 +126,7 @@ module MemoWise
     def self.original_class_from_singleton(klass)
       raise ArgumentError, "Must be a singleton class: #{klass.inspect}" unless klass.singleton_class?
 
-      # Since we call this method a lot, we memoize the results. This can have a
-      # huge impact; for example, in our test suite this drops our test times
-      # from over five minutes to just a few seconds.
-      @original_class_from_singleton ||= {}
-
-      # Search ObjectSpace
-      #   * 1:1 relationship of singleton class to original class is documented
-      #   * Performance concern: searches all Class objects
-      #     But, only runs at load time and results are memoized
-      @original_class_from_singleton[klass] ||= ObjectSpace.each_object(Module).find do |cls|
-        cls.singleton_class == klass
-      end
+      find_attached_object(klass)
     end
 
     # Convention we use for renaming the original method when we replace with
@@ -208,5 +197,42 @@ module MemoWise
       end
     end
     private_class_method :target_class
+
+    if Module.singleton_class.respond_to?(:attached_object)
+      # In Ruby3.2+, for singleton classes, `#attached_object` returns the object this class is for
+      # https://bugs.ruby-lang.org/issues/12084
+      #
+      # @param klass [Class]
+      #   Singleton class to find the original class of
+      #
+      # @return Class
+      #   Original class for which `klass` is the singleton class.
+      def self.find_attached_object(klass)
+        klass.attached_object
+      end
+    else
+      # :nocov:
+      # @param klass [Class]
+      #   Singleton class to find the original class of
+      #
+      # @return Class
+      #   Original class for which `klass` is the singleton class.
+      def self.find_attached_object(klass)
+        # Since we call this method a lot, we memoize the results. This can have a
+        # huge impact; for example, in our test suite this drops our test times
+        # from over five minutes to just a few seconds.
+        @original_class_from_singleton ||= {}
+
+        # Search ObjectSpace
+        #   * 1:1 relationship of singleton class to original class is documented
+        #   * Performance concern: searches all Class objects
+        #     But, only runs at load time and results are memoized
+        @original_class_from_singleton[klass] ||= ObjectSpace.each_object(Module).find do |cls|
+          cls.singleton_class == klass
+        end
+      end
+      # :nocov:
+    end
+    private_class_method :find_attached_object
   end
 end
