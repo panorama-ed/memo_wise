@@ -5,9 +5,19 @@ follows a format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.7.0...HEAD)
+## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.8.0...HEAD)
 
 **Gem enhancements:** none
+
+_No breaking changes!_
+
+**Project enhancements:** none
+
+## [v1.8.0](https://github.com/panorama-ed/memo_wise/compare/v1.7.0...v1.8.0) - 2023-10-25
+
+**Gem enhancements:**
+
+- In Ruby3.2+, for singleton classes, use `#attached_object` instead of `ObjectSpace` [[#318]](https://github.com/panorama-ed/memo_wise/pull/318)
 
 _No breaking changes!_
 
@@ -18,7 +28,6 @@ _No breaking changes!_
 - Updated `Dry::Core` gem version to 1.0.0 in benchmarks [[#297]](https://github.com/panorama-ed/memo_wise/pull/297)
 - Updated `Memery` gem version to 1.5.0 in benchmarks [[#313]](https://github.com/panorama-ed/memo_wise/pull/313)
 - Updated `Memoized` gem version to 1.1.1 in benchmarks [[#288]](https://github.com/panorama-ed/memo_wise/pull/288)
-- In Ruby3.2+, for singleton classes, use `#attached_object` instead of `ObjectSpace` [[#318]](https://github.com/panorama-ed/memo_wise/pull/318)
 - Reorganized `CHANGELOG.md` for improved clarity and completeness
   [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
 
