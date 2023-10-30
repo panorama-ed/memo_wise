@@ -266,8 +266,8 @@ Then carry out these steps:
 
 1. Update `CHANGELOG.md`:
    - Add an entry for the upcoming version _x.y.z_
-   - Add a link for this version's comparison to the bottom of `CHANGELOG.md`
    - Move content from _Unreleased_ to the upcoming version _x.y.z_
+   - Update the diff links for this version and _Unreleased_ in `CHANGELOG.md`
    - Change _Unreleased_ section to say:
      ```
      **Gem enhancements:** none
