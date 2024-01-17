@@ -819,5 +819,37 @@ RSpec.describe MemoWise do
         end
       end
     end
+
+    context "with module defined self.extended" do
+      let(:module_with_memo) do
+        Module.new do
+          prepend MemoWise
+
+          def self.extended(base)
+            base.instance_variable_set(:@extended_called, true)
+          end
+
+          def no_args
+            @no_args_counter = no_args_counter + 1
+          end
+          memo_wise :no_args
+
+          def no_args_counter
+            @no_args_counter ||= 0
+          end
+        end
+      end
+
+      it "calls defined self.extended" do
+        klass = Class.new
+        instance = klass.new
+        instance.extend(module_with_memo)
+
+        expect(instance.instance_variable_get(:@extended_called)).to be(true)
+
+        expect(Array.new(4) { instance.no_args }).to all(eq(1))
+        expect(instance.no_args_counter).to eq(1)
+      end
+    end
   end
 end
