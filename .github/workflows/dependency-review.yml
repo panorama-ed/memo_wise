@@ -17,7 +17,7 @@
         - name: 'Checkout Repository'
           uses: actions/checkout@v4
         - name: 'Dependency Review'
-          uses: actions/dependency-review-action@v3
+          uses: actions/dependency-review-action@v4
           with:
             # Possible values: "critical", "high", "moderate", "low" 
             fail-on-severity: high
