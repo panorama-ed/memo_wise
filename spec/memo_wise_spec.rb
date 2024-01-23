@@ -851,5 +851,119 @@ RSpec.describe MemoWise do
         expect(instance.no_args_counter).to eq(1)
       end
     end
+
+    context "with target defined self.inherited" do
+      context "when target is class" do
+        let(:klass) do
+          Class.new do
+            prepend MemoWise
+
+            def self.inherited(subclass)
+              super
+              subclass.instance_variable_set(:@inherited_called, true)
+            end
+
+            def no_args
+              @no_args_counter = no_args_counter + 1
+            end
+            memo_wise :no_args
+
+            def no_args_counter
+              @no_args_counter ||= 0
+            end
+          end
+        end
+
+        it "calls defined self.inherited" do
+          inherited = Class.new(klass)
+          expect(inherited.instance_variable_get(:@inherited_called)).to be(true)
+
+          instance = inherited.new
+          expect(Array.new(4) { instance.no_args }).to all(eq(1))
+          expect(instance.no_args_counter).to eq(1)
+        end
+
+        it "doesn't define #inherited" do
+          expect(klass).to be_respond_to(:inherited)
+          expect(klass.new).to_not be_respond_to(:inherited)
+        end
+      end
+
+      context "when target is singleton class" do
+        let(:klass) do
+          Class.new do
+            class << self
+              prepend MemoWise
+
+              def inherited(subclass)
+                super
+                subclass.instance_variable_set(:@inherited_called, true)
+              end
+
+              def no_args
+                @no_args_counter = no_args_counter + 1
+              end
+              memo_wise :no_args
+
+              def no_args_counter
+                @no_args_counter ||= 0
+              end
+            end
+          end
+        end
+
+        it "calls defined self.inherited" do
+          inherited = Class.new(klass)
+          expect(inherited.instance_variable_get(:@inherited_called)).to be(true)
+
+          expect(Array.new(4) { inherited.no_args }).to all(eq(1))
+          expect(inherited.no_args_counter).to eq(1)
+        end
+
+        it "doesn't define #inherited" do
+          expect(klass).to be_respond_to(:inherited)
+          expect(klass.new).to_not be_respond_to(:inherited)
+        end
+      end
+
+      context "when target is module" do
+        let(:klass) do
+          mod = Module.new do
+            prepend MemoWise
+
+            def inherited(subclass)
+              super
+              subclass.instance_variable_set(:@inherited_called, true)
+            end
+
+            def no_args
+              @no_args_counter = no_args_counter + 1
+            end
+            memo_wise :no_args
+
+            def no_args_counter
+              @no_args_counter ||= 0
+            end
+          end
+
+          klass = Class.new
+          klass.extend(mod)
+          klass
+        end
+
+        it "calls defined self.inherited" do
+          inherited = Class.new(klass)
+          expect(inherited.instance_variable_get(:@inherited_called)).to be(true)
+
+          expect(Array.new(4) { inherited.no_args }).to all(eq(1))
+          expect(inherited.no_args_counter).to eq(1)
+        end
+
+        it "doesn't define #inherited" do
+          expect(klass).to be_respond_to(:inherited)
+          expect(klass.new).to_not be_respond_to(:inherited)
+        end
+      end
+    end
   end
 end
