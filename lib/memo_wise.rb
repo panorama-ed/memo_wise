@@ -78,6 +78,14 @@ module MemoWise
     end
   HEREDOC
 
+  module CreateMemoWiseStateOnExtended
+    def extended(base)
+      MemoWise::InternalAPI.create_memo_wise_state!(base)
+      super
+    end
+  end
+  private_constant(:CreateMemoWiseStateOnExtended)
+
   # @private
   #
   # Private setup method, called automatically by `prepend MemoWise` in a class.
@@ -136,9 +144,7 @@ module MemoWise
             #
             # On method call `@_memo_wise` would still be `nil`
             # causing error when fetching cache from `@_memo_wise`
-            def klass.extended(base)
-              MemoWise::InternalAPI.create_memo_wise_state!(base)
-            end
+            klass.singleton_class.prepend(CreateMemoWiseStateOnExtended)
           end
         when Hash
           unless method_name_or_hash.keys == [:self]
