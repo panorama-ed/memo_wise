@@ -54,10 +54,9 @@ module MemoWise
   # [this article](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/)
   # for more information.
   #
+
   # :nocov:
-  all_args = RUBY_VERSION < "2.7" ? "*" : "..."
-  # :nocov:
-  class_eval <<~HEREDOC, __FILE__, __LINE__ + 1
+  INITIALIZE_LITERAL = <<~HEREDOC.freeze
     # On Ruby 2.7 or greater:
     #
     # def initialize(...)
@@ -72,11 +71,14 @@ module MemoWise
     #   super
     # end
 
-    def initialize(#{all_args})
+    def initialize(#{RUBY_VERSION < '2.7' ? '*' : '...'})
       MemoWise::InternalAPI.create_memo_wise_state!(self)
       super
     end
   HEREDOC
+  # :nocov:
+
+  class_eval(INITIALIZE_LITERAL, __FILE__, __LINE__ + 1)
 
   module CreateMemoWiseStateOnExtended
     def extended(base)
@@ -93,6 +95,15 @@ module MemoWise
     end
   end
   private_constant(:CreateMemoWiseStateOnInherited)
+
+  module CreateMemoWiseStateOnIncluded
+    def included(base)
+      base.prepend(Module.new do
+        class_eval(INITIALIZE_LITERAL, __FILE__, __LINE__ + 1)
+      end)
+    end
+  end
+  private_constant(:CreateMemoWiseStateOnIncluded)
 
   # @private
   #
@@ -176,6 +187,8 @@ module MemoWise
         if klass.is_a?(Class) && !klass.singleton_class?
           klass.singleton_class.prepend(CreateMemoWiseStateOnInherited)
         else
+          klass.singleton_class.prepend(CreateMemoWiseStateOnIncluded) if klass.is_a?(Module) && !klass.singleton_class?
+
           klass.prepend(CreateMemoWiseStateOnInherited)
         end
 
