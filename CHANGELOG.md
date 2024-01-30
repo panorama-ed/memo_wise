@@ -14,6 +14,7 @@ _No breaking changes!_
 **Project enhancements:**
 
 - Fixed a bug that overwrote existing self.extended method definitions. [[#324]](https://github.com/panorama-ed/memo_wise/pull/314)
+- Fixed a bug that overwrote existing self.inherited method definitions. [[#325]](https://github.com/panorama-ed/memo_wise/pull/315)
 
 ## [v1.8.0](https://github.com/panorama-ed/memo_wise/compare/v1.7.0...v1.8.0) - 2023-10-25
 

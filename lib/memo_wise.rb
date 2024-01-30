@@ -86,6 +86,14 @@ module MemoWise
   end
   private_constant(:CreateMemoWiseStateOnExtended)
 
+  module CreateMemoWiseStateOnInherited
+    def inherited(subclass)
+      MemoWise::InternalAPI.create_memo_wise_state!(subclass)
+      super
+    end
+  end
+  private_constant(:CreateMemoWiseStateOnInherited)
+
   # @private
   #
   # Private setup method, called automatically by `prepend MemoWise` in a class.
@@ -165,12 +173,11 @@ module MemoWise
 
         # This ensures that a memoized method defined on a parent class can
         # still be used in a child class.
-        klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-          def inherited(subclass)
-            super
-            MemoWise::InternalAPI.create_memo_wise_state!(subclass)
-          end
-        HEREDOC
+        if klass.is_a?(Class) && !klass.singleton_class?
+          klass.singleton_class.prepend(CreateMemoWiseStateOnInherited)
+        else
+          klass.prepend(CreateMemoWiseStateOnInherited)
+        end
 
         raise ArgumentError, "#{method_name.inspect} must be a Symbol" unless method_name.is_a?(Symbol)
 
