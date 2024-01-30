@@ -9,6 +9,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 **Gem enhancements:** none
 
+- Allowed memoization when `include`d modules `prepend MemoWise` and define `initialize` [[#327]](https://github.com/panorama-ed/memo_wise/pull/327)
+
 _No breaking changes!_
 
 **Project enhancements:** none

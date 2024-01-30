@@ -93,6 +93,13 @@ module MemoWise
   end
   private_constant(:CreateMemoWiseStateOnInherited)
 
+  module CreateMemoWiseStateOnIncluded
+    def included(base)
+      base.prepend(MemoWise)
+    end
+  end
+  private_constant(:CreateMemoWiseStateOnIncluded)
+
   # @private
   #
   # Private setup method, called automatically by `prepend MemoWise` in a class.
@@ -154,10 +161,7 @@ module MemoWise
             klass.singleton_class.prepend(CreateMemoWiseStateOnExtended)
           end
         when Hash
-          unless method_name_or_hash.keys == [:self]
-            raise ArgumentError,
-                  "`:self` is the only key allowed in memo_wise"
-          end
+          raise ArgumentError, "`:self` is the only key allowed in memo_wise" unless method_name_or_hash.keys == [:self]
 
           method_name = method_name_or_hash[:self]
 
@@ -175,6 +179,8 @@ module MemoWise
         if klass.is_a?(Class) && !klass.singleton_class?
           klass.singleton_class.prepend(CreateMemoWiseStateOnInherited)
         else
+          klass.singleton_class.prepend(CreateMemoWiseStateOnIncluded) if klass.is_a?(Module) && !klass.singleton_class?
+
           klass.prepend(CreateMemoWiseStateOnInherited)
         end
 
