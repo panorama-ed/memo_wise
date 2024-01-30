@@ -13,8 +13,9 @@ _No breaking changes!_
 
 **Project enhancements:**
 
-- Fixed a bug that overwrote existing self.extended method definitions. [[#324]](https://github.com/panorama-ed/memo_wise/pull/314)
-- Fixed a bug that overwrote existing self.inherited method definitions. [[#325]](https://github.com/panorama-ed/memo_wise/pull/315)
+- Fixed a bug that overwrote existing `self.extended` method definitions [[#324]](https://github.com/panorama-ed/memo_wise/pull/324)
+- Fixed a bug that overwrote existing `self.inherited` method definitions [[#325]](https://github.com/panorama-ed/memo_wise/pull/325)
+- Allow memoization when `include`d modules `prepend MemoWise` and define `initialize` [[#327]](https://github.com/panorama-ed/memo_wise/pull/327)
 
 ## [v1.8.0](https://github.com/panorama-ed/memo_wise/compare/v1.7.0...v1.8.0) - 2023-10-25
 
@@ -27,7 +28,7 @@ _No breaking changes!_
 **Project enhancements:**
 
 - Switched RuboCop configuration from `panolint` to `panolint-ruby` [[#312]](https://github.com/panorama-ed/memo_wise/pull/312)
-- Updated benchmark results in `README.md` to Ruby 3.2.2 and 2.7.8 [[#313]](https://github.com/panorama-ed/memo_wise/pull/297)
+- Updated benchmark results in `README.md` to Ruby 3.2.2 and 2.7.8 [[#313]](https://github.com/panorama-ed/memo_wise/pull/313)
 - Updated `Dry::Core` gem version to 1.0.0 in benchmarks [[#297]](https://github.com/panorama-ed/memo_wise/pull/297)
 - Updated `Memery` gem version to 1.5.0 in benchmarks [[#313]](https://github.com/panorama-ed/memo_wise/pull/313)
 - Updated `Memoized` gem version to 1.1.1 in benchmarks [[#288]](https://github.com/panorama-ed/memo_wise/pull/288)
