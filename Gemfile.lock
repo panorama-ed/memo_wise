@@ -84,7 +84,7 @@ GEM
     slop (3.6.0)
     unicode-display_width (2.4.2)
     values (1.8.0)
-    yard (0.9.34)
+    yard (0.9.35)
     yard-doctest (0.1.17)
       minitest
       yard
