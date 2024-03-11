@@ -7,14 +7,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.8.0...HEAD)
 
-**Gem enhancements:** none
+**Gem enhancements:**
+
+- Fixed a bug that overwrote existing self.extended method definitions. [[#324]](https://github.com/panorama-ed/memo_wise/pull/314)
+- Fixed a bug that overwrote existing self.inherited method definitions. [[#325]](https://github.com/panorama-ed/memo_wise/pull/315)
 
 _No breaking changes!_
 
 **Project enhancements:**
 
-- Fixed a bug that overwrote existing self.extended method definitions. [[#324]](https://github.com/panorama-ed/memo_wise/pull/314)
-- Fixed a bug that overwrote existing self.inherited method definitions. [[#325]](https://github.com/panorama-ed/memo_wise/pull/315)
+- Fixed `bundle exec yard server --reload` and related documentation [[#333]](https://github.com/panorama-ed/memo_wise/pull/333)
 
 ## [v1.8.0](https://github.com/panorama-ed/memo_wise/compare/v1.7.0...v1.8.0) - 2023-10-25
 

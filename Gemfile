@@ -12,7 +12,7 @@ group :test do
 end
 
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
-group :checks do
+group :checks, optional: true do
   gem "panolint-ruby", github: "panorama-ed/panolint-ruby", branch: "main"
 
   # Simplecov to generate coverage info
@@ -23,9 +23,10 @@ group :checks do
 end
 
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
-group :docs do
+group :docs, optional: true do
   gem "dokaz", "~> 0.0.5"
   gem "redcarpet", "~> 3.6"
+  gem "webrick", "~> 1.8"
   gem "yard", "~> 0.9"
   gem "yard-doctest", "~> 0.1"
 end
