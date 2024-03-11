@@ -23,8 +23,8 @@ jobs:
     #   * https://github.com/ruby/setup-ruby#bundle-config
     - name: Set bundler environment variables
       run: |
-        echo "BUNDLE_WITHOUT=checks:docs" >> $GITHUB_ENV
-      if: matrix.ruby != 3.2
+        echo "BUNDLE_WITH=checks:docs" >> $GITHUB_ENV
+      if: matrix.ruby == 3.2
 
     # Use 'bundler-cache: true' instead of actions/cache as advised:
     #   * https://github.com/actions/cache/blob/main/examples.md#ruby---bundler

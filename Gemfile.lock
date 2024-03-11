@@ -84,6 +84,7 @@ GEM
     slop (3.6.0)
     unicode-display_width (2.4.2)
     values (1.8.0)
+    webrick (1.8.1)
     yard (0.9.36)
     yard-doctest (0.1.17)
       minitest
@@ -102,6 +103,7 @@ DEPENDENCIES
   simplecov
   simplecov-cobertura
   values (~> 1)
+  webrick (~> 1.8)
   yard (~> 0.9)
   yard-doctest (~> 0.1)
 

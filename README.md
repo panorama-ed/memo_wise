@@ -176,18 +176,42 @@ versions:
 
 ## Documentation
 
-### Documentation is Automatically Generated
+### Automatically Generated Docs
 
 We maintain API documentation using [YARD](https://yardoc.org/), which is
 published automatically at
-[RubyDoc.info](https://rubydoc.info/gems/memo_wise). To
-edit documentation locally and see it rendered in your browser, run:
+[RubyDoc.info](https://rubydoc.info/gems/memo_wise). 
+
+To generate documentation locally or run documentation tests,
+first install the `docs` dependencies (e.g. `yard`) as follows:
 
 ```bash
-bundle exec yard server
+BUNDLE_WITH=docs bundle install
 ```
 
-### Documentation Examples are Automatically Tested
+### Hot Reloading Docs Locally
+
+To edit documentation locally and see it rendered in your browser
+using hot reloading, run:
+
+```bash
+bundle exec yard server --reload
+```
+
+You can then open your web browser to `http://127.0.0.1:8808/`. As you
+edit documentation locally, reload your browser to see it generated.
+
+### Static Generate Docs Locally
+
+To statically generate documentation locally, run:
+
+```bash
+bundle exec yard
+```
+
+You can then open the generated documentation at `docs/index.html`.
+
+### Test all Docs Examples
 
 We use [yard-doctest](https://github.com/p0deje/yard-doctest) to test all
 code examples in our YARD documentation. To run `doctest` locally:
@@ -204,7 +228,7 @@ locally:
 bundle exec dokaz
 ```
 
-### A Note on Testing
+## A Note on Testing
 
 When testing memoized *module* methods, note that some testing setups will
 reuse the same instance (which `include`s/`extend`s/`prepend`s the module)
@@ -254,12 +278,11 @@ the [code of conduct](https://github.com/panorama-ed/memo_wise/blob/main/CODE_OF
 ## Releasing
 
 To make a new release of `MemoWise` to
-[RubyGems](https://rubygems.org/gems/memo_wise), first install the release
+[RubyGems](https://rubygems.org/gems/memo_wise), first install the `release`
 dependencies (e.g. `rake`) as follows:
 
 ```shell
-bundle config --local with 'release'
-bundle install
+BUNDLE_WITH=release bundle install
 ```
 
 Then carry out these steps:
