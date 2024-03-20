@@ -114,11 +114,11 @@ For more usage details, see our detailed [documentation](#documentation).
 
 Benchmarks are run in GitHub Actions, and the tables below are updated with every code change. **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval is than the latest commit of `MemoWise`**, according to [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (2.11.0).
 
-Results using Ruby 3.2.2:
+Results using Ruby 3.3.0 (parentheses using `--yjit`):
 
 |Method arguments|`Dry::Core`\* (1.0.1)|`Memery` (1.5.0)|
 |--|--|--|
-|`()` (none)|0.60x|3.58x|
+|`()` (none)|0.60x (0.40x)|3.58x|
 |`(a)`|1.37x|7.41x|
 |`(a, b)`|1.20x|6.43x|
 |`(a:)`|1.47x|13.60x|
@@ -180,7 +180,7 @@ versions:
 
 We maintain API documentation using [YARD](https://yardoc.org/), which is
 published automatically at
-[RubyDoc.info](https://rubydoc.info/gems/memo_wise). 
+[RubyDoc.info](https://rubydoc.info/gems/memo_wise).
 
 To generate documentation locally or run documentation tests,
 first install the `docs` dependencies (e.g. `yard`) as follows:
