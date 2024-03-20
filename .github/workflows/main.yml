@@ -35,7 +35,8 @@ jobs:
 
     - run: bundle exec rspec
 
-    - uses: codecov/codecov-action@v3
+    - uses: codecov/codecov-action@v4
+      token: 8239b0d5-6231-42a4-8c72-23da5838d0b0
       with:
         files: ./coverage/coverage.xml
         fail_ci_if_error: true # optional (default = false)
