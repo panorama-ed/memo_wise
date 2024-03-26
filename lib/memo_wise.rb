@@ -194,6 +194,7 @@ module MemoWise
         when MemoWise::InternalAPI::NONE
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}
+              @_memo_wise ||= {}
               @_memo_wise.fetch(:#{method_name}) do
                 @_memo_wise[:#{method_name}] = #{original_memo_wised_name}
               end
@@ -203,6 +204,7 @@ module MemoWise
           key = method.parameters.first.last
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+              @_memo_wise ||= {}
               _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
               _memo_wise_hash.fetch(#{key}) do
                 _memo_wise_hash[#{key}] = #{original_memo_wised_name}(#{MemoWise::InternalAPI.call_str(method)})
@@ -224,6 +226,7 @@ module MemoWise
           end
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+              @_memo_wise ||= {}
               _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
               #{layers.join("\n  ")}
             end
@@ -233,6 +236,7 @@ module MemoWise
           # { method_name: { args => { kwargs => memoized_value } } }
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(*args, **kwargs)
+              @_memo_wise ||= {}
               _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
               _memo_wise_kwargs_hash = _memo_wise_hash.fetch(args) do
                 _memo_wise_hash[args] = {}
@@ -245,6 +249,7 @@ module MemoWise
         else # MemoWise::InternalAPI::SPLAT, MemoWise::InternalAPI::DOUBLE_SPLAT
           klass.module_eval <<~HEREDOC, __FILE__, __LINE__ + 1
             def #{method_name}(#{MemoWise::InternalAPI.args_str(method)})
+              @_memo_wise ||= {}
               _memo_wise_hash = (@_memo_wise[:#{method_name}] ||= {})
               _memo_wise_key = #{MemoWise::InternalAPI.key_str(method)}
               _memo_wise_hash.fetch(_memo_wise_key) do
@@ -565,6 +570,7 @@ module MemoWise
       raise ArgumentError, "Provided args when method_name = nil" unless args.empty?
       raise ArgumentError, "Provided kwargs when method_name = nil" unless kwargs.empty?
 
+      @_memo_wise ||= {}
       @_memo_wise.clear
       return
     end
