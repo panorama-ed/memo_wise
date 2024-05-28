@@ -17,6 +17,7 @@ _No breaking changes!_
 **Project enhancements:**
 
 - Fixed `bundle exec yard server --reload` and related documentation [[#333]](https://github.com/panorama-ed/memo_wise/pull/333)
+- Fixed Codecov rate limiting errors affecting pull requests by upgrading `codecov/codecov-action` and using a Codecov token [[#317]](https://github.com/panorama-ed/memo_wise/pull/317)
 
 ## [v1.8.0](https://github.com/panorama-ed/memo_wise/compare/v1.7.0...v1.8.0) - 2023-10-25
 
