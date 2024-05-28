@@ -5,14 +5,23 @@ follows a format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.8.0...HEAD)
+## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.9.0...HEAD)
+
+**Gem enhancements:**
+
+_No breaking changes!_
+
+**Project enhancements:**
+
+## [v1.9.0](https://github.com/panorama-ed/memo_wise/compare/v1.8.0...v1.9.0)
 
 **Gem enhancements:**
 
 - Fixed a bug that overwrote existing self.extended method definitions. [[#324]](https://github.com/panorama-ed/memo_wise/pull/314)
 - Fixed a bug that overwrote existing self.inherited method definitions. [[#325]](https://github.com/panorama-ed/memo_wise/pull/315)
 
-_No breaking changes!_
+_Breaking changes:_
+- Removed Ruby 2.4 (EOL) support to allow upgrading rexml dependency version from a version that includes a [CVE](https://www.ruby-lang.org/en/news/2024/05/16/dos-rexml-cve-2024-35176/) [[#336]](https://github.com/panorama-ed/memo_wise/pull/336)
 
 **Project enhancements:**
 
