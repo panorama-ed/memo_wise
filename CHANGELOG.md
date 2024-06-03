@@ -13,6 +13,8 @@ _No breaking changes!_
 
 **Project enhancements:**
 
+- Updated official test coverage to support Ruby 3.3 [[#335](https://github.com/panorama-ed/memo_wise/pull/335)]
+
 ## [v1.9.0](https://github.com/panorama-ed/memo_wise/compare/v1.8.0...v1.9.0)
 
 **Gem enhancements:**
@@ -70,7 +72,7 @@ _No breaking changes!_
 
 **Project enhancements:**
 
-- Update official test coverage to support Ruby 3.1 [[#263](https://github.com/panorama-ed/memo_wise/pull/263)]
+- Updated official test coverage to support Ruby 3.1 [[#263](https://github.com/panorama-ed/memo_wise/pull/263)]
 
 ## [v1.5.0](https://github.com/panorama-ed/memo_wise/compare/v1.4.0...v1.5.0) - 2021-12-17
 
