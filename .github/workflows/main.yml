@@ -14,7 +14,7 @@ jobs:
       matrix:
         # Due to https://github.com/actions/runner/issues/849, we have to use
         # quotes for '3.0' -- without quotes, CI sees '3' and runs the latest.
-        ruby: [2.4, 2.5, 2.6, 2.7, '3.0', 3.1, 3.2, jruby, truffleruby-head]
+        ruby: [2.4, 2.5, 2.6, 2.7, '3.0', 3.1, 3.2, 3.3, jruby, truffleruby-head]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
     - name: Set bundler environment variables
       run: |
         echo "BUNDLE_WITH=checks:docs" >> $GITHUB_ENV
-      if: matrix.ruby == 3.2
+      if: matrix.ruby == 3.3
 
     # Use 'bundler-cache: true' instead of actions/cache as advised:
     #   * https://github.com/actions/cache/blob/main/examples.md#ruby---bundler
@@ -41,18 +41,18 @@ jobs:
         fail_ci_if_error: true # optional (default = false)
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true # optional (default = false)
-      if: matrix.ruby == 3.2
+      if: matrix.ruby == 3.3
 
     - run: bundle exec rubocop
-      if: matrix.ruby == 3.2
+      if: matrix.ruby == 3.3
 
     - run: |
         bundle exec yard doctest
         bundle exec dokaz
-      if: matrix.ruby == 3.2
+      if: matrix.ruby == 3.3
 
-    - name: Run benchmarks on Ruby 2.7 or 3.2
+    - name: Run benchmarks on Ruby 2.7 or 3.3
       run: |
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle install --jobs 4 --retry 3
         BUNDLE_GEMFILE=benchmarks/Gemfile bundle exec ruby benchmarks/benchmarks.rb
-      if: matrix.ruby == '2.7' || matrix.ruby == '3.2'
+      if: matrix.ruby == '2.7' || matrix.ruby == '3.3'
