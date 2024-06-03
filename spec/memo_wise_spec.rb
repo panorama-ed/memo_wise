@@ -134,11 +134,11 @@ RSpec.describe MemoWise do
         expect(target.proc_method_counter).to eq(1)
       end
 
-      it "will not memoize methods with implicit block arguments" do
+      it "does not memoize methods with implicit block arguments" do
         expect { target.implicit_block_method }.to raise_error(LocalJumpError)
       end
 
-      it "will not memoize methods with explicit block arguments" do
+      it "does not memoize methods with explicit block arguments" do
         expect { target.explicit_block_method { nil } }.to raise_error(LocalJumpError)
       end
     end
@@ -153,7 +153,7 @@ RSpec.describe MemoWise do
 
             # Now confirm our non-memoized method is not memoized.
             expect(Array.new(4) { non_memoized.no_args }).to all eq("#{non_memoized_name}_no_args")
-            expect(non_memoized.send("#{non_memoized_name}_no_args_counter")).to eq(4)
+            expect(non_memoized.send(:"#{non_memoized_name}_no_args_counter")).to eq(4)
           end
         end
 
@@ -167,7 +167,7 @@ RSpec.describe MemoWise do
             expect(Array.new(4) { non_memoized.with_one_positional_arg(1) }).
               to all eq("#{non_memoized_name}_with_one_positional_arg: a=1")
 
-            expect(non_memoized.send("#{non_memoized_name}_one_positional_arg_counter")).to eq(4)
+            expect(non_memoized.send(:"#{non_memoized_name}_one_positional_arg_counter")).to eq(4)
           end
         end
 
@@ -181,7 +181,7 @@ RSpec.describe MemoWise do
             expect(Array.new(4) { non_memoized.with_positional_args(1, 2) }).
               to all eq("#{non_memoized_name}_with_positional_args: a=1, b=2")
 
-            expect(non_memoized.send("#{non_memoized_name}_positional_args_counter")).to eq(4)
+            expect(non_memoized.send(:"#{non_memoized_name}_positional_args_counter")).to eq(4)
           end
         end
       end
@@ -884,8 +884,8 @@ RSpec.describe MemoWise do
         end
 
         it "doesn't define #inherited" do
-          expect(klass).to be_respond_to(:inherited)
-          expect(klass.new).to_not be_respond_to(:inherited)
+          expect(klass).to respond_to(:inherited)
+          expect(klass.new).to_not respond_to(:inherited)
         end
       end
 
@@ -921,8 +921,8 @@ RSpec.describe MemoWise do
         end
 
         it "doesn't define #inherited" do
-          expect(klass).to be_respond_to(:inherited)
-          expect(klass.new).to_not be_respond_to(:inherited)
+          expect(klass).to respond_to(:inherited)
+          expect(klass.new).to_not respond_to(:inherited)
         end
       end
 
@@ -960,8 +960,8 @@ RSpec.describe MemoWise do
         end
 
         it "doesn't define #inherited" do
-          expect(klass).to be_respond_to(:inherited)
-          expect(klass.new).to_not be_respond_to(:inherited)
+          expect(klass).to respond_to(:inherited)
+          expect(klass.new).to_not respond_to(:inherited)
         end
       end
     end

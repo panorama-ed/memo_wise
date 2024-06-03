@@ -82,7 +82,7 @@ BENCHMARK_GEMS = [
 
 # Use metaprogramming to ensure that each class is created in exactly the
 # the same way.
-BENCHMARK_GEMS.each do |benchmark_gem|
+BENCHMARK_GEMS.each do |benchmark_gem| # rubocop:disable Metrics/BlockLength
   eval <<~HEREDOC, binding, __FILE__, __LINE__ + 1 # rubocop:disable Security/Eval
     class #{benchmark_gem.klass}Example
       #{benchmark_gem.activation_code}

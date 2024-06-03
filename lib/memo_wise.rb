@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-# Disable RuboCop here because Ruby < 3.2 does not load `set` by default.
-require "set" # rubocop:disable Lint/RedundantRequireStatement
+require "set" # Ruby < 3.2 does not load `set` by default.
 
 require "memo_wise/internal_api"
 require "memo_wise/version"

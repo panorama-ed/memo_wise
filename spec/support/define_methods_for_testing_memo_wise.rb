@@ -26,7 +26,7 @@ module DefineMethodsForTestingMemoWise
 
     # :nocov:
     raise ArgumentError, "Not a Class or Module: #{target.inspect}" unless target.is_a?(Module)
-    raise ArgumentError, "Unknown value for 'via': #{via}" unless %i[instance self_dot].include?(via) # rubocop:disable Layout/EmptyLineAfterGuardClause
+    raise ArgumentError, "Unknown value for 'via': #{via}" unless %i[instance self_dot].include?(via)
     # :nocov:
 
     self_prefix = via == :self_dot ? "self." : ""
