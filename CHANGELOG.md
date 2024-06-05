@@ -27,6 +27,8 @@ _Breaking changes:_
 
 - Fixed `bundle exec yard server --reload` and related documentation [[#333]](https://github.com/panorama-ed/memo_wise/pull/333)
 - Fixed Codecov rate limiting errors affecting pull requests by upgrading `codecov/codecov-action` and using a Codecov token [[#317]](https://github.com/panorama-ed/memo_wise/pull/317)
+- Added alt_memery and memoist3 to benchmarks [#339](https://github.com/panorama-ed/memo_wise/pull/339)
+  - Updated benchmark results in `README.md` to Ruby 3.3.2
 
 ## [v1.8.0](https://github.com/panorama-ed/memo_wise/compare/v1.7.0...v1.8.0) - 2023-10-25
 
@@ -43,8 +45,7 @@ _No breaking changes!_
 - Updated `Dry::Core` gem version to 1.0.0 in benchmarks [[#297]](https://github.com/panorama-ed/memo_wise/pull/297)
 - Updated `Memery` gem version to 1.5.0 in benchmarks [[#313]](https://github.com/panorama-ed/memo_wise/pull/313)
 - Updated `Memoized` gem version to 1.1.1 in benchmarks [[#288]](https://github.com/panorama-ed/memo_wise/pull/288)
-- Reorganized `CHANGELOG.md` for improved clarity and completeness
-  [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
+- Reorganized `CHANGELOG.md` for improved clarity and completeness [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
 
 ## [v1.7.0](https://github.com/panorama-ed/memo_wise/compare/v1.6.0...v1.7.0) - 2022-04-04
 

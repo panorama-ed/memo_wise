@@ -29,6 +29,15 @@ require_relative "../lib/memo_wise"
 %w[memery memoist memoized memoizer ddmemoize dry-core].
   each { |gem| require gem if Gem.loaded_specs.key?(gem) }
 
+# alt_memery gem is a fork of memery, and uses the exact same namespace.
+# This means we can't run them both at the same time, so we'll run memery on Ruby 2.7, and alt_memery on Ruby 3+.
+# Similarly, memoist3 is a fork of memoist with Ruby 3 fixes.
+{
+  "memery" => "alt_memery",
+  "memoist" => "memoist3",
+}.
+  each { |lib_name, gem_name| require lib_name if Gem.loaded_specs.key?(gem_name) }
+
 # The VERSION constant does not get loaded above for these gems.
 %w[memoized memoizer].
   each { |gem| require "#{gem}/version" if Gem.loaded_specs.key?(gem) }
@@ -59,9 +68,10 @@ class BenchmarkSuiteWithoutGC
 end
 suite = BenchmarkSuiteWithoutGC.new
 
-BenchmarkGem = Struct.new(:klass, :activation_code, :memoization_method) do
+BenchmarkGem = Struct.new(:klass, :activation_code, :memoization_method, :options) do
   def benchmark_name
-    "#{klass} (#{klass::VERSION})"
+    name_opt = options.key?(:name) ? " (#{options[:name]})" : ""
+    "#{klass}#{name_opt} (#{klass::VERSION})"
   end
 end
 
@@ -69,16 +79,21 @@ end
 # using it to minimize the chance that our benchmarks are affected by ordering.
 # NOTE: Some gems do not yet work in Ruby 3 so we only test with them if they've
 # been `require`d.
+memery_name = RUBY_VERSION > "3" ? "alt_memery" : "memery"
+memoist_name = RUBY_VERSION > "3" ? "memoist3" : "memoist"
 BENCHMARK_GEMS = [
-  BenchmarkGem.new(MemoWise_GitHubMain, "prepend #{GITHUB_MAIN}", :memo_wise),
-  BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise),
-  (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize) if defined?(DDMemoize)),
-  (BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize) if defined?(Dry::Core)),
-  (BenchmarkGem.new(Memery, "include Memery", :memoize) if defined?(Memery)),
-  (BenchmarkGem.new(Memoist, "extend Memoist", :memoize) if defined?(Memoist)),
-  (BenchmarkGem.new(Memoized, "include Memoized", :memoize) if defined?(Memoized)),
-  (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize) if defined?(Memoizer))
+  BenchmarkGem.new(MemoWise_GitHubMain, "prepend #{GITHUB_MAIN}", :memo_wise, {}),
+  BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise, {}),
+  (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize, {}) if defined?(DDMemoize)),
+  (BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize, {}) if defined?(Dry::Core)),
+  # Ruby 2: Setup memery gem, Ruby 3: Setup alt_memery gem (they share a namespace & API)
+  (BenchmarkGem.new(Memery, "include Memery", :memoize, { name: memery_name }) if defined?(Memery)),
+  (BenchmarkGem.new(Memoist, "extend Memoist", :memoize, { name: memoist_name }) if defined?(Memoist)),
+  (BenchmarkGem.new(Memoized, "include Memoized", :memoize, {}) if defined?(Memoized)),
+  (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize, {}) if defined?(Memoizer))
 ].compact.shuffle
+
+puts "\nWill BENCHMARK_GEMS:\n\t#{BENCHMARK_GEMS.map(&:benchmark_name).join("\n\t")}\n"
 
 # Use metaprogramming to ensure that each class is created in exactly the
 # the same way.
