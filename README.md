@@ -114,19 +114,19 @@ For more usage details, see our detailed [documentation](#documentation).
 
 Benchmarks are run in GitHub Actions, and the tables below are updated with every code change. **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval is than the latest commit of `MemoWise`**, according to [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (2.11.0).
 
-Results using Ruby 3.2.2:
+Results using Ruby 3.3.2:
 
 |Method arguments|`Dry::Core`\* (1.0.1)|`Memery` (1.5.0)|
 |--|--|--|
-|`()` (none)|0.66x|3.54x|
-|`(a)`|1.48x|8.49x|
-|`(a, b)`|1.18x|6.52x|
-|`(a:)`|1.53x|13.57x|
-|`(a:, b:)`|1.27x|10.56x|
-|`(a, b:)`|1.26x|10.44x|
-|`(a, *args)`|0.78x|1.60x|
-|`(a:, **kwargs)`|0.77x|2.12x|
-|`(a, *args, b:, **kwargs)`|0.69x|1.40x|
+|`()` (none)|0.60x|3.17x|
+|`(a)`|1.01x|7.94x|
+|`(a, b)`|0.85x|6.38x|
+|`(a:)`|1.00x|11.78x|
+|`(a:, b:)`|0.88x|9.67x|
+|`(a, b:)`|0.83x|9.44x|
+|`(a, *args)`|0.67x|1.45x|
+|`(a:, **kwargs)`|0.68x|1.88x|
+|`(a, *args, b:, **kwargs)`|0.64x|1.29x|
 
 \* `Dry::Core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
@@ -180,7 +180,7 @@ versions:
 
 We maintain API documentation using [YARD](https://yardoc.org/), which is
 published automatically at
-[RubyDoc.info](https://rubydoc.info/gems/memo_wise). 
+[RubyDoc.info](https://rubydoc.info/gems/memo_wise).
 
 To generate documentation locally or run documentation tests,
 first install the `docs` dependencies (e.g. `yard`) as follows:
