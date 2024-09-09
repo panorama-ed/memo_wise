@@ -36,8 +36,7 @@ GEM
     rake (13.1.0)
     redcarpet (3.6.0)
     regexp_parser (2.9.2)
-    rexml (3.3.2)
-      strscan
+    rexml (3.3.7)
     rouge (4.1.0)
     rspec (3.13.0)
       rspec-core (~> 3.13.0)
@@ -81,7 +80,6 @@ GEM
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.4)
     slop (3.6.0)
-    strscan (3.1.0)
     unicode-display_width (2.5.0)
     values (1.8.0)
     webrick (1.8.1)
