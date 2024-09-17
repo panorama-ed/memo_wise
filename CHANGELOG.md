@@ -17,7 +17,7 @@ _No breaking changes!_
 
 **Gem enhancements:**
 
-- Reduced unzipped gem size from 173KB to 19KB [[#345](https://github.com/panorama-ed/memo_wise/pull/345)]
+- Reduced gem size from 173 kB compressed (312 kB unpacked) to 20 kB (68 kB unpacked) [[#345](https://github.com/panorama-ed/memo_wise/pull/345)]
 
 _No breaking changes!_
 
