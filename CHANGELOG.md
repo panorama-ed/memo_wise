@@ -5,11 +5,19 @@ follows a format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.9.0...HEAD)
+## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...HEAD)
 
 **Gem enhancements:**
 
-- Reduced unzipped gem size from 173KB to 19KB [[#345](https://github.com/panorama-ed/memo_wise/pull/345)]
+_No breaking changes!_
+
+**Project enhancements:**
+
+## [v1.10.0](https://github.com/panorama-ed/memo_wise/compare/v1.9.0...v1.10.0)
+
+**Gem enhancements:**
+
+- Reduced gem size from 173 kB compressed (312 kB unpacked) to 20 kB (68 kB unpacked) [[#345](https://github.com/panorama-ed/memo_wise/pull/345)]
 
 _No breaking changes!_
 
