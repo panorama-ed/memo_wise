@@ -24,39 +24,40 @@ _No breaking changes!_
 **Project enhancements:**
 
 - Updated official test coverage to support Ruby 3.3 [[#335](https://github.com/panorama-ed/memo_wise/pull/335)]
+- Added `alt_memery` and `memoist3` to benchmarks [[#339](https://github.com/panorama-ed/memo_wise/pull/339)]
+- Updated benchmark results in `README.md` to Ruby 3.3.5 [[#339](https://github.com/panorama-ed/memo_wise/pull/339)]
 
 ## [v1.9.0](https://github.com/panorama-ed/memo_wise/compare/v1.8.0...v1.9.0)
 
 **Gem enhancements:**
 
-- Fixed a bug that overwrote existing self.extended method definitions. [[#324]](https://github.com/panorama-ed/memo_wise/pull/314)
-- Fixed a bug that overwrote existing self.inherited method definitions. [[#325]](https://github.com/panorama-ed/memo_wise/pull/315)
+- Fixed a bug that overwrote existing self.extended method definitions. [[#324](https://github.com/panorama-ed/memo_wise/pull/314)]
+- Fixed a bug that overwrote existing self.inherited method definitions. [[#325](https://github.com/panorama-ed/memo_wise/pull/315)]
 
 _Breaking changes:_
-- Removed Ruby 2.4 (EOL) support to allow upgrading rexml dependency version from a version that includes a [CVE](https://www.ruby-lang.org/en/news/2024/05/16/dos-rexml-cve-2024-35176/) [[#336]](https://github.com/panorama-ed/memo_wise/pull/336)
+- Removed Ruby 2.4 (EOL) support to allow upgrading rexml dependency version from a version that includes a [CVE](https://www.ruby-lang.org/en/news/2024/05/16/dos-rexml-cve-2024-35176/) [[#336](https://github.com/panorama-ed/memo_wise/pull/336)]
 
 **Project enhancements:**
 
-- Fixed `bundle exec yard server --reload` and related documentation [[#333]](https://github.com/panorama-ed/memo_wise/pull/333)
-- Fixed Codecov rate limiting errors affecting pull requests by upgrading `codecov/codecov-action` and using a Codecov token [[#317]](https://github.com/panorama-ed/memo_wise/pull/317)
+- Fixed `bundle exec yard server --reload` and related documentation [[#333](https://github.com/panorama-ed/memo_wise/pull/333)]
+- Fixed Codecov rate limiting errors affecting pull requests by upgrading `codecov/codecov-action` and using a Codecov token [[#317](https://github.com/panorama-ed/memo_wise/pull/317)]
 
 ## [v1.8.0](https://github.com/panorama-ed/memo_wise/compare/v1.7.0...v1.8.0) - 2023-10-25
 
 **Gem enhancements:**
 
-- In Ruby3.2+, for singleton classes, use `#attached_object` instead of `ObjectSpace` [[#318]](https://github.com/panorama-ed/memo_wise/pull/318)
+- In Ruby3.2+, for singleton classes, use `#attached_object` instead of `ObjectSpace` [[#318](https://github.com/panorama-ed/memo_wise/pull/318)]
 
 _No breaking changes!_
 
 **Project enhancements:**
 
-- Switched RuboCop configuration from `panolint` to `panolint-ruby` [[#312]](https://github.com/panorama-ed/memo_wise/pull/312)
-- Updated benchmark results in `README.md` to Ruby 3.2.2 and 2.7.8 [[#313]](https://github.com/panorama-ed/memo_wise/pull/297)
-- Updated `Dry::Core` gem version to 1.0.0 in benchmarks [[#297]](https://github.com/panorama-ed/memo_wise/pull/297)
-- Updated `Memery` gem version to 1.5.0 in benchmarks [[#313]](https://github.com/panorama-ed/memo_wise/pull/313)
-- Updated `Memoized` gem version to 1.1.1 in benchmarks [[#288]](https://github.com/panorama-ed/memo_wise/pull/288)
-- Reorganized `CHANGELOG.md` for improved clarity and completeness
-  [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
+- Switched RuboCop configuration from `panolint` to `panolint-ruby` [[#312](https://github.com/panorama-ed/memo_wise/pull/312)]
+- Updated benchmark results in `README.md` to Ruby 3.2.2 and 2.7.8 [[#313](https://github.com/panorama-ed/memo_wise/pull/297)]
+- Updated `Dry::Core` gem version to 1.0.0 in benchmarks [[#297](https://github.com/panorama-ed/memo_wise/pull/297)]
+- Updated `Memery` gem version to 1.5.0 in benchmarks [[#313](https://github.com/panorama-ed/memo_wise/pull/313)]
+- Updated `Memoized` gem version to 1.1.1 in benchmarks [[#288](https://github.com/panorama-ed/memo_wise/pull/288)]
+- Reorganized `CHANGELOG.md` for improved clarity and completeness [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
 
 ## [v1.7.0](https://github.com/panorama-ed/memo_wise/compare/v1.6.0...v1.7.0) - 2022-04-04
 
