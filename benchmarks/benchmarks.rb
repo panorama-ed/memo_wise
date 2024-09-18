@@ -1,40 +1,80 @@
 # frozen_string_literal: true
 
-require "benchmark/ips"
-
 require "tempfile"
+require "benchmark/ips"
+require "gem_bench/jersey"
 
-github_memo_wise_path = Gem.loaded_specs["memo_wise"].full_gem_path
-
-# This string is both used for temp filepaths necessary to separate the GitHub
-# version of MemoWise and the local version, and used for the reported results
+# Constants used for temp file paths necessary to separate gem namespaces that would otherwise collide.
 GITHUB_MAIN = "MemoWise_GitHubMain"
+GITHUB_MAIN_BENCHMARK_NAME = "memo_wise-github-main"
+LOCAL_BENCHMARK_NAME = "memo_wise-local"
 
-# We download a the main branch of MemoWise on GitHub into a tmp directory to
-# compare against the local version when we run benchmarks
-Dir.mktmpdir do |directory|
-  Dir["#{github_memo_wise_path}/lib/**/*.rb"].each do |file|
-    Tempfile.open([File.basename(file)[0..-4], ".rb"], directory) do |tempfile|
-      tempfile.write(File.read(file).gsub("MemoWise", GITHUB_MAIN))
-      tempfile.rewind
-      require tempfile.path
-    end
-  end
-end
+# 1. GitHub version of MemoWise and the local source of MemoWise share a namespace
+# 2. memery & alt_memery share the namespace Memery
+# 3. memoist & memoist3 share the namespace Memoist, and also share a load path for their version.rb files.
+# This means we must `require: false` in `benchmarks/Gemfile` all, or all but one, of each of these duplicates,
+#   or we take care to only load them in discrete Ruby versions,
+#   to avoid a namespace collision before re-namespacing duplicates
+re_namespaced_gems = [
+  GemBench::Jersey.new(
+    gem_name: "memo_wise",
+    trades: {
+      "MemoWise" => GITHUB_MAIN
+    },
+    metadata: {
+      activation_code: "prepend #{GITHUB_MAIN}",
+      memoization_method: :memo_wise,
+    },
+  ),
+  GemBench::Jersey.new(
+    gem_name: "alt_memery",
+    trades: {
+      "Memery" => "AltMemery"
+    },
+    metadata: {
+      activation_code: "include AltMemery",
+      memoization_method: :memoize,
+    },
+  ),
+  GemBench::Jersey.new(
+    gem_name: "memoist3",
+    trades: {
+      "Memoist" => "MemoistThree"
+    },
+    metadata: {
+      activation_code: "extend MemoistThree",
+      memoization_method: :memoize,
+    },
+  ),
+  GemBench::Jersey.new(
+    gem_name: "memoist",
+    trades: {
+      "Memoist" => "MemoistOne"
+    },
+    metadata: {
+      activation_code: "extend MemoistOne",
+      memoization_method: :memoize,
+    },
+  ),
+].each(&:doff_and_don) # Copies, re-namespaces, and requires each gem.
 
+# We've already installed the `memo_wise` version on the `main` branch from GitHub in the
+# Gemfile, and moved it into a tmp directory and re-namespaced it so it doesn't collide with
+# the `MemoWise` constant. Now we require the local version of `memo_wise` to compare
+# this branch against it.
 require_relative "../lib/memo_wise"
 
 # Some gems do not yet work in Ruby 3 so we only require them if they're loaded
-# in the Gemfile.
-%w[memery memoist memoized memoizer ddmemoize dry-core].
+# in the Gemfile.  Gems re-namespaced by GemBench::Jersey will have already been loaded by now.
+%w[memery memoized memoizer ddmemoize dry-core].
   each { |gem| require gem if Gem.loaded_specs.key?(gem) }
+
+# Some Gems Have Modules Which Need To Be Required Manually:
+require "dry/core/memoizable" if Gem.loaded_specs.key?("dry-core")
 
 # The VERSION constant does not get loaded above for these gems.
 %w[memoized memoizer].
   each { |gem| require "#{gem}/version" if Gem.loaded_specs.key?(gem) }
-
-# The Memoizable module from dry-core needs to be required manually
-require "dry/core/memoizable" if Gem.loaded_specs.key?("dry-core")
 
 class BenchmarkSuiteWithoutGC
   def warming(*)
@@ -59,9 +99,9 @@ class BenchmarkSuiteWithoutGC
 end
 suite = BenchmarkSuiteWithoutGC.new
 
-BenchmarkGem = Struct.new(:klass, :activation_code, :memoization_method) do
+BenchmarkGem = Struct.new(:klass, :activation_code, :memoization_method, :name) do
   def benchmark_name
-    "#{klass} (#{klass::VERSION})"
+    "#{name} (#{klass::VERSION})"
   end
 end
 
@@ -69,16 +109,25 @@ end
 # using it to minimize the chance that our benchmarks are affected by ordering.
 # NOTE: Some gems do not yet work in Ruby 3 so we only test with them if they've
 # been `require`d.
-BENCHMARK_GEMS = [
-  BenchmarkGem.new(MemoWise_GitHubMain, "prepend #{GITHUB_MAIN}", :memo_wise),
-  BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise),
-  (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize) if defined?(DDMemoize)),
-  (BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize) if defined?(Dry::Core)),
-  (BenchmarkGem.new(Memery, "include Memery", :memoize) if defined?(Memery)),
-  (BenchmarkGem.new(Memoist, "extend Memoist", :memoize) if defined?(Memoist)),
-  (BenchmarkGem.new(Memoized, "include Memoized", :memoize) if defined?(Memoized)),
-  (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize) if defined?(Memoizer))
-].compact.shuffle
+benchmarked_gems = re_namespaced_gems.select(&:required?).map do |re_namespaced_gem|
+  BenchmarkGem.new(
+    re_namespaced_gem.as_klass,
+    re_namespaced_gem.metadata[:activation_code],
+    re_namespaced_gem.metadata[:memoization_method],
+    re_namespaced_gem.gem_name == "memo_wise" ? GITHUB_MAIN_BENCHMARK_NAME : re_namespaced_gem.gem_name,
+  )
+end
+benchmarked_gems.push(
+  BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise, LOCAL_BENCHMARK_NAME),
+  (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize, "ddmemoize") if defined?(DDMemoize)),
+  (BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize, "dry-core") if defined?(Dry::Core)),
+  (BenchmarkGem.new(Memery, "include Memery", :memoize, "memery") if defined?(Memery)),
+  (BenchmarkGem.new(Memoized, "include Memoized", :memoize, "memoized") if defined?(Memoized)),
+  (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize, "memoizer") if defined?(Memoizer))
+)
+BENCHMARK_GEMS = benchmarked_gems.compact.shuffle
+
+puts "\nWill BENCHMARK_GEMS:\n\t#{BENCHMARK_GEMS.map(&:benchmark_name).join("\n\t")}\n"
 
 # Use metaprogramming to ensure that each class is created in exactly the
 # the same way.
@@ -232,10 +281,10 @@ end
 
     # MemoWise will not appear in the comparison table, but we will use it to
     # compare against other gems' benchmarks
-    memo_wise = benchmark_json.find { |json| json["name"].split.first == "MemoWise" }
+    memo_wise = benchmark_json.find { |json| json["name"].split.first == LOCAL_BENCHMARK_NAME }
     benchmark_json -= [memo_wise]
 
-    github_main = benchmark_json.find { |json| json["name"].split.first == GITHUB_MAIN }
+    github_main = benchmark_json.find { |json| json["name"].split.first == GITHUB_MAIN_BENCHMARK_NAME }
     benchmark_json = github_comparison ? [github_main] : benchmark_json - [github_main]
 
     # Sort benchmarks by gem name to alphabetize our final output table.
@@ -245,9 +294,9 @@ end
     if i.zero?
       benchmark_headers = benchmark_json.map do |benchmark_gem|
         # Gem name is of the form:
-        # "MemoWise (1.1.0): ()"
+        # "memoist (1.1.0): ()"
         # We use this mapping to get a header of the form
-        # "`MemoWise` (1.1.0)
+        # "`memoist` (1.1.0)"
         gem_name_parts = benchmark_gem["name"].split
         "`#{gem_name_parts[0]}` #{gem_name_parts[1][...-1]}"
       end.join("|")
