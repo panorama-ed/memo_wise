@@ -2,8 +2,8 @@
 
 require "set" # Ruby < 3.2 does not load `set` by default.
 
-require "memo_wise/internal_api"
-require "memo_wise/version"
+require_relative "memo_wise/internal_api"
+require_relative "memo_wise/version"
 
 # MemoWise is the wise choice for memoization in Ruby.
 #
