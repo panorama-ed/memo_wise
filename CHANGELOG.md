@@ -9,6 +9,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 **Gem enhancements:**
 
+- Changed internal `require`s to `require_relative` to make code less dependent on the load path [[#350](https://github.com/panorama-ed/memo_wise/pull/350)]
+
 _No breaking changes!_
 
 **Project enhancements:**
