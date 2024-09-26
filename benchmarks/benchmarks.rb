@@ -291,7 +291,7 @@ end
     benchmark_json.sort_by! { |json| json["name"] }
 
     # Print headers based on the first benchmark_json
-    if i.zero?
+    if i == 0
       benchmark_headers = benchmark_json.map do |benchmark_gem|
         # Gem name is of the form:
         # "memoist (1.1.0): ()"

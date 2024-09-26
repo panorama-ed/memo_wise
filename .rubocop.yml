@@ -15,3 +15,6 @@ Style/DocumentDynamicEvalDefinition:
 
 Style/MultipleComparison:
   Enabled: false
+
+Style/NumericPredicate:
+  EnforcedStyle: comparison
