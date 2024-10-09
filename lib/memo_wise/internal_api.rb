@@ -44,7 +44,7 @@ module MemoWise
     #   - :double_splat (examples: `def foo(a: 1)`, `def foo(a:, **b)`)
     #   - :splat_and_double_splat (examples: `def foo(a=1, b: 2)`, `def foo(a=1, **b)`, `def foo(*a, **b)`)
     def self.method_arguments(method)
-      return NONE if method.arity.zero?
+      return NONE if method.arity == 0
 
       parameters = method.parameters.map(&:first)
 
