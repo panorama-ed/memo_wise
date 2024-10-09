@@ -15,6 +15,8 @@ _No breaking changes!_
 
 **Project enhancements:**
 
+- Updated `webrick` in `Gemfile.lock` to resolve CVE-2024-47220. This vulnerability does not impact `memo_wise` users.
+
 ## [v1.10.0](https://github.com/panorama-ed/memo_wise/compare/v1.9.0...v1.10.0)
 
 **Gem enhancements:**
