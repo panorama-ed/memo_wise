@@ -7,11 +7,20 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...HEAD)
 
+**Gem enhancements:** none
+
+_No breaking changes!_
+
+**Project enhancements:** none
+
+## [v1.11.0](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...v1.11.0)
+
 **Gem enhancements:**
 
 - Changed internal `require`s to `require_relative` to make code less dependent on the load path [[#350](https://github.com/panorama-ed/memo_wise/pull/350)]
 
-_No breaking changes!_
+_Breaking changes:_
+- Removed Ruby 2.5 (EOL) and 2.6 (EOL) support to allow upgrading rexml dependency version from a version that includes a [CVE](https://www.ruby-lang.org/en/news/2024/10/28/redos-rexml-cve-2024-49761/) [[#362]](https://github.com/panorama-ed/memo_wise/pull/362)
 
 **Project enhancements:**
 

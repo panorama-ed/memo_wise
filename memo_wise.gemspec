@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
     "marc@usainnov.com",
   ]
 
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.7.0")
 
   # Specify which files should be added to the gem when it is released.
   spec.files = Dir.glob("{CHANGELOG.md,LICENSE.txt,README.md,lib/**/*.rb}")
