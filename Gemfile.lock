@@ -83,7 +83,7 @@ GEM
     unicode-display_width (2.5.0)
     values (1.8.0)
     webrick (1.8.2)
-    yard (0.9.36)
+    yard (0.9.37)
     yard-doctest (0.1.17)
       minitest
       yard
