@@ -195,7 +195,7 @@ To edit documentation locally and see it rendered in your browser
 using hot reloading, run:
 
 ```bash
-bundle exec yard server --reload
+BUNDLE_WITH=docs bundle exec yard server --reload
 ```
 
 You can then open your web browser to `http://127.0.0.1:8808/`. As you
