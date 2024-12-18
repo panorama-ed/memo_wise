@@ -25,7 +25,7 @@ end
 # Excluded from CI except on latest MRI Ruby, to reduce compatibility burden
 group :docs, optional: true do
   gem "redcarpet", "~> 3.6"
-  gem "webrick", "~> 1.8"
+  gem "webrick", "~> 1.9"
   gem "yard", "~> 0.9"
   gem "yard-doctest", "~> 0.1"
 end
