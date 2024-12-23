@@ -15,6 +15,9 @@ LOCAL_BENCHMARK_NAME = "memo_wise-local"
 # This means we must `require: false` in `benchmarks/Gemfile` all, or all but one, of each of these duplicates,
 #   or we take care to only load them in discrete Ruby versions,
 #   to avoid a namespace collision before re-namespacing duplicates
+# NOTE: In future Ruby versions, we can avoid the use of `GemBench` and the
+# complexity of `spec.version` in `memo_wise.gemspec` by using namespaces. For
+# more context, see: https://bugs.ruby-lang.org/issues/21311
 re_namespaced_gems = [
   GemBench::Jersey.new(
     gem_name: "memo_wise",
