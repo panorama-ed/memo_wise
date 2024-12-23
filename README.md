@@ -114,19 +114,19 @@ For more usage details, see our detailed [documentation](#documentation).
 
 Benchmarks are run in GitHub Actions, and the tables below are updated with every code change. **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval is than the latest commit of `MemoWise`**, according to [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (2.14.0).
 
-Results using Ruby 3.3.5:
+Results using Ruby 3.3.6:
 
-|Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.0.1)|`memery` (1.6.0)|`memoist3` (1.0.0)|
+|Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.0.2)|`memery` (1.6.0)|`memoist3` (1.0.0)|
 |--|--|--|--|--|
-|`()` (none)|11.84x|0.67x|3.10x|2.58x|
-|`(a)`|9.50x|1.11x|3.78x|15.21x|
-|`(a, b)`|7.67x|0.93x|3.00x|12.06x|
-|`(a:)`|15.99x|1.16x|7.12x|21.32x|
-|`(a:, b:)`|12.83x|0.91x|5.70x|21.20x|
-|`(a, b:)`|12.95x|0.94x|5.72x|17.11x|
-|`(a, *args)`|1.89x|0.70x|0.74x|2.91x|
-|`(a:, **kwargs)`|2.81x|0.69x|1.19x|4.65x|
-|`(a, *args, b:, **kwargs)`|1.66x|0.58x|0.81x|2.80x|
+|`()` (none)|12.97x|0.63x|3.31x|2.62x|
+|`(a)`|9.62x|0.99x|3.86x|14.61x|
+|`(a, b)`|7.82x|0.85x|3.12x|11.75x|
+|`(a:)`|15.36x|1.01x|6.72x|19.70x|
+|`(a:, b:)`|13.07x|0.90x|5.61x|20.64x|
+|`(a, b:)`|12.68x|0.89x|5.63x|16.27x|
+|`(a, *args)`|1.93x|0.74x|0.78x|2.85x|
+|`(a:, **kwargs)`|2.81x|0.72x|1.19x|4.48x|
+|`(a, *args, b:, **kwargs)`|1.75x|0.66x|0.87x|2.82x|
 
 \* `dry-core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).

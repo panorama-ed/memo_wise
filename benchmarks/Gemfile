@@ -18,7 +18,7 @@ gem "gem_bench", "2.0.3"
 #   to avoid a namespace collision before re-namespacing duplicates
 if RUBY_VERSION > "3"
   gem "alt_memery", "2.1.0", require: false
-  gem "dry-core", "1.0.1"
+  gem "dry-core", "1.0.2"
   gem "memery", "1.6.0"
   gem "memoist3", "1.0.0", require: false
 else
