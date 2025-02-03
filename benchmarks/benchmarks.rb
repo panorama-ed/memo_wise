@@ -260,7 +260,12 @@ benchmark_jsons = benchmark_lambdas.map do |benchmark|
   json_file = Tempfile.new
 
   Benchmark.ips do |x|
-    x.config(suite: suite)
+    # One user reported that a warmup time of 5 seconds was the minimum needed
+    # for them to not see whichever MemoWise version (local or GitHub main) runs
+    # last getting a speed improvement because Ruby is able to optimize it
+    # better, so we use a 6-second warmup to be safe.
+    # See: https://github.com/panorama-ed/memo_wise/issues/349#issuecomment-2374754550
+    x.config(suite: suite, warmup: 6)
     BENCHMARK_GEMS.each do |benchmark_gem|
       instance = Object.const_get("#{benchmark_gem.klass}Example").new
 
