@@ -45,28 +45,24 @@ RSpec.describe "adding methods" do # rubocop:disable RSpec/DescribeClass
         not_to change { klass.singleton_class.private_methods.to_set }
     end
 
-    # These test cases would fail due to a JRuby bug
-    # Skipping to make build pass until the bug is fixed
-    unless RUBY_PLATFORM == "java"
-      context "when a class method is memoized" do
-        subject do
-          klass.send(:prepend, MemoWise)
-          klass.send(:memo_wise, self: :example)
-        end
+    context "when a class method is memoized" do
+      subject do
+        klass.send(:prepend, MemoWise)
+        klass.send(:memo_wise, self: :example)
+      end
 
-        let(:klass) do
-          Class.new do
-            def self.example; end
-          end
+      let(:klass) do
+        Class.new do
+          def self.example; end
         end
+      end
 
-        let(:expected_public_class_methods) { super() << :inherited }
+      let(:expected_public_class_methods) { super() << :inherited }
 
-        it "adds expected public *instance* methods only" do
-          expect { subject }.
-            to change { klass.singleton_methods.to_set }.
-            by(expected_public_class_methods)
-        end
+      it "adds expected public *instance* methods only" do
+        expect { subject }.
+          to change { klass.singleton_methods.to_set }.
+          by(expected_public_class_methods)
       end
     end
   end

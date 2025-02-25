@@ -355,10 +355,64 @@ RSpec.describe MemoWise do
         end
       end
 
-      # These test cases would fail due to a JRuby bug
-      # Skipping to make build pass until the bug is fixed
-      unless RUBY_PLATFORM == "java"
-        context "when method name is the same as a memoized class method" do
+      context "when method name is the same as a memoized class method" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            def instance_one_arg_counter
+              @instance_one_arg_counter || 0
+            end
+
+            def one_arg(a) # rubocop:disable Naming/MethodParameterName
+              @instance_one_arg_counter = instance_one_arg_counter + 1
+              "instance_one_arg: a=#{a}"
+            end
+            memo_wise :one_arg
+
+            def self.class_one_arg_counter
+              @class_one_arg_counter || 0
+            end
+
+            def self.one_arg(a) # rubocop:disable Naming/MethodParameterName
+              @class_one_arg_counter = class_one_arg_counter + 1
+              "class_one_arg: a=#{a}"
+            end
+            memo_wise self: :one_arg
+          end
+        end
+
+        it "presets memoization independently" do
+          instance = class_with_memo.new
+          instance.preset_memo_wise(:one_arg, 1) { "preset_instance_one_arg: a=1" }
+
+          expect(Array.new(4) { instance.one_arg(1) }).to all eq("preset_instance_one_arg: a=1")
+          expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+
+          class_with_memo.preset_memo_wise(:one_arg, 1) { "preset_class_one_arg: a=1" }
+
+          expect(Array.new(4) { instance.one_arg(1) }).to all eq("preset_instance_one_arg: a=1")
+          expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("preset_class_one_arg: a=1")
+        end
+      end
+    end
+
+    context "with class methods" do
+      context "when defined with 'def self.'" do
+        include_context "with context for class methods via 'def self.'"
+
+        # Use the class as the target of "#preset_memo_wise shared examples"
+        let(:target) { class_with_memo }
+
+        context "when memoized values were not already set" do
+          it_behaves_like "#preset_memo_wise shared examples", overriding: false
+        end
+
+        context "when memoized values were already set" do
+          it_behaves_like "#preset_memo_wise shared examples", overriding: true
+        end
+
+        context "when method name is the same as a memoized instance method" do
           let(:class_with_memo) do
             Class.new do
               prepend MemoWise
@@ -399,126 +453,63 @@ RSpec.describe MemoWise do
           end
         end
       end
-    end
 
-    # These test cases would fail due to a JRuby bug
-    # Skipping to make build pass until the bug is fixed
-    # https://github.com/jruby/jruby/issues/6896
-    unless RUBY_PLATFORM == "java"
-      context "with class methods" do
-        context "when defined with 'def self.'" do
-          include_context "with context for class methods via 'def self.'"
+      context "when defined with scope 'class << self'" do
+        include_context "with context for class methods via scope 'class << self'"
 
-          # Use the class as the target of "#preset_memo_wise shared examples"
-          let(:target) { class_with_memo }
+        # Use the class as the target of "#preset_memo_wise shared examples"
+        let(:target) { class_with_memo }
 
-          context "when memoized values were not already set" do
-            it_behaves_like "#preset_memo_wise shared examples", overriding: false
-          end
+        context "when memoized values were not already set" do
+          it_behaves_like "#preset_memo_wise shared examples", overriding: false
+        end
 
-          context "when memoized values were already set" do
-            it_behaves_like "#preset_memo_wise shared examples", overriding: true
-          end
+        context "when memoized values were already set" do
+          it_behaves_like "#preset_memo_wise shared examples", overriding: true
+        end
 
-          context "when method name is the same as a memoized instance method" do
-            let(:class_with_memo) do
-              Class.new do
+        context "when method name is the same as a memoized instance method" do
+          let(:class_with_memo) do
+            Class.new do
+              prepend MemoWise
+
+              def instance_one_arg_counter
+                @instance_one_arg_counter || 0
+              end
+
+              def one_arg(a) # rubocop:disable Naming/MethodParameterName
+                @instance_one_arg_counter = instance_one_arg_counter + 1
+                "instance_one_arg: a=#{a}"
+              end
+              memo_wise :one_arg
+
+              class << self
                 prepend MemoWise
 
-                def instance_one_arg_counter
-                  @instance_one_arg_counter || 0
-                end
-
-                def one_arg(a) # rubocop:disable Naming/MethodParameterName
-                  @instance_one_arg_counter = instance_one_arg_counter + 1
-                  "instance_one_arg: a=#{a}"
-                end
-                memo_wise :one_arg
-
-                def self.class_one_arg_counter
+                def class_one_arg_counter
                   @class_one_arg_counter || 0
                 end
 
-                def self.one_arg(a) # rubocop:disable Naming/MethodParameterName
+                def one_arg(a) # rubocop:disable Naming/MethodParameterName
                   @class_one_arg_counter = class_one_arg_counter + 1
                   "class_one_arg: a=#{a}"
                 end
-                memo_wise self: :one_arg
-              end
-            end
-
-            it "presets memoization independently" do
-              instance = class_with_memo.new
-              instance.preset_memo_wise(:one_arg, 1) { "preset_instance_one_arg: a=1" }
-
-              expect(Array.new(4) { instance.one_arg(1) }).to all eq("preset_instance_one_arg: a=1")
-              expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
-
-              class_with_memo.preset_memo_wise(:one_arg, 1) { "preset_class_one_arg: a=1" }
-
-              expect(Array.new(4) { instance.one_arg(1) }).to all eq("preset_instance_one_arg: a=1")
-              expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("preset_class_one_arg: a=1")
-            end
-          end
-        end
-
-        context "when defined with scope 'class << self'" do
-          include_context "with context for class methods via scope 'class << self'"
-
-          # Use the class as the target of "#preset_memo_wise shared examples"
-          let(:target) { class_with_memo }
-
-          context "when memoized values were not already set" do
-            it_behaves_like "#preset_memo_wise shared examples", overriding: false
-          end
-
-          context "when memoized values were already set" do
-            it_behaves_like "#preset_memo_wise shared examples", overriding: true
-          end
-
-          context "when method name is the same as a memoized instance method" do
-            let(:class_with_memo) do
-              Class.new do
-                prepend MemoWise
-
-                def instance_one_arg_counter
-                  @instance_one_arg_counter || 0
-                end
-
-                def one_arg(a) # rubocop:disable Naming/MethodParameterName
-                  @instance_one_arg_counter = instance_one_arg_counter + 1
-                  "instance_one_arg: a=#{a}"
-                end
                 memo_wise :one_arg
-
-                class << self
-                  prepend MemoWise
-
-                  def class_one_arg_counter
-                    @class_one_arg_counter || 0
-                  end
-
-                  def one_arg(a) # rubocop:disable Naming/MethodParameterName
-                    @class_one_arg_counter = class_one_arg_counter + 1
-                    "class_one_arg: a=#{a}"
-                  end
-                  memo_wise :one_arg
-                end
               end
             end
+          end
 
-            it "presets memoization independently" do
-              instance = class_with_memo.new
-              instance.preset_memo_wise(:one_arg, 1) { "preset_instance_one_arg: a=1" }
+          it "presets memoization independently" do
+            instance = class_with_memo.new
+            instance.preset_memo_wise(:one_arg, 1) { "preset_instance_one_arg: a=1" }
 
-              expect(Array.new(4) { instance.one_arg(1) }).to all eq("preset_instance_one_arg: a=1")
-              expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
+            expect(Array.new(4) { instance.one_arg(1) }).to all eq("preset_instance_one_arg: a=1")
+            expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("class_one_arg: a=1")
 
-              class_with_memo.preset_memo_wise(:one_arg, 1) { "preset_class_one_arg: a=1" }
+            class_with_memo.preset_memo_wise(:one_arg, 1) { "preset_class_one_arg: a=1" }
 
-              expect(Array.new(4) { instance.one_arg(1) }).to all eq("preset_instance_one_arg: a=1")
-              expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("preset_class_one_arg: a=1")
-            end
+            expect(Array.new(4) { instance.one_arg(1) }).to all eq("preset_instance_one_arg: a=1")
+            expect(Array.new(4) { class_with_memo.one_arg(1) }).to all eq("preset_class_one_arg: a=1")
           end
         end
       end
