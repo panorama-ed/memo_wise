@@ -514,5 +514,37 @@ RSpec.describe MemoWise do
         end
       end
     end
+
+    context "with module methods" do
+      context "when defined with 'def self.'" do
+        include_context "with context for module methods via 'def self.'"
+
+        # Use the module as the target of "#preset_memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        context "when memoized values were not already set" do
+          it_behaves_like "#preset_memo_wise shared examples", overriding: false
+        end
+
+        context "when memoized values were already set" do
+          it_behaves_like "#preset_memo_wise shared examples", overriding: true
+        end
+      end
+
+      context "when defined with scope 'class << self'" do
+        include_context "with context for module methods via scope 'class << self'"
+
+        # Use the module as the target of "#preset_memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        context "when memoized values were not already set" do
+          it_behaves_like "#preset_memo_wise shared examples", overriding: false
+        end
+
+        context "when memoized values were already set" do
+          it_behaves_like "#preset_memo_wise shared examples", overriding: true
+        end
+      end
+    end
   end
 end

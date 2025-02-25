@@ -564,5 +564,25 @@ RSpec.describe MemoWise do
         end
       end
     end
+
+    context "with module methods" do
+      context "when defined with 'def self.'" do
+        include_context "with context for module methods via 'def self.'"
+
+        # Use the module as the target of "#reset_memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        it_behaves_like "#reset_memo_wise shared examples"
+      end
+
+      context "when defined with scope 'class << self'" do
+        include_context "with context for module methods via scope 'class << self'"
+
+        # Use the module as the target of "#reset_memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        it_behaves_like "#reset_memo_wise shared examples"
+      end
+    end
   end
 end

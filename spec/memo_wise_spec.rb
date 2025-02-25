@@ -606,7 +606,7 @@ RSpec.describe MemoWise do
         end
       end
 
-      context "when defined with scope 'module << self'" do
+      context "when defined with scope 'class << self'" do
         include_context "with context for module methods via scope 'class << self'"
 
         # Use the module as the target of "#memo_wise shared examples"
