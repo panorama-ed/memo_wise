@@ -351,6 +351,13 @@ RSpec.describe MemoWise do
           end
         end
 
+        let(:klass_with_initializer) do
+          Class.new do
+            include Module1
+            def initialize(*); end
+          end
+        end
+
         let(:instance) { klass.new }
 
         before(:each) do
@@ -363,6 +370,16 @@ RSpec.describe MemoWise do
           expect(instance.module1_method_counter).to eq(1)
           expect(Array.new(4) { instance.module2_method }).to all eq("module2_method")
           expect(instance.module2_method_counter).to eq(1)
+        end
+
+        it "can memoize klass with initializer" do
+          instance = klass_with_initializer.new(true)
+          expect { instance.module1_method }.not_to raise_error
+        end
+
+        it "can reset klass with initializer" do
+          instance = klass_with_initializer.new(true)
+          expect { instance.reset_memo_wise }.not_to raise_error
         end
       end
 
