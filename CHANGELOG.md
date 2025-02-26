@@ -5,20 +5,19 @@ follows a format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...HEAD)
+## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.11.0...HEAD)
 
 **Gem enhancements:** none
 
-- Stopped `preset_memo_wise` (and `reset_memo_wise` with an argument) from raising errors when called on module methods [[#377]](https://github.com/panorama-ed/memo_wise/pull/377)
+_No breaking changes!_
 
 **Project enhancements:** none
-
-- Allowed more tests to run on JRuby [[#377]](https://github.com/panorama-ed/memo_wise/pull/377)
 
 ## [v1.11.0](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...v1.11.0)
 
 **Gem enhancements:**
 
+- Stopped `preset_memo_wise` (and `reset_memo_wise` with an argument) from raising errors when called on module methods [[#377]](https://github.com/panorama-ed/memo_wise/pull/377)
 - Changed internal `require`s to `require_relative` to make code less dependent on the load path [[#350](https://github.com/panorama-ed/memo_wise/pull/350)]
 
 _Breaking changes:_
@@ -27,6 +26,7 @@ _Breaking changes:_
 **Project enhancements:**
 
 - Updated `webrick` in `Gemfile.lock` to resolve CVE-2024-47220. This vulnerability does not impact `memo_wise` users.
+- Allowed more tests to run on JRuby [[#377]](https://github.com/panorama-ed/memo_wise/pull/377)
 
 ## [v1.10.0](https://github.com/panorama-ed/memo_wise/compare/v1.9.0...v1.10.0)
 
