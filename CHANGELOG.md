@@ -9,9 +9,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 **Gem enhancements:** none
 
-_No breaking changes!_
+- Stopped `preset_memo_wise` (and `reset_memo_wise` with an argument) from raising errors when called on module methods [[#377]](https://github.com/panorama-ed/memo_wise/pull/377)
 
 **Project enhancements:** none
+
+- Allowed more tests to run on JRuby [[#377]](https://github.com/panorama-ed/memo_wise/pull/377)
 
 ## [v1.11.0](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...v1.11.0)
 

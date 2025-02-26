@@ -188,7 +188,7 @@ module MemoWise
     #   The class to which we are prepending MemoWise to provide memoization.
     # @return [Class] where we look for method definitions
     def self.target_class(target)
-      if target.instance_of?(Class)
+      if target.instance_of?(Class) || target.instance_of?(Module)
         # A class's methods are defined in its singleton class
         target.singleton_class
       else

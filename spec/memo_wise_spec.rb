@@ -432,105 +432,126 @@ RSpec.describe MemoWise do
       end
     end
 
-    # These test cases would fail due to a JRuby bug
-    # Skipping to make build pass until the bug is fixed
-    # https://github.com/jruby/jruby/issues/6896
-    unless RUBY_PLATFORM == "java"
-      context "with class methods" do
-        context "when defined with 'def self.'" do
-          include_context "with context for class methods via 'def self.'"
+    context "with class methods" do
+      context "when defined with 'def self.'" do
+        include_context "with context for class methods via 'def self.'"
 
-          # Use the class as the target of "#memo_wise shared examples"
-          let(:target) { class_with_memo }
+        # Use the class as the target of "#memo_wise shared examples"
+        let(:target) { class_with_memo }
 
-          it_behaves_like "#memo_wise shared examples"
+        it_behaves_like "#memo_wise shared examples"
 
-          it "creates a class-level instance variable" do
-            # NOTE: test implementation detail to ensure the inverse test is valid
-            expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+        it "creates a class-level instance variable" do
+          # NOTE: test implementation detail to ensure the inverse test is valid
+          expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+
+        it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+          let(:memoized) { class_with_memo }
+          let(:non_memoized) { class_with_memo.new }
+          let(:non_memoized_name) { :instance }
+        end
+
+        context "when an invalid hash key is passed to .memo_wise" do
+          let(:class_with_memo) do
+            Class.new do
+              prepend MemoWise
+
+              def self.class_method; end
+            end
           end
 
-          it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
-            let(:memoized) { class_with_memo }
-            let(:non_memoized) { class_with_memo.new }
-            let(:non_memoized_name) { :instance }
+          it "raises an error when passing a key which is not `self:`" do
+            expect { class_with_memo.send(:memo_wise, bad_key: :class_method) }.
+              to raise_error(ArgumentError, "`:self` is the only key allowed in memo_wise")
           end
+        end
 
-          context "when an invalid hash key is passed to .memo_wise" do
-            let(:class_with_memo) do
-              Class.new do
-                prepend MemoWise
+        context "when the class has a child class" do
+          let(:child_class) do
+            Class.new(class_with_memo) do
+              def self.child_method_counter
+                @child_method_counter || 0
+              end
 
-                def self.class_method; end
+              def self.child_method
+                @child_method_counter = child_method_counter + 1
+                "child_method"
               end
             end
-
-            it "raises an error when passing a key which is not `self:`" do
-              expect { class_with_memo.send(:memo_wise, bad_key: :class_method) }.
-                to raise_error(ArgumentError, "`:self` is the only key allowed in memo_wise")
-            end
           end
 
-          context "when the class has a child class" do
-            let(:child_class) do
-              Class.new(class_with_memo) do
-                def self.child_method_counter
+          it "memoizes the parent methods" do
+            expect(Array.new(4) { child_class.no_args }).to all eq("no_args")
+            expect(child_class.no_args_counter).to eq(1)
+            expect(Array.new(4) { child_class.child_method }).to all eq("child_method")
+            expect(child_class.child_method_counter).to eq(4)
+          end
+
+          context "when the child class also memoizes methods" do
+            before :each do
+              child_class.prepend described_class
+              child_class.memo_wise self: :child_method
+            end
+
+            it "memoizes the parent and child methods separately" do
+              expect(Array.new(4) { child_class.no_args }).to all eq("no_args")
+              expect(child_class.no_args_counter).to eq(1)
+              expect(Array.new(4) { child_class.child_method }).to all eq("child_method")
+              expect(child_class.child_method_counter).to eq(1)
+            end
+          end
+        end
+      end
+
+      context "when defined with scope 'class << self'" do
+        include_context "with context for class methods via scope 'class << self'"
+
+        # Use the class as the target of "#memo_wise shared examples"
+        let(:target) { class_with_memo }
+
+        it_behaves_like "#memo_wise shared examples"
+
+        it "creates a class-level instance variable" do
+          # NOTE: this test ensure the inverse test above continues to be valid
+          expect(class_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+
+        it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
+          let(:memoized) { class_with_memo }
+          let(:non_memoized) { class_with_memo.new }
+          let(:non_memoized_name) { :instance }
+        end
+
+        context "when the class has a child class" do
+          let(:child_class) do
+            Class.new(class_with_memo) do
+              class << self
+                def child_method_counter
                   @child_method_counter || 0
                 end
 
-                def self.child_method
+                def child_method
                   @child_method_counter = child_method_counter + 1
                   "child_method"
                 end
               end
             end
-
-            it "memoizes the parent methods" do
-              expect(Array.new(4) { child_class.no_args }).to all eq("no_args")
-              expect(child_class.no_args_counter).to eq(1)
-              expect(Array.new(4) { child_class.child_method }).to all eq("child_method")
-              expect(child_class.child_method_counter).to eq(4)
-            end
-
-            context "when the child class also memoizes methods" do
-              before :each do
-                child_class.prepend described_class
-                child_class.memo_wise self: :child_method
-              end
-
-              it "memoizes the parent and child methods separately" do
-                expect(Array.new(4) { child_class.no_args }).to all eq("no_args")
-                expect(child_class.no_args_counter).to eq(1)
-                expect(Array.new(4) { child_class.child_method }).to all eq("child_method")
-                expect(child_class.child_method_counter).to eq(1)
-              end
-            end
-          end
-        end
-
-        context "when defined with scope 'class << self'" do
-          include_context "with context for class methods via scope 'class << self'"
-
-          # Use the class as the target of "#memo_wise shared examples"
-          let(:target) { class_with_memo }
-
-          it_behaves_like "#memo_wise shared examples"
-
-          it "creates a class-level instance variable" do
-            # NOTE: this test ensure the inverse test above continues to be valid
-            expect(class_with_memo.instance_variables).to include(:@_memo_wise)
           end
 
-          it_behaves_like "handles memoized/non-memoized methods with the same name at different scopes" do
-            let(:memoized) { class_with_memo }
-            let(:non_memoized) { class_with_memo.new }
-            let(:non_memoized_name) { :instance }
+          it "memoizes the parent methods" do
+            expect(Array.new(4) { child_class.no_args }).to all eq("no_args")
+            expect(child_class.no_args_counter).to eq(1)
+            expect(Array.new(4) { child_class.child_method }).to all eq("child_method")
+            expect(child_class.child_method_counter).to eq(4)
           end
 
-          context "when the class has a child class" do
+          context "when the child class also memoizes methods" do
             let(:child_class) do
               Class.new(class_with_memo) do
                 class << self
+                  prepend MemoWise
+
                   def child_method_counter
                     @child_method_counter || 0
                   end
@@ -539,132 +560,101 @@ RSpec.describe MemoWise do
                     @child_method_counter = child_method_counter + 1
                     "child_method"
                   end
+                  memo_wise :child_method
                 end
               end
             end
 
-            it "memoizes the parent methods" do
+            it "memoizes the parent and child methods separately" do
               expect(Array.new(4) { child_class.no_args }).to all eq("no_args")
               expect(child_class.no_args_counter).to eq(1)
               expect(Array.new(4) { child_class.child_method }).to all eq("child_method")
-              expect(child_class.child_method_counter).to eq(4)
-            end
-
-            context "when the child class also memoizes methods" do
-              let(:child_class) do
-                Class.new(class_with_memo) do
-                  class << self
-                    prepend MemoWise
-
-                    def child_method_counter
-                      @child_method_counter || 0
-                    end
-
-                    def child_method
-                      @child_method_counter = child_method_counter + 1
-                      "child_method"
-                    end
-                    memo_wise :child_method
-                  end
-                end
-              end
-
-              it "memoizes the parent and child methods separately" do
-                expect(Array.new(4) { child_class.no_args }).to all eq("no_args")
-                expect(child_class.no_args_counter).to eq(1)
-                expect(Array.new(4) { child_class.child_method }).to all eq("child_method")
-                expect(child_class.child_method_counter).to eq(1)
-              end
+              expect(child_class.child_method_counter).to eq(1)
             end
           end
         end
       end
     end
 
-    # These test cases would fail due to a JRuby bug
-    # Skipping to make build pass until the bug is fixed
-    # https://github.com/jruby/jruby/issues/6896
-    unless RUBY_PLATFORM == "java"
-      context "with module methods" do
-        context "when defined with 'def self.'" do
-          include_context "with context for module methods via 'def self.'"
+    context "with module methods" do
+      context "when defined with 'def self.'" do
+        include_context "with context for module methods via 'def self.'"
 
-          # Use the module as the target of "#memo_wise shared examples"
-          let(:target) { module_with_memo }
+        # Use the module as the target of "#memo_wise shared examples"
+        let(:target) { module_with_memo }
 
-          it_behaves_like "#memo_wise shared examples"
+        it_behaves_like "#memo_wise shared examples"
 
-          it "creates a module-level instance variable" do
-            # NOTE: test implementation detail to ensure the inverse test is valid
-            expect(module_with_memo.instance_variables).to include(:@_memo_wise)
-          end
-
-          context "when an invalid hash key is passed to .memo_wise" do
-            let(:module_with_memo) do
-              Module.new do
-                prepend MemoWise
-
-                def self.module_method; end
-              end
-            end
-
-            it "raises an error when passing a key which is not `self:`" do
-              expect { module_with_memo.send(:memo_wise, bad_key: :module_method) }.
-                to raise_error(ArgumentError, "`:self` is the only key allowed in memo_wise")
-            end
-          end
+        it "creates a module-level instance variable" do
+          # NOTE: test implementation detail to ensure the inverse test is valid
+          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
         end
 
-        context "when defined with scope 'module << self'" do
-          include_context "with context for module methods via scope 'class << self'"
+        context "when an invalid hash key is passed to .memo_wise" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
 
-          # Use the module as the target of "#memo_wise shared examples"
-          let(:target) { module_with_memo }
+              def self.module_method; end
+            end
+          end
 
-          it_behaves_like "#memo_wise shared examples"
-
-          it "creates a module-level instance variable" do
-            # NOTE: this test ensure the inverse test above continues to be valid
-            expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+          it "raises an error when passing a key which is not `self:`" do
+            expect { module_with_memo.send(:memo_wise, bad_key: :module_method) }.
+              to raise_error(ArgumentError, "`:self` is the only key allowed in memo_wise")
           end
         end
       end
 
-      context "when a class inherits from a parent class whose extended module memoizes methods" do
-        let(:parent_class) do
-          Class.new do
-            extend Module1
+      context "when defined with scope 'class << self'" do
+        include_context "with context for module methods via scope 'class << self'"
+
+        # Use the module as the target of "#memo_wise shared examples"
+        let(:target) { module_with_memo }
+
+        it_behaves_like "#memo_wise shared examples"
+
+        it "creates a module-level instance variable" do
+          # NOTE: this test ensure the inverse test above continues to be valid
+          expect(module_with_memo.instance_variables).to include(:@_memo_wise)
+        end
+      end
+    end
+
+    context "when a class inherits from a parent class whose extended module memoizes methods" do
+      let(:parent_class) do
+        Class.new do
+          extend Module1
+        end
+      end
+
+      let(:module1) do
+        Module.new do
+          prepend MemoWise
+
+          def module1_method_counter
+            @module1_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
           end
-        end
 
-        let(:module1) do
-          Module.new do
-            prepend MemoWise
-
-            def module1_method_counter
-              @module1_method_counter || 0 # rubocop:disable RSpec/InstanceVariable
-            end
-
-            def module1_method
-              @module1_method_counter = module1_method_counter + 1
-              "module1_method"
-            end
-            memo_wise :module1_method
+          def module1_method
+            @module1_method_counter = module1_method_counter + 1
+            "module1_method"
           end
+          memo_wise :module1_method
         end
+      end
 
-        let(:child_class) do
-          Class.new(parent_class)
-        end
+      let(:child_class) do
+        Class.new(parent_class)
+      end
 
-        before(:each) do
-          stub_const("Module1", module1)
-        end
+      before(:each) do
+        stub_const("Module1", module1)
+      end
 
-        it "memoizes inherited methods separately" do
-          expect(Array.new(4) { child_class.module1_method }).to all eq("module1_method")
-          expect(child_class.module1_method_counter).to eq(1)
-        end
+      it "memoizes inherited methods separately" do
+        expect(Array.new(4) { child_class.module1_method }).to all eq("module1_method")
+        expect(child_class.module1_method_counter).to eq(1)
       end
     end
 
@@ -751,42 +741,38 @@ RSpec.describe MemoWise do
           end
         end
 
-        # These test cases would fail due to a JRuby bug
-        # Skipping to make build pass until the bug is fixed
-        unless RUBY_PLATFORM == "java"
-          context "when defined with 'def self.' and 'def'" do
-            let(:module_with_memo) do
-              Module.new do
-                prepend MemoWise
+        context "when defined with 'def self.' and 'def'" do
+          let(:module_with_memo) do
+            Module.new do
+              prepend MemoWise
 
-                def self.test_method
-                  Random.rand
-                end
-                memo_wise self: :test_method
-
-                def test_method
-                  Random.rand
-                end
-                memo_wise :test_method
+              def self.test_method
+                Random.rand
               end
-            end
-            let(:class_including_module_with_memo) do
-              Class.new do
-                include ModuleWithMemo
-              end
-            end
-            let(:instance) { class_including_module_with_memo.new }
+              memo_wise self: :test_method
 
-            before(:each) do
-              stub_const("ModuleWithMemo", module_with_memo)
-            end
-
-            it "memoizes instance and singleton methods separately" do
-              aggregate_failures do
-                expect(instance.test_method).to eq(instance.test_method) # rubocop:disable RSpec/IdenticalEqualityAssertion
-                expect(module_with_memo.test_method).to eq(module_with_memo.test_method) # rubocop:disable RSpec/IdenticalEqualityAssertion
-                expect(instance.test_method).to_not eq(module_with_memo.test_method)
+              def test_method
+                Random.rand
               end
+              memo_wise :test_method
+            end
+          end
+          let(:class_including_module_with_memo) do
+            Class.new do
+              include ModuleWithMemo
+            end
+          end
+          let(:instance) { class_including_module_with_memo.new }
+
+          before(:each) do
+            stub_const("ModuleWithMemo", module_with_memo)
+          end
+
+          it "memoizes instance and singleton methods separately" do
+            aggregate_failures do
+              expect(instance.test_method).to eq(instance.test_method) # rubocop:disable RSpec/IdenticalEqualityAssertion
+              expect(module_with_memo.test_method).to eq(module_with_memo.test_method) # rubocop:disable RSpec/IdenticalEqualityAssertion
+              expect(instance.test_method).to_not eq(module_with_memo.test_method)
             end
           end
         end

@@ -10,31 +10,26 @@ RSpec.describe MemoWise::InternalAPI do
       it { expect { subject }.to raise_error(ArgumentError) }
     end
 
-    # These test cases would fail due to a JRuby bug
-    # Skipping to make build pass until the bug is fixed
-    # https://github.com/jruby/jruby/issues/6896
-    unless RUBY_PLATFORM == "java"
-      context "when klass is a singleton class of an original class" do
-        let(:klass) { original_class.singleton_class }
+    context "when klass is a singleton class of an original class" do
+      let(:klass) { original_class.singleton_class }
 
-        context "when assigned to a constant" do
-          let(:original_class) { String }
+      context "when assigned to a constant" do
+        let(:original_class) { String }
 
-          it { is_expected.to eq(original_class) }
-        end
+        it { is_expected.to eq(original_class) }
+      end
 
-        context "when singleton class #to_s convention is not followed" do
-          include_context "with context for instance methods"
+      context "when singleton class #to_s convention is not followed" do
+        include_context "with context for instance methods"
 
-          let(:original_class) { class_with_memo }
-          let(:klass) do
-            super().tap do |sc|
-              sc.define_singleton_method(:to_s) { "not following convention" }
-            end
+        let(:original_class) { class_with_memo }
+        let(:klass) do
+          super().tap do |sc|
+            sc.define_singleton_method(:to_s) { "not following convention" }
           end
-
-          it { is_expected.to eq(original_class) }
         end
+
+        it { is_expected.to eq(original_class) }
       end
     end
   end
