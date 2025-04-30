@@ -119,7 +119,11 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
         end
       end
 
-      it_behaves_like ".instance_method proxies parameters"
+      # One of these tests requires this behavior from Ruby 3.1: https://bugs.ruby-lang.org/issues/17423
+      # TruffleRuby decided not to implement that change in their MRI 3.1-
+      # equivalent release; search for "Module#prepend" here: https://github.com/oracle/truffleruby/issues/2733
+      # If/when they implement it, this conditional may be removed.
+      it_behaves_like ".instance_method proxies parameters" unless RUBY_ENGINE == "truffleruby"
     end
 
     context "when class prepends MemoWise and includes module" do

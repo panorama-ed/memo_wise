@@ -386,30 +386,36 @@ RSpec.describe MemoWise do
           expect(instance.module2_method_counter).to eq(1)
         end
 
-        it "can memoize klass with initializer" do
-          instance = klass_with_initializer.new(true)
-          expect { instance.module1_method }.not_to raise_error
+        # These tests require this behavior from Ruby 3.1: https://bugs.ruby-lang.org/issues/17423
+        # TruffleRuby decided not to implement that change in their MRI 3.1-
+        # equivalent release; search for "Module#prepend" here: https://github.com/oracle/truffleruby/issues/2733
+        # If/when they implement it, this conditional may be removed.
+        unless RUBY_ENGINE == "truffleruby"
+          it "can memoize klass with initializer" do
+            instance = klass_with_initializer.new(true)
+            expect { instance.module1_method }.not_to raise_error
 
-          expect(Array.new(4) { instance.module1_method }).to all eq("module1_method")
-          expect(instance.module1_method_counter).to eq(1)
-        end
+            expect(Array.new(4) { instance.module1_method }).to all eq("module1_method")
+            expect(instance.module1_method_counter).to eq(1)
+          end
 
-        it "can memoize klass with module with initializer" do
-          instance = klass_with_module_with_initializer.new(true)
-          expect { instance.module1_method }.not_to raise_error
+          it "can memoize klass with module with initializer" do
+            instance = klass_with_module_with_initializer.new(true)
+            expect { instance.module1_method }.not_to raise_error
 
-          expect(Array.new(4) { instance.module1_method }).to all eq("module1_method")
-          expect(instance.module1_method_counter).to eq(1)
-        end
+            expect(Array.new(4) { instance.module1_method }).to all eq("module1_method")
+            expect(instance.module1_method_counter).to eq(1)
+          end
 
-        it "can reset klass with initializer" do
-          instance = klass_with_initializer.new(true)
-          expect { instance.reset_memo_wise }.not_to raise_error
-        end
+          it "can reset klass with initializer" do
+            instance = klass_with_initializer.new(true)
+            expect { instance.reset_memo_wise }.not_to raise_error
+          end
 
-        it "can reset klass with module with initializer" do
-          instance = klass_with_module_with_initializer.new(true)
-          expect { instance.reset_memo_wise }.not_to raise_error
+          it "can reset klass with module with initializer" do
+            instance = klass_with_module_with_initializer.new(true)
+            expect { instance.reset_memo_wise }.not_to raise_error
+          end
         end
       end
 

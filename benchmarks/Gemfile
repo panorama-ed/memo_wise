@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby ">= 2.7.7"
+ruby ">= 3.1"
 
 gem "benchmark-ips", "2.14.0"
 gem "gem_bench", "2.0.3"
@@ -16,16 +16,9 @@ gem "gem_bench", "2.0.3"
 # This means we must `require: false` in `benchmarks/Gemfile` all, or all but one, of each of these duplicates,
 #   or we take care to only load them in discrete Ruby versions,
 #   to avoid a namespace collision before re-namespacing duplicates
-if RUBY_VERSION > "3"
-  gem "alt_memery", "2.1.0", require: false
-  gem "dry-core", "1.1.0"
-  gem "memery", "1.6.0"
-  gem "memoist3", "1.0.0", require: false
-else
-  gem "ddmemoize", "1.0.0"
-  gem "memoist", "0.16.2"
-  gem "memoized", "1.1.1"
-  gem "memoizer", "1.0.3"
-end
+gem "alt_memery", "2.1.0", require: false
+gem "dry-core", "1.1.0"
+gem "memery", "1.6.0"
+gem "memoist3", "1.0.0", require: false
 
 gem "memo_wise", github: "panorama-ed/memo_wise", branch: "main", require: false
