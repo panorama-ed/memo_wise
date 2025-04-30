@@ -64,7 +64,7 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
       it "raises NameError" do
         expect { subject }.to raise_error(
           NameError,
-          /undefined method `DOES_NOT_EXIST' for class/
+          /undefined method (`|')DOES_NOT_EXIST' for class/
         )
       end
     end
