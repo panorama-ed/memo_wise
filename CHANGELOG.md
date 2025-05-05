@@ -9,9 +9,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 **Gem enhancements:** none
 
-_No breaking changes!_
+- Allowed memoization when `include`d modules `prepend MemoWise` and define `initialize` [[#327]](https://github.com/panorama-ed/memo_wise/pull/327)
 
-**Project enhancements:** none
+_Breaking changes:_
+- Removed Ruby 2.7 (EOL) and 3.0 (EOL) support to allow enhancement noted above [[#327]](https://github.com/panorama-ed/memo_wise/pull/327)
+
+**Project enhancements:**
+
+- Updated official test coverage to support Ruby 3.4 [[#335](https://github.com/panorama-ed/memo_wise/pull/335)]
 
 ## [v1.11.0](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...v1.11.0)
 

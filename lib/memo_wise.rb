@@ -41,37 +41,8 @@ module MemoWise
   # example, classes created by the
   # [Values](https://github.com/tcrayford/Values)
   # [gem](https://rubygems.org/gems/values).
-  #
-  # To support syntax differences with keyword and positional arguments starting
-  # with ruby 2.7, we have to set up the initializer with some slightly
-  # different syntax for the different versions.  This variance in syntax is not
-  # included in coverage reports since the branch chosen will never differ
-  # within a single ruby version.  This means it is impossible for us to get
-  # 100% coverage of this line within a single CI run.
-  #
-  # See
-  # [this article](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/)
-  # for more information.
-  #
-  # :nocov:
-  all_args = RUBY_VERSION < "2.7" ? "*" : "..."
-  # :nocov:
   class_eval <<~HEREDOC, __FILE__, __LINE__ + 1
-    # On Ruby 2.7 or greater:
-    #
-    # def initialize(...)
-    #   MemoWise::InternalAPI.create_memo_wise_state!(self)
-    #   super
-    # end
-    #
-    # On Ruby 2.6 or lower:
-    #
-    # def initialize(*)
-    #   MemoWise::InternalAPI.create_memo_wise_state!(self)
-    #   super
-    # end
-
-    def initialize(#{all_args})
+    def initialize(...)
       MemoWise::InternalAPI.create_memo_wise_state!(self)
       super
     end
@@ -92,6 +63,13 @@ module MemoWise
     end
   end
   private_constant(:CreateMemoWiseStateOnInherited)
+
+  module CreateMemoWiseStateOnIncluded
+    def included(base)
+      base.prepend(MemoWise)
+    end
+  end
+  private_constant(:CreateMemoWiseStateOnIncluded)
 
   # @private
   #
@@ -154,10 +132,7 @@ module MemoWise
             klass.singleton_class.prepend(CreateMemoWiseStateOnExtended)
           end
         when Hash
-          unless method_name_or_hash.keys == [:self]
-            raise ArgumentError,
-                  "`:self` is the only key allowed in memo_wise"
-          end
+          raise ArgumentError, "`:self` is the only key allowed in memo_wise" unless method_name_or_hash.keys == [:self]
 
           method_name = method_name_or_hash[:self]
 
@@ -175,6 +150,8 @@ module MemoWise
         if klass.is_a?(Class) && !klass.singleton_class?
           klass.singleton_class.prepend(CreateMemoWiseStateOnInherited)
         else
+          klass.singleton_class.prepend(CreateMemoWiseStateOnIncluded) if klass.is_a?(Module) && !klass.singleton_class?
+
           klass.prepend(CreateMemoWiseStateOnInherited)
         end
 

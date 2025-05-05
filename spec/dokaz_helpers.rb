@@ -5,6 +5,6 @@
 require "memo_wise"
 
 # Enable the example RSpec `after` call in README.md to execute successfully
-def after(scope, &block)
+def after(scope, &)
   # Do nothing
 end

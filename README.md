@@ -114,36 +114,22 @@ For more usage details, see our detailed [documentation](#documentation).
 
 Benchmarks are run in GitHub Actions, and the tables below are updated with every code change. **Values >1.00x represent how much _slower_ each gem’s memoized value retrieval is than the latest commit of `MemoWise`**, according to [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (2.14.0).
 
-Results using Ruby 3.3.6:
+Results using Ruby 3.4.3:
 
-|Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.0.2)|`memery` (1.6.0)|`memoist3` (1.0.0)|
+|Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.1.0)|`memery` (1.6.0)|`memoist3` (1.0.0)|
 |--|--|--|--|--|
-|`()` (none)|12.97x|0.63x|3.31x|2.62x|
-|`(a)`|9.62x|0.99x|3.86x|14.61x|
-|`(a, b)`|7.82x|0.85x|3.12x|11.75x|
-|`(a:)`|15.36x|1.01x|6.72x|19.70x|
-|`(a:, b:)`|13.07x|0.90x|5.61x|20.64x|
-|`(a, b:)`|12.68x|0.89x|5.63x|16.27x|
-|`(a, *args)`|1.93x|0.74x|0.78x|2.85x|
-|`(a:, **kwargs)`|2.81x|0.72x|1.19x|4.48x|
-|`(a, *args, b:, **kwargs)`|1.75x|0.66x|0.87x|2.82x|
+|`()` (none)|11.42x|0.58x|3.37x|2.81x|
+|`(a)`|8.98x|0.95x|3.66x|14.92x|
+|`(a, b)`|6.98x|0.80x|2.90x|11.56x|
+|`(a:)`|14.15x|0.96x|6.58x|19.38x|
+|`(a:, b:)`|11.90x|0.84x|5.50x|20.15x|
+|`(a, b:)`|11.95x|0.85x|5.40x|16.13x|
+|`(a, *args)`|1.78x|0.70x|0.73x|2.92x|
+|`(a:, **kwargs)`|2.60x|0.69x|1.20x|4.44x|
+|`(a, *args, b:, **kwargs)`|1.75x|0.64x|0.89x|2.97x|
 
 \* `dry-core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
-
-Results using Ruby 2.7.8 (because these gems raise errors in Ruby 3.x):
-
-|Method arguments|`ddmemoize` (1.0.0)|`memoist` (0.16.2)|`memoized` (1.1.1)|`memoizer` (1.0.3)|
-|--|--|--|--|--|
-|`()` (none)|24.14x|2.44x|23.84x|2.59x|
-|`(a)`|22.16x|14.80x|20.70x|11.67x|
-|`(a, b)`|19.39x|13.66x|18.03x|11.46x|
-|`(a:)`|30.54x|23.68x|25.21x|21.20x|
-|`(a:, b:)`|27.75x|22.59x|23.47x|20.65x|
-|`(a, b:)`|26.72x|21.39x|21.73x|19.43x|
-|`(a, *args)`|3.26x|2.31x|3.09x|1.93x|
-|`(a:, **kwargs)`|2.87x|2.29x|2.51x|2.10x|
-|`(a, *args, b:, **kwargs)`|2.23x|1.88x|1.97x|1.73x|
 
 You can run benchmarks yourself with:
 

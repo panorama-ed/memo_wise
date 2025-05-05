@@ -59,10 +59,10 @@ RSpec.describe MemoWise do
 
       it "memoizes methods with keyword and double-splat arguments" do
         expect(Array.new(4) { target.with_keyword_and_double_splat_args(a: 1, b: 2, c: 3) }).
-          to all eq("with_keyword_and_double_splat_args: a=1, kwargs={:b=>2, :c=>3}")
+          to all eq("with_keyword_and_double_splat_args: a=1, kwargs=#{{ b: 2, c: 3 }}") # rubocop:disable Lint/LiteralInInterpolation
 
         expect(Array.new(4) { target.with_keyword_and_double_splat_args(a: 1, b: 2, c: 4) }).
-          to all eq("with_keyword_and_double_splat_args: a=1, kwargs={:b=>2, :c=>4}")
+          to all eq("with_keyword_and_double_splat_args: a=1, kwargs=#{{ b: 2, c: 4 }}") # rubocop:disable Lint/LiteralInInterpolation
 
         # This should be executed once for each set of arguments passed
         expect(target.with_keyword_and_double_splat_args_counter).to eq(2)
@@ -81,10 +81,10 @@ RSpec.describe MemoWise do
 
       it "memoizes methods with positional, splat, keyword, and double-splat arguments" do
         expect(Array.new(4) { target.with_positional_splat_keyword_and_double_splat_args(1, 2, 3, b: 4, c: 5, d: 6) }).
-          to all eq("with_positional_splat_keyword_and_double_splat_args: a=1, args=[2, 3] b=4 kwargs={:c=>5, :d=>6}")
+          to all eq("with_positional_splat_keyword_and_double_splat_args: a=1, args=[2, 3] b=4 kwargs=#{{ c: 5, d: 6 }}") # rubocop:disable Layout/LineLength, Lint/LiteralInInterpolation
 
         expect(Array.new(4) { target.with_positional_splat_keyword_and_double_splat_args(1, 2, b: 4, c: 5) }).
-          to all eq("with_positional_splat_keyword_and_double_splat_args: a=1, args=[2] b=4 kwargs={:c=>5}")
+          to all eq("with_positional_splat_keyword_and_double_splat_args: a=1, args=[2] b=4 kwargs=#{{ c: 5 }}") # rubocop:disable Lint/LiteralInInterpolation
 
         # This should be executed once for each set of arguments passed
         expect(target.with_positional_splat_keyword_and_double_splat_args_counter).to eq(2)
@@ -351,11 +351,32 @@ RSpec.describe MemoWise do
           end
         end
 
+        let(:klass_with_initializer) do
+          Class.new do
+            include Module1
+            def initialize(...); end
+          end
+        end
+
+        let(:module_with_initializer) do
+          Module.new do
+            include Module1
+            def initialize(...); end
+          end
+        end
+
+        let(:klass_with_module_with_initializer) do
+          Class.new do
+            include Module3
+          end
+        end
+
         let(:instance) { klass.new }
 
         before(:each) do
           stub_const("Module1", module1)
           stub_const("Module2", module2)
+          stub_const("Module3", module_with_initializer)
         end
 
         it "memoizes inherited methods separately" do
@@ -363,6 +384,38 @@ RSpec.describe MemoWise do
           expect(instance.module1_method_counter).to eq(1)
           expect(Array.new(4) { instance.module2_method }).to all eq("module2_method")
           expect(instance.module2_method_counter).to eq(1)
+        end
+
+        # These tests require this behavior from Ruby 3.1: https://bugs.ruby-lang.org/issues/17423
+        # TruffleRuby decided not to implement that change in their MRI 3.1-
+        # equivalent release; search for "Module#prepend" here: https://github.com/oracle/truffleruby/issues/2733
+        # If/when they implement it, this conditional may be removed.
+        unless RUBY_ENGINE == "truffleruby"
+          it "can memoize klass with initializer" do
+            instance = klass_with_initializer.new(true)
+            expect { instance.module1_method }.not_to raise_error
+
+            expect(Array.new(4) { instance.module1_method }).to all eq("module1_method")
+            expect(instance.module1_method_counter).to eq(1)
+          end
+
+          it "can memoize klass with module with initializer" do
+            instance = klass_with_module_with_initializer.new(true)
+            expect { instance.module1_method }.not_to raise_error
+
+            expect(Array.new(4) { instance.module1_method }).to all eq("module1_method")
+            expect(instance.module1_method_counter).to eq(1)
+          end
+
+          it "can reset klass with initializer" do
+            instance = klass_with_initializer.new(true)
+            expect { instance.reset_memo_wise }.not_to raise_error
+          end
+
+          it "can reset klass with module with initializer" do
+            instance = klass_with_module_with_initializer.new(true)
+            expect { instance.reset_memo_wise }.not_to raise_error
+          end
         end
       end
 
@@ -638,7 +691,7 @@ RSpec.describe MemoWise do
 
           def module1_method
             @module1_method_counter = module1_method_counter + 1
-            "module1_method"
+            Random.rand
           end
           memo_wise :module1_method
         end
@@ -653,8 +706,14 @@ RSpec.describe MemoWise do
       end
 
       it "memoizes inherited methods separately" do
-        expect(Array.new(4) { child_class.module1_method }).to all eq("module1_method")
+        child_class_values = Array.new(4) { child_class.module1_method }.uniq
+        parent_class_values = Array.new(4) { parent_class.module1_method }.uniq
+
+        expect(child_class_values.size).to eq(1)
         expect(child_class.module1_method_counter).to eq(1)
+        expect(parent_class_values.size).to eq(1)
+        expect(parent_class.module1_method_counter).to eq(1)
+        expect(child_class_values).not_to eq parent_class_values
       end
     end
 
