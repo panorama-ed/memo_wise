@@ -17,6 +17,7 @@ _Breaking changes:_
 **Project enhancements:**
 
 - Updated official test coverage to support Ruby 3.4 [[#335](https://github.com/panorama-ed/memo_wise/pull/335)]
+- Updated `memery` gem version to 1.7.0 in benchmarks [[#380](https://github.com/panorama-ed/memo_wise/pull/380)]
 
 ## [v1.11.0](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...v1.11.0)
 
@@ -45,6 +46,7 @@ _No breaking changes!_
 
 - Updated official test coverage to support Ruby 3.3 [[#335](https://github.com/panorama-ed/memo_wise/pull/335)]
 - Added `alt_memery` and `memoist3` to benchmarks [[#339](https://github.com/panorama-ed/memo_wise/pull/339)]
+- Updated `memery` gem version to 1.6.0 in benchmarks [[#339](https://github.com/panorama-ed/memo_wise/pull/339)]
 - Updated benchmark results in `README.md` to Ruby 3.3.5 [[#339](https://github.com/panorama-ed/memo_wise/pull/339)]
 
 ## [v1.9.0](https://github.com/panorama-ed/memo_wise/compare/v1.8.0...v1.9.0)
@@ -74,9 +76,9 @@ _No breaking changes!_
 
 - Switched RuboCop configuration from `panolint` to `panolint-ruby` [[#312](https://github.com/panorama-ed/memo_wise/pull/312)]
 - Updated benchmark results in `README.md` to Ruby 3.2.2 and 2.7.8 [[#313](https://github.com/panorama-ed/memo_wise/pull/297)]
-- Updated `Dry::Core` gem version to 1.0.0 in benchmarks [[#297](https://github.com/panorama-ed/memo_wise/pull/297)]
-- Updated `Memery` gem version to 1.5.0 in benchmarks [[#313](https://github.com/panorama-ed/memo_wise/pull/313)]
-- Updated `Memoized` gem version to 1.1.1 in benchmarks [[#288](https://github.com/panorama-ed/memo_wise/pull/288)]
+- Updated `dry-core` gem version to 1.0.0 in benchmarks [[#297](https://github.com/panorama-ed/memo_wise/pull/297)]
+- Updated `memery` gem version to 1.5.0 in benchmarks [[#313](https://github.com/panorama-ed/memo_wise/pull/313)]
+- Updated `memoized` gem version to 1.1.1 in benchmarks [[#288](https://github.com/panorama-ed/memo_wise/pull/288)]
 - Reorganized `CHANGELOG.md` for improved clarity and completeness [[#282](https://github.com/panorama-ed/memo_wise/pull/282)]
 
 ## [v1.7.0](https://github.com/panorama-ed/memo_wise/compare/v1.6.0...v1.7.0) - 2022-04-04
@@ -261,7 +263,7 @@ _No breaking changes!_
 
 **Project enhancements:**
 
-- Tests now assert that memoization works with the `Values` gem
+- Tests now assert that memoization works with the `values` gem
   [[#46](https://github.com/panorama-ed/memo_wise/pull/46)]
 - Added `README.md` badges for tests, docs, and RubyGems
   [[#47](https://github.com/panorama-ed/memo_wise/pull/47)]

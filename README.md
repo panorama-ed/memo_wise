@@ -116,17 +116,17 @@ Benchmarks are run in GitHub Actions, and the tables below are updated with ever
 
 Results using Ruby 3.4.3:
 
-|Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.1.0)|`memery` (1.6.0)|`memoist3` (1.0.0)|
+|Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.1.0)|`memery` (1.7.0)|`memoist3` (1.0.0)|
 |--|--|--|--|--|
-|`()` (none)|11.42x|0.58x|3.37x|2.81x|
-|`(a)`|8.98x|0.95x|3.66x|14.92x|
-|`(a, b)`|6.98x|0.80x|2.90x|11.56x|
-|`(a:)`|14.15x|0.96x|6.58x|19.38x|
-|`(a:, b:)`|11.90x|0.84x|5.50x|20.15x|
-|`(a, b:)`|11.95x|0.85x|5.40x|16.13x|
-|`(a, *args)`|1.78x|0.70x|0.73x|2.92x|
-|`(a:, **kwargs)`|2.60x|0.69x|1.20x|4.44x|
-|`(a, *args, b:, **kwargs)`|1.75x|0.64x|0.89x|2.97x|
+|`()` (none)|12.25x|0.58x|3.41x|2.83x|
+|`(a)`|9.56x|0.97x|3.77x|15.12x|
+|`(a, b)`|7.47x|0.82x|2.94x|11.74x|
+|`(a:)`|14.34x|0.95x|6.58x|19.44x|
+|`(a:, b:)`|12.44x|0.85x|5.67x|20.80x|
+|`(a, b:)`|12.33x|0.86x|5.61x|16.48x|
+|`(a, *args)`|1.95x|0.71x|0.78x|3.02x|
+|`(a:, **kwargs)`|2.74x|0.68x|1.25x|4.60x|
+|`(a, *args, b:, **kwargs)`|1.81x|0.64x|0.90x|3.02x|
 
 \* `dry-core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
