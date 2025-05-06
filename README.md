@@ -118,15 +118,15 @@ Results using Ruby 3.4.3:
 
 |Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.1.0)|`memery` (1.7.0)|`memoist3` (1.0.0)|
 |--|--|--|--|--|
-|`()` (none)|12.25x|0.58x|3.41x|2.83x|
-|`(a)`|9.56x|0.97x|3.77x|15.12x|
-|`(a, b)`|7.47x|0.82x|2.94x|11.74x|
-|`(a:)`|14.34x|0.95x|6.58x|19.44x|
-|`(a:, b:)`|12.44x|0.85x|5.67x|20.80x|
-|`(a, b:)`|12.33x|0.86x|5.61x|16.48x|
-|`(a, *args)`|1.95x|0.71x|0.78x|3.02x|
-|`(a:, **kwargs)`|2.74x|0.68x|1.25x|4.60x|
-|`(a, *args, b:, **kwargs)`|1.81x|0.64x|0.90x|3.02x|
+|`()` (none)|12.22x|0.58x|3.41x|2.80x|
+|`(a)`|9.31x|0.98x|3.81x|15.03x|
+|`(a, b)`|7.30x|0.83x|2.97x|11.88x|
+|`(a:)`|14.64x|0.97x|6.71x|19.72x|
+|`(a:, b:)`|12.05x|0.85x|5.64x|20.57x|
+|`(a, b:)`|12.06x|0.86x|5.57x|16.37x|
+|`(a, *args)`|1.93x|0.72x|0.77x|3.04x|
+|`(a:, **kwargs)`|2.57x|0.65x|1.14x|4.40x|
+|`(a, *args, b:, **kwargs)`|1.75x|0.62x|0.88x|2.98x|
 
 \* `dry-core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
