@@ -7,7 +7,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby ">= 3.1"
 
 gem "benchmark-ips", "2.14.0"
-gem "gem_bench", "2.0.3"
+gem "gem_bench", "2.0.5"
 
 # NOTE: Regarding `require: false` below
 # 1. GitHub version of MemoWise and the local source of MemoWise share a namespace
