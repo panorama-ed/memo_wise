@@ -75,7 +75,7 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
       Class.new do
         prepend MemoWise
 
-        def initialize(foo, bar:); end # rubocop:disable Style/RedundantInitialize
+        def initialize(foo, bar:); end
 
         DefineMethodsForTestingMemoWise.define_methods_for_testing_memo_wise(
           target: self,
@@ -96,7 +96,7 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
       Module.new do
         prepend MemoWise
 
-        def initialize(foo, bar:); end # rubocop:disable Style/RedundantInitialize
+        def initialize(foo, bar:); end
 
         DefineMethodsForTestingMemoWise.define_methods_for_testing_memo_wise(
           target: self,
@@ -115,7 +115,7 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
       let(:target) do
         Class.new do
           include Module1
-          def initialize(foo, bar:); end # rubocop:disable Style/RedundantInitialize
+          def initialize(foo, bar:); end
         end
       end
 
@@ -131,7 +131,7 @@ RSpec.describe "proxying original method params" do # rubocop:disable RSpec/Desc
         Class.new do
           prepend MemoWise
           include Module1
-          def initialize(foo, bar:); end # rubocop:disable Style/RedundantInitialize
+          def initialize(foo, bar:); end
         end
       end
 
