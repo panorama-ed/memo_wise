@@ -116,17 +116,17 @@ Benchmarks are run in GitHub Actions, and the tables below are updated with ever
 
 Results using Ruby 3.4.3:
 
-|Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.1.0)|`memery` (1.7.0)|`memoist3` (1.0.0)|
-|--|--|--|--|--|
-|`()` (none)|12.22x|0.58x|3.41x|2.80x|
-|`(a)`|9.31x|0.98x|3.81x|15.03x|
-|`(a, b)`|7.30x|0.83x|2.97x|11.88x|
-|`(a:)`|14.64x|0.97x|6.71x|19.72x|
-|`(a:, b:)`|12.05x|0.85x|5.64x|20.57x|
-|`(a, b:)`|12.06x|0.86x|5.57x|16.37x|
-|`(a, *args)`|1.93x|0.72x|0.77x|3.04x|
-|`(a:, **kwargs)`|2.57x|0.65x|1.14x|4.40x|
-|`(a, *args, b:, **kwargs)`|1.75x|0.62x|0.88x|2.98x|
+|Method arguments|`alt_memery` (2.1.0)|`dry-core`\* (1.1.0)|`memery` (1.7.0)|`memoist3` (1.0.0)|`short_circu_it` (0.29.3)|
+|--|--|--|--|--|--|
+|`()` (none)|11.98x|0.59x|3.44x|2.86x|18.45x|
+|`(a)`|8.85x|0.92x|3.59x|14.10x|13.11x|
+|`(a, b)`|7.35x|0.83x|2.98x|11.70x|10.75x|
+|`(a:)`|13.53x|0.90x|6.42x|18.35x|11.86x|
+|`(a:, b:)`|12.30x|0.85x|5.75x|20.62x|10.57x|
+|`(a, b:)`|11.53x|0.80x|5.39x|15.38x|9.96x|
+|`(a, *args)`|1.88x|0.70x|0.75x|2.98x|2.68x|
+|`(a:, **kwargs)`|2.65x|0.72x|1.18x|4.43x|2.26x|
+|`(a, *args, b:, **kwargs)`|1.78x|0.66x|0.89x|3.02x|1.52x|
 
 \* `dry-core`
 [may cause incorrect behavior caused by hash collisions](https://github.com/dry-rb/dry-core/issues/63).
@@ -139,7 +139,8 @@ $ bundle install
 $ bundle exec ruby benchmarks.rb
 ```
 
-If your results differ from what's posted here,
+If your results differ from what's posted here, or if there's another gem we
+should be benchmarking,
 [let us know](https://github.com/panorama-ed/memo_wise/issues/new)!
 
 ## Thread Safety

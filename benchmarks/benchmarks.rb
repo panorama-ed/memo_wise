@@ -11,7 +11,6 @@ LOCAL_BENCHMARK_NAME = "memo_wise-local"
 
 # 1. GitHub version of MemoWise and the local source of MemoWise share a namespace
 # 2. memery & alt_memery share the namespace Memery
-# 3. memoist & memoist3 share the namespace Memoist, and also share a load path for their version.rb files.
 # This means we must `require: false` in `benchmarks/Gemfile` all, or all but one, of each of these duplicates,
 #   or we take care to only load them in discrete Ruby versions,
 #   to avoid a namespace collision before re-namespacing duplicates
@@ -38,27 +37,7 @@ re_namespaced_gems = [
       activation_code: "include AltMemery",
       memoization_method: :memoize,
     },
-  ),
-  GemBench::Jersey.new(
-    gem_name: "memoist3",
-    trades: {
-      "Memoist" => "MemoistThree"
-    },
-    metadata: {
-      activation_code: "extend MemoistThree",
-      memoization_method: :memoize,
-    },
-  ),
-  GemBench::Jersey.new(
-    gem_name: "memoist",
-    trades: {
-      "Memoist" => "MemoistOne"
-    },
-    metadata: {
-      activation_code: "extend MemoistOne",
-      memoization_method: :memoize,
-    },
-  ),
+  )
 ].each(&:doff_and_don) # Copies, re-namespaces, and requires each gem.
 
 # We've already installed the `memo_wise` version on the `main` branch from GitHub in the
@@ -67,17 +46,12 @@ re_namespaced_gems = [
 # this branch against it.
 require_relative "../lib/memo_wise"
 
-# Some gems do not yet work in Ruby 3 so we only require them if they're loaded
-# in the Gemfile.  Gems re-namespaced by GemBench::Jersey will have already been loaded by now.
-%w[memery memoized memoizer ddmemoize dry-core].
-  each { |gem| require gem if Gem.loaded_specs.key?(gem) }
-
-# Some Gems Have Modules Which Need To Be Required Manually:
-require "dry/core/memoizable" if Gem.loaded_specs.key?("dry-core")
-
-# The VERSION constant does not get loaded above for these gems.
-%w[memoized memoizer].
-  each { |gem| require "#{gem}/version" if Gem.loaded_specs.key?(gem) }
+# Load gems that haven't been already loaded by GemBench::Jersey.
+require "dry-core"
+require "dry/core/memoizable"
+require "memery"
+require "memoist"
+require "short_circu_it"
 
 class BenchmarkSuiteWithoutGC
   def warming(*)
@@ -122,11 +96,10 @@ benchmarked_gems = re_namespaced_gems.select(&:required?).map do |re_namespaced_
 end
 benchmarked_gems.push(
   BenchmarkGem.new(MemoWise, "prepend MemoWise", :memo_wise, LOCAL_BENCHMARK_NAME),
-  (BenchmarkGem.new(DDMemoize, "DDMemoize.activate(self)", :memoize, "ddmemoize") if defined?(DDMemoize)),
-  (BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize, "dry-core") if defined?(Dry::Core)),
-  (BenchmarkGem.new(Memery, "include Memery", :memoize, "memery") if defined?(Memery)),
-  (BenchmarkGem.new(Memoized, "include Memoized", :memoize, "memoized") if defined?(Memoized)),
-  (BenchmarkGem.new(Memoizer, "include Memoizer", :memoize, "memoizer") if defined?(Memoizer))
+  BenchmarkGem.new(Dry::Core, "include Dry::Core::Memoizable", :memoize, "dry-core"),
+  BenchmarkGem.new(Memery, "include Memery", :memoize, "memery"),
+  BenchmarkGem.new(Memoist, "extend Memoist", :memoize, "memoist3"),
+  BenchmarkGem.new(ShortCircuIt, "include ShortCircuIt", :memoize, "short_circu_it")
 )
 BENCHMARK_GEMS = benchmarked_gems.compact.shuffle
 
