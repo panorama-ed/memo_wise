@@ -5,7 +5,15 @@ follows a format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.11.0...HEAD)
+## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.12.0...HEAD)
+
+**Gem enhancements:** none
+
+_No breaking changes!_
+
+**Project enhancements:** none
+
+## [v1.12.0](https://github.com/panorama-ed/memo_wise/compare/v1.11.0...v1.12.0)
 
 **Gem enhancements:** none
 

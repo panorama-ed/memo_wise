@@ -11,7 +11,7 @@ GIT
 PATH
   remote: .
   specs:
-    memo_wise (1.11.0)
+    memo_wise (1.12.0)
 
 GEM
   remote: https://rubygems.org/
