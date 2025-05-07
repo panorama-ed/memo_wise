@@ -19,6 +19,7 @@ _Breaking changes:_
 - Updated official test coverage to support Ruby 3.4 [[#335](https://github.com/panorama-ed/memo_wise/pull/335)]
 - Updated `memery` gem version to 1.7.0 in benchmarks [[#380](https://github.com/panorama-ed/memo_wise/pull/380)]
 - Added `short_circu_it` gem to benchmarks [[#384](https://github.com/panorama-ed/memo_wise/pull/384)]
+- Increased benchmark warmup time to reduce warmup artifacts when benchmarking locally [[#355](https://github.com/panorama-ed/memo_wise/pull/355)]
 
 ## [v1.11.0](https://github.com/panorama-ed/memo_wise/compare/v1.10.0...v1.11.0)
 
