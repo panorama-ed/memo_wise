@@ -286,7 +286,6 @@ Then carry out these steps:
 
      **Project enhancements:** none
      ```
-   - Commit with title `Update CHANGELOG.md for x.y.z`
 
 2. Update `lib/memo_wise/version.rb`
    - Replace with upcoming version _x.y.z_
