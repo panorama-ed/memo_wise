@@ -12,13 +12,13 @@ gem "gem_bench", "2.0.5"
 # NOTE: Regarding `require: false` below
 # 1. GitHub version of MemoWise and the local source of MemoWise share a namespace
 # 2. memery & alt_memery share the namespace Memery
-# 3. memoist & memoist3 share the namespace Memoist, and also share a load path for their version.rb files.
 # This means we must `require: false` in `benchmarks/Gemfile` all, or all but one, of each of these duplicates,
 #   or we take care to only load them in discrete Ruby versions,
 #   to avoid a namespace collision before re-namespacing duplicates
 gem "alt_memery", "2.1.0", require: false
 gem "dry-core", "1.1.0"
 gem "memery", "1.7.0"
-gem "memoist3", "1.0.0", require: false
+gem "memoist3", "1.0.0"
+gem "short_circu_it", "0.29.3"
 
 gem "memo_wise", github: "panorama-ed/memo_wise", branch: "main", require: false
