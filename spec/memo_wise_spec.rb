@@ -483,6 +483,43 @@ RSpec.describe MemoWise do
           expect(instance.child_class_method_counter).to eq(1)
         end
       end
+
+      context "when a module prepends MemoWise and defines `.included`" do
+        let(:module_to_include) do
+          Module.new do
+            prepend MemoWise
+
+            def self.included(base)
+              base.class_eval do
+                @internal_state = true
+              end
+            end
+
+            def method1
+              self.class.internal_state
+            end
+            memo_wise :method1
+          end
+        end
+
+        let(:klass) do
+          Class.new do
+            include ModuleToInclude
+
+            def self.internal_state
+              @internal_state ||= false
+            end
+          end
+        end
+
+        let(:instance) { klass.new }
+
+        before(:each) { stub_const("ModuleToInclude", module_to_include) }
+
+        it "calls module `.included` method" do
+          expect(instance.send(:method1)).to be true
+        end
+      end
     end
 
     context "with class methods" do

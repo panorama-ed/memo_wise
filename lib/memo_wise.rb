@@ -67,6 +67,7 @@ module MemoWise
   module CreateMemoWiseStateOnIncluded
     def included(base)
       base.prepend(MemoWise)
+      super
     end
   end
   private_constant(:CreateMemoWiseStateOnIncluded)
