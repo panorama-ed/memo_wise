@@ -265,14 +265,7 @@ the [code of conduct](https://github.com/panorama-ed/memo_wise/blob/main/CODE_OF
 ## Releasing
 
 To make a new release of `MemoWise` to
-[RubyGems](https://rubygems.org/gems/memo_wise), first install the `release`
-dependencies (e.g. `rake`) as follows:
-
-```shell
-BUNDLE_WITH=release bundle install
-```
-
-Then carry out these steps:
+[RubyGems](https://rubygems.org/gems/memo_wise):
 
 1. Update `CHANGELOG.md`:
    - Add an entry for the upcoming version _x.y.z_
@@ -292,7 +285,7 @@ Then carry out these steps:
    - Run `bundle install` to update `Gemfile.lock`
    - Commit with title `Bump version to x.y.z`
 
-3. `bundle exec rake release`
+3. `BUNDLE_WITH=release bundle install && BUNDLE_WITH=release bundle exec rake release`
 
 ## License
 
