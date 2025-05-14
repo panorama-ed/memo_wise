@@ -7,7 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.12.0...HEAD)
 
-**Gem enhancements:** none
+**Gem enhancements:**
+
+- Prevented overwriting of `included` in modules prepending `MemoWise` [[#387]](https://github.com/panorama-ed/memo_wise/pull/387))
 
 _No breaking changes!_
 
