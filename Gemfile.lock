@@ -1,12 +1,12 @@
 GIT
   remote: https://github.com/panorama-ed/panolint-ruby.git
-  revision: d19a2a048fcd61e5bdbaed5c1ebf4641fef79a9c
+  revision: 70994c5a8b9c75d7d86e6de453851d7ee880cfc1
   branch: main
   specs:
     panolint-ruby (0)
-      rubocop (= 1.72.1)
-      rubocop-performance (= 1.21.1)
-      rubocop-rspec (= 3.5.0)
+      rubocop (= 1.75.6)
+      rubocop-performance (= 1.25.0)
+      rubocop-rspec (= 3.6.0)
 
 PATH
   remote: .
@@ -24,8 +24,8 @@ GEM
       ansi
       rouge (~> 4)
       slop (~> 3)
-    json (2.11.3)
-    language_server-protocol (3.17.0.4)
+    json (2.12.2)
+    language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     minitest (5.18.0)
     parallel (1.27.0)
@@ -53,7 +53,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-support (3.13.4)
-    rubocop (1.72.1)
+    rubocop (1.75.6)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -61,16 +61,17 @@ GEM
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 2.9.3, < 3.0)
-      rubocop-ast (>= 1.38.0, < 2.0)
+      rubocop-ast (>= 1.44.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
     rubocop-ast (1.44.1)
       parser (>= 3.3.7.2)
       prism (~> 1.4)
-    rubocop-performance (1.21.1)
-      rubocop (>= 1.48.1, < 2.0)
-      rubocop-ast (>= 1.31.1, < 2.0)
-    rubocop-rspec (3.5.0)
+    rubocop-performance (1.25.0)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.75.0, < 2.0)
+      rubocop-ast (>= 1.38.0, < 2.0)
+    rubocop-rspec (3.6.0)
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
     ruby-progressbar (1.13.0)
