@@ -754,6 +754,14 @@ RSpec.describe MemoWise do
       end
     end
 
+    context "when a class inherits from a parent class where memo_wise is defined" do
+      include_context "with context for inherited class instance"
+
+      let(:target) { instance }
+
+      it_behaves_like "#memo_wise shared examples"
+    end
+
     context "with module mixed into other classes" do
       context "when extended" do
         context "when defined with 'def'" do
