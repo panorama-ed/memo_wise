@@ -88,6 +88,11 @@ module MemoWise
   #
   def self.prepended(target)
     class << target
+      def inherited(subclass)
+        super
+        subclass.prepend(MemoWise)
+      end
+
       # Allocator to set up memoization state before
       # [calling the original](https://medium.com/@jeremy_96642/ruby-method-auditing-using-module-prepend-4f4e69aacd95)
       # allocator.
