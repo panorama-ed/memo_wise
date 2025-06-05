@@ -1,4 +1,7 @@
 name: Main
+permissions:
+  contents: read
+  statuses: write
 on:
   pull_request:
     branches:
