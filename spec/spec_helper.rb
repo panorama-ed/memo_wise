@@ -3,6 +3,7 @@
 # Simplecov needs to be loaded before we require `memo_wise` in order to
 # properly track all memo_wise files
 if Gem.loaded_specs.key?("simplecov")
+  require "simplecov"
   require "simplecov-cobertura"
 
   SimpleCov.start do
