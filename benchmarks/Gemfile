@@ -15,7 +15,7 @@ gem "gem_bench", "2.0.5"
 # This means we must `require: false` in `benchmarks/Gemfile` all, or all but one, of each of these duplicates,
 #   or we take care to only load them in discrete Ruby versions,
 #   to avoid a namespace collision before re-namespacing duplicates
-gem "alt_memery", "2.1.0", require: false
+gem "alt_memery", "3.0.1", require: false
 gem "dry-core", "1.1.0"
 gem "memery", "1.7.0"
 gem "memoist3", "1.0.0"
