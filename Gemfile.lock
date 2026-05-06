@@ -90,7 +90,7 @@ GEM
     unicode-emoji (4.1.0)
     values (1.8.0)
     webrick (1.9.1)
-    yard (0.9.37)
+    yard (0.9.42)
     yard-doctest (0.1.17)
       minitest
       yard
