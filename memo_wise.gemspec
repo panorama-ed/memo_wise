@@ -14,14 +14,12 @@ Gem::Specification.new do |spec|
   # because the latter only loads a file once, and so by undefining the
   # `VERSION` constant we can make it difficult to access that value again
   # later. For more context, see: https://github.com/panorama-ed/memo_wise/pull/370#issuecomment-2560268423
-  spec.version = Module.new.tap do |mod|
-    # NOTE: We fully qualify `Kernel` here because Rubygems defines its own
-    # `load` method, which is used by default when this code is executed by
-    # `gem build memo_wise.gemspec`. That `load` method does not support the
-    # optional "wrap" parameter we pass through as `mod`. For more context, see:
-    # https://github.com/simplecov-ruby/simplecov/issues/557#issuecomment-2630782358
-    Kernel.load("lib/memo_wise/version.rb", mod)
-  end::MemoWise::VERSION
+  # NOTE: We fully qualify `Kernel` here because Rubygems defines its own
+  # `load` method, which is used by default when this code is executed by
+  # `gem build memo_wise.gemspec`. That `load` method does not support the
+  # optional "wrap" parameter we pass through as `mod`. For more context, see:
+  # https://github.com/simplecov-ruby/simplecov/issues/557#issuecomment-2630782358
+  spec.version = Module.new.tap { |mod| Kernel.load("#{__dir__}/lib/memo_wise/version.rb", mod) }::MemoWise::VERSION
   spec.summary = "The wise choice for Ruby memoization"
   spec.homepage = "https://github.com/panorama-ed/memo_wise"
   spec.license = "MIT"
