@@ -7,7 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.13.0...HEAD)
 
-**Gem enhancements:** none
+**Gem enhancements:**
+
+- Fixed issue with external tools loading `memo_wise.gemspec` from different directories [[#397]](https://github.com/panorama-ed/memo_wise/pull/397))
 
 _No breaking changes!_
 
