@@ -204,6 +204,109 @@ RSpec.describe MemoWise do
         expect(instance2.no_args_counter).to eq(0)
       end
 
+      %i[dup clone].each do |copy_method|
+        context "when an instance is copied with ##{copy_method}" do
+          let(:copy) { instance.send(copy_method) }
+
+          before :each do
+            instance.no_args
+            instance.with_one_positional_arg(1)
+          end
+
+          it "does not share memoized results with the original" do
+            copy.no_args
+            copy.with_one_positional_arg(1)
+
+            expect(copy.no_args_counter).to eq(2)
+            expect(copy.with_one_positional_arg_counter).to eq(2)
+          end
+
+          it "does not memoize into the original" do
+            copy.with_one_positional_arg(2)
+            instance.with_one_positional_arg(2)
+
+            expect(instance.with_one_positional_arg_counter).to eq(2)
+          end
+
+          it "does not reset the original's memoized results" do
+            copy.reset_memo_wise
+            instance.no_args
+
+            expect(instance.no_args_counter).to eq(1)
+          end
+
+          it "does not preset the original's memoized results" do
+            copy.preset_memo_wise(:no_args) { "preset" }
+
+            expect(instance.no_args).to eq("no_args")
+          end
+        end
+      end
+
+      context "when a frozen instance is copied with #clone" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            attr_reader :value
+
+            def initialize(value)
+              @value = value
+              freeze
+            end
+
+            def doubled
+              [value * 2]
+            end
+            memo_wise :doubled
+          end
+        end
+
+        it "gives the frozen copy its own memoized results" do
+          original = class_with_memo.new(1)
+          copy = original.clone
+
+          expect(copy).to be_frozen
+          expect(copy.doubled).to eq(original.doubled)
+          expect(copy.doubled).not_to be(original.doubled)
+        end
+      end
+
+      context "when the class defines #initialize_copy calling a memoized method" do
+        let(:class_with_memo) do
+          Class.new do
+            prepend MemoWise
+
+            attr_accessor :value
+            attr_reader :doubled_on_copy
+
+            def initialize(value)
+              @value = value
+            end
+
+            def initialize_copy(other)
+              super
+              @value = other.value + 1
+              @doubled_on_copy = doubled
+            end
+
+            def doubled
+              value * 2
+            end
+            memo_wise :doubled
+          end
+        end
+
+        it "does not use the original's memoized results while copying" do
+          original = class_with_memo.new(1)
+          original.doubled
+          copy = original.dup
+
+          expect(copy.doubled_on_copy).to eq(4)
+          expect(original.doubled).to eq(2)
+        end
+      end
+
       context "with protected methods" do
         it "keeps protected methods protected" do
           expect(target.protected_methods).to include(:protected_memowise_method)

@@ -48,6 +48,25 @@ module MemoWise
     end
   HEREDOC
 
+  # Copy constructor to give each copy made by
+  # [Object#dup](https://ruby-doc.org/3.3.1/Object.html#method-i-dup) or
+  # [Object#clone](https://ruby-doc.org/3.3.1/Object.html#method-i-clone) its
+  # own, empty memoization state.
+  #
+  # - **Q:** Why is this necessary?
+  # - **A:** `dup` and `clone` copy instance variables by reference, so without
+  #          this the copy would share its memoized results with the original:
+  #          memoizing or resetting a value on one would affect the other.
+  #
+  # The state is reset *before* calling the original `#initialize_copy`, so
+  # that memoized methods called from it do not use the original's state. This
+  # also works for frozen objects, because `clone` freezes the copy only after
+  # `#initialize_copy` has been called.
+  def initialize_copy(other)
+    @_memo_wise = {}
+    super
+  end
+
   module CreateMemoWiseStateOnExtended
     def extended(base)
       MemoWise::InternalAPI.create_memo_wise_state!(base)

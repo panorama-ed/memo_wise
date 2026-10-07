@@ -7,7 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased](https://github.com/panorama-ed/memo_wise/compare/v1.13.0...HEAD)
 
-**Gem enhancements:** none
+**Gem enhancements:**
+
+- Fixed copies made with `dup` and `clone` sharing memoized results with the original object [[#428]](https://github.com/panorama-ed/memo_wise/pull/428)
 
 _No breaking changes!_
 
