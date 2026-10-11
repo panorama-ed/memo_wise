@@ -43,7 +43,7 @@ jobs:
 
     - run: bundle exec rspec
 
-    - uses: codecov/codecov-action@v5
+    - uses: codecov/codecov-action@v7
       with:
         files: ./coverage/coverage.xml
         fail_ci_if_error: true # optional (default = false)
