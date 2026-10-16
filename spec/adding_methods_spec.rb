@@ -20,6 +20,7 @@ RSpec.describe "adding methods" do # rubocop:disable RSpec/DescribeClass
         memo_wise
         preset_memo_wise
         reset_memo_wise
+        inherited
       ].to_set
     end
 

@@ -105,6 +105,13 @@ module MemoWise
         MemoWise::InternalAPI.create_memo_wise_state!(super)
       end
 
+      # [`Class#inherited`](https://ruby-doc.org/3.3.1/Class.html#method-i-inherited) is used here
+      # to make MemoWise methods available in subclasses.
+      def inherited(subclass)
+        super
+        subclass.prepend(MemoWise)
+      end
+
       # NOTE: See YARD docs for {.memo_wise} directly below this method!
       def memo_wise(method_name_or_hash)
         klass = self
